@@ -11,6 +11,7 @@ import {
 import { InjectRepository, Repository } from "common/objection";
 import { Location } from "entities/location.entity";
 import { OmitType, PartialType } from "@nestjs/swagger";
+import { SocketGateway } from "modules/socket/socket.gateway";
 
 class CreateEntity extends OmitType(Location, ["id"] as const) {}
 
@@ -21,6 +22,7 @@ export class LocationController {
   constructor(
     @InjectRepository(Location)
     private readonly locationRepo: Repository<Location>,
+    private readonly socket: SocketGateway,
   ) {}
 
   @Get("/")
@@ -30,7 +32,10 @@ export class LocationController {
 
   @Post("/")
   async createOne(@Body("data") data: CreateEntity) {
-    return this.locationRepo.createOne(data);
+    return this.locationRepo.withEmit(
+      () => this.locationRepo.createOne(data),
+      () => this.socket.emit("update:location", {}),
+    );
   }
 
   @Get(":id")
@@ -40,16 +45,25 @@ export class LocationController {
 
   @Patch(":id")
   async patchOne(@Param("id") id: number, @Body("data") data: PatchEntity) {
-    return this.locationRepo.patchOne(id, data);
+    return this.locationRepo.withEmit(
+      () => this.locationRepo.patchOne(id, data),
+      () => this.socket.emit("update:location", {}),
+    );
   }
 
   @Put(":id")
   async replaceOne(@Param("id") id: number, @Body("data") data: CreateEntity) {
-    return this.locationRepo.replaceOne(id, data);
+    return this.locationRepo.withEmit(
+      () => this.locationRepo.replaceOne(id, data),
+      () => this.socket.emit("update:location", {}),
+    );
   }
 
   @Delete(":id")
   async deleteOne(@Param("id") id: number) {
-    return this.locationRepo.deleteOne(id);
+    return this.locationRepo.withEmit(
+      () => this.locationRepo.deleteOne(id),
+      () => this.socket.emit("update:location", {}),
+    );
   }
 }

@@ -80,4 +80,10 @@ export class Repository<TEntity extends Entity = Entity> {
       byHackathon ?? false,
     );
   }
+
+  async withEmit<T>(query: () => Promise<T>, after?: () => void): Promise<T> {
+    const result = await query();
+    await after?.();
+    return result;
+  }
 }

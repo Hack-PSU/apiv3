@@ -13,6 +13,7 @@ import { InjectRepository, Repository } from "common/objection";
 import { Event } from "entities/event.entity";
 import { OmitType, PartialType } from "@nestjs/swagger";
 import { SanitizeFieldsPipe } from "common/pipes";
+import { SocketGateway } from "modules/socket/socket.gateway";
 
 class CreateEntity extends OmitType(Event, ["id"] as const) {}
 
@@ -23,6 +24,7 @@ export class EventController {
   constructor(
     @InjectRepository(Event)
     private readonly eventRepo: Repository<Event>,
+    private readonly socket: SocketGateway,
   ) {}
 
   @Get("/")
@@ -33,7 +35,10 @@ export class EventController {
   @UsePipes(new SanitizeFieldsPipe(["description"]))
   @Post("/")
   async createOne(@Body("data") data: CreateEntity) {
-    return this.eventRepo.createOne(data);
+    return this.eventRepo.withEmit(
+      () => this.eventRepo.createOne(data),
+      () => this.socket.emit("update:event", {}),
+    );
   }
 
   @Get(":id")
@@ -43,16 +48,25 @@ export class EventController {
 
   @Patch(":id")
   async patchOne(@Param("id") id: string, @Body("data") data: PatchEntity) {
-    return this.eventRepo.patchOne(id, data, false);
+    return this.eventRepo.withEmit(
+      () => this.eventRepo.patchOne(id, data, false),
+      () => this.socket.emit("update:event", {}),
+    );
   }
 
   @Put(":id")
   async replaceOne(@Param("id") id: string, @Body("data") data: CreateEntity) {
-    return this.eventRepo.replaceOne(id, data, false);
+    return this.eventRepo.withEmit(
+      () => this.eventRepo.replaceOne(id, data, false),
+      () => this.socket.emit("update:event", {}),
+    );
   }
 
   @Delete(":id")
   async deleteOne(@Param("id") id: string) {
-    return this.eventRepo.deleteOne(id, false);
+    return this.eventRepo.withEmit(
+      () => this.eventRepo.deleteOne(id, false),
+      () => this.socket.emit("update:event", {}),
+    );
   }
 }

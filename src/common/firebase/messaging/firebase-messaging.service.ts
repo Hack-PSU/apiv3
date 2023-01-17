@@ -73,7 +73,7 @@ export class FirebaseMessagingService {
     );
   }
 
-  async sendBroadcastMessage(topic: DefaultTopic | string, payload: Payload) {
+  async sendTopicMessage(topic: DefaultTopic | string, payload: Payload) {
     const { title, body, isClickable, scheduleTime, data } = payload;
 
     const payloadData = FirebaseMessagingService._createDataPayload(

@@ -1,4 +1,4 @@
 export class FirestoreUser {
-  userPin: string;
-  fcmToken: string;
+  token: string;
+  updatedAt: number;
 }

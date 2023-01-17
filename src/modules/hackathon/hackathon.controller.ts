@@ -12,6 +12,7 @@ import { InjectRepository, Repository } from "common/objection";
 import { Hackathon } from "entities/hackathon.entity";
 import { OmitType, PartialType } from "@nestjs/swagger";
 import { Role, Roles } from "common/firebase";
+import { SocketGateway } from "modules/socket/socket.gateway";
 
 class UpdateEntity extends OmitType(Hackathon, ["id"] as const) {}
 
@@ -24,6 +25,7 @@ export class HackathonController {
   constructor(
     @InjectRepository(Hackathon)
     private readonly hackathonRepo: Repository<Hackathon>,
+    private readonly socket: SocketGateway,
   ) {}
 
   @Get("/")
@@ -38,11 +40,15 @@ export class HackathonController {
 
     await Hackathon.query().patch({ active: false }).where("active", true);
 
-    return this.hackathonRepo.createOne({
-      ...data,
-      id: newHackathonId,
-      active: true,
-    });
+    return this.hackathonRepo.withEmit(
+      () =>
+        this.hackathonRepo.createOne({
+          ...data,
+          id: newHackathonId,
+          active: true,
+        }),
+      () => this.socket.emit("update:hackathon", {}),
+    );
   }
 
   @Get("/active")
@@ -57,17 +63,26 @@ export class HackathonController {
 
   @Patch(":id")
   async patchOne(@Param("id") id: string, @Body("data") data: PatchEntity) {
-    return this.hackathonRepo.patchOne(id, data);
+    return this.hackathonRepo.withEmit(
+      () => this.hackathonRepo.patchOne(id, data),
+      () => this.socket.emit("update:hackathon", {}),
+    );
   }
 
   @Put(":id")
   async replaceOne(@Param("id") id: string, @Body("data") data: UpdateEntity) {
-    return this.hackathonRepo.replaceOne(id, data);
+    return this.hackathonRepo.withEmit(
+      () => this.hackathonRepo.replaceOne(id, data),
+      () => this.socket.emit("update:hackathon", {}),
+    );
   }
 
   @Delete(":id")
   async deleteOne(@Param("id") id: string) {
-    return this.hackathonRepo.deleteOne(id);
+    return this.hackathonRepo.withEmit(
+      () => this.hackathonRepo.deleteOne(id),
+      () => this.socket.emit("update:hackathon", {}),
+    );
   }
 
   @Post(":id/active")
@@ -76,6 +91,9 @@ export class HackathonController {
     await Hackathon.query().patch({ active: false }).where("active", true);
 
     // mark new hackathon as active
-    return this.hackathonRepo.patchOne(id, { active: true });
+    return this.hackathonRepo.withEmit(
+      () => this.hackathonRepo.patchOne(id, { active: true }),
+      () => this.socket.emit("update:hackathon", {}),
+    );
   }
 }
