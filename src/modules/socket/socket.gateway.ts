@@ -7,7 +7,7 @@ import {
   WebSocketServer,
 } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
-import { SocketRoom } from "modules/socket/socket.types";
+import { SocketRoom } from "common/socket";
 import { Role, Roles, RolesGuard } from "common/firebase";
 
 @Injectable()

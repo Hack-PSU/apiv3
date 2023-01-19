@@ -11,7 +11,7 @@ import { InjectRepository, Repository } from "common/objection";
 import { User } from "entities/user.entity";
 import { OmitType, PartialType } from "@nestjs/swagger";
 import { SocketGateway } from "modules/socket/socket.gateway";
-import { SocketRoom } from "modules/socket/socket.types";
+import { SocketRoom } from "common/socket";
 
 class CreateEntity extends OmitType(User, ["id"] as const) {}
 
