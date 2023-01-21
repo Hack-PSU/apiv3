@@ -15,7 +15,7 @@ import { Organizer } from "entities/organizer.entity";
 import { SocketGateway } from "modules/socket/socket.gateway";
 import { OmitType, PartialType } from "@nestjs/swagger";
 import { FirebaseAuthService } from "common/firebase";
-import { from, mergeMap, of, switchMap, take, toArray } from "rxjs";
+import { take, toArray } from "rxjs";
 import { OrganizerService } from "modules/organizer/organizer.service";
 import { SocketRoom } from "common/socket";
 
@@ -37,12 +37,9 @@ export class OrganizerController {
 
   @Get("/")
   async getAll() {
-    return from(this.organizerRepo.findAll().exec()).pipe(
-      mergeMap((organizers) =>
-        this.organizerService.injectUserRoles(organizers),
-      ),
-      toArray(),
-    );
+    const organizers = await this.organizerRepo.findAll().exec();
+
+    return this.organizerService.injectUserRoles(organizers).pipe(toArray());
   }
 
   @Post("/")
@@ -65,12 +62,9 @@ export class OrganizerController {
 
   @Get(":id")
   async getOne(@Param("id") id: string) {
-    return from(this.organizerRepo.findOne(id).exec()).pipe(
-      switchMap((organizer) =>
-        this.organizerService.injectUserRoles([organizer]),
-      ),
-      take(1),
-    );
+    const organizer = await this.organizerRepo.findOne(id).exec();
+
+    return this.organizerService.injectUserRoles([organizer]).pipe(take(1));
   }
 
   @Patch(":id")
@@ -83,12 +77,7 @@ export class OrganizerController {
 
     this.socket.emit("update:organizer", organizer, SocketRoom.ADMIN);
 
-    return of(organizer).pipe(
-      switchMap((organizer) =>
-        this.organizerService.injectUserRoles([organizer]),
-      ),
-      take(1),
-    );
+    return this.organizerService.injectUserRoles([organizer]).pipe(take(1));
   }
 
   @Put(":id")
@@ -98,12 +87,7 @@ export class OrganizerController {
     await this.auth.updateUserClaims(id, organizer.privilege);
     this.socket.emit("update:organizer", organizer, SocketRoom.ADMIN);
 
-    return of(organizer).pipe(
-      switchMap((organizer) =>
-        this.organizerService.injectUserRoles([organizer]),
-      ),
-      take(1),
-    );
+    return this.organizerService.injectUserRoles([organizer]).pipe(take(1));
   }
 
   @Delete(":id")

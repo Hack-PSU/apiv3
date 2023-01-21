@@ -1,6 +1,6 @@
 import { DynamicModule, Module, Type } from "@nestjs/common";
 import * as admin from "firebase-admin";
-import { FirestoreEntity } from "common/firebase/firestore/firebase-firestore.constants";
+import { FirestoreEntity } from "./firebase-firestore.constants";
 
 type EntitySchema = {
   schema: any;
