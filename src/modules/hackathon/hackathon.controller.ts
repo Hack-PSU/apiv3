@@ -31,7 +31,7 @@ export class HackathonController {
   @Get("/")
   @Roles(Role.TEAM)
   async getAll() {
-    return this.hackathonRepo.findAll();
+    return this.hackathonRepo.findAll().exec();
   }
 
   @Post("/")
@@ -40,15 +40,17 @@ export class HackathonController {
 
     await Hackathon.query().patch({ active: false }).where("active", true);
 
-    return this.hackathonRepo.withEmit(
-      () =>
-        this.hackathonRepo.createOne({
-          ...data,
-          id: newHackathonId,
-          active: true,
-        }),
-      () => this.socket.emit("update:hackathon", {}),
-    );
+    const newHackathon = await this.hackathonRepo
+      .createOne({
+        ...data,
+        id: newHackathonId,
+        active: true,
+      })
+      .exec();
+
+    this.socket.emit("create:hackathon", newHackathon);
+
+    return newHackathon;
   }
 
   @Get("/active")
@@ -58,31 +60,31 @@ export class HackathonController {
 
   @Get(":id")
   async getOne(@Param("id") id: string) {
-    return this.hackathonRepo.findOne(id);
+    return this.hackathonRepo.findOne(id).exec();
   }
 
   @Patch(":id")
   async patchOne(@Param("id") id: string, @Body("data") data: PatchEntity) {
-    return this.hackathonRepo.withEmit(
-      () => this.hackathonRepo.patchOne(id, data),
-      () => this.socket.emit("update:hackathon", {}),
-    );
+    const hackathon = await this.hackathonRepo.patchOne(id, data).exec();
+    this.socket.emit("update:hackathon", hackathon);
+
+    return hackathon;
   }
 
   @Put(":id")
   async replaceOne(@Param("id") id: string, @Body("data") data: UpdateEntity) {
-    return this.hackathonRepo.withEmit(
-      () => this.hackathonRepo.replaceOne(id, data),
-      () => this.socket.emit("update:hackathon", {}),
-    );
+    const hackathon = await this.hackathonRepo.replaceOne(id, data).exec();
+    this.socket.emit("update:hackathon", hackathon);
+
+    return hackathon;
   }
 
   @Delete(":id")
   async deleteOne(@Param("id") id: string) {
-    return this.hackathonRepo.withEmit(
-      () => this.hackathonRepo.deleteOne(id),
-      () => this.socket.emit("update:hackathon", {}),
-    );
+    const hackathon = await this.hackathonRepo.deleteOne(id).exec();
+    this.socket.emit("delete:hackathon", hackathon);
+
+    return hackathon;
   }
 
   @Post(":id/active")
@@ -91,9 +93,12 @@ export class HackathonController {
     await Hackathon.query().patch({ active: false }).where("active", true);
 
     // mark new hackathon as active
-    return this.hackathonRepo.withEmit(
-      () => this.hackathonRepo.patchOne(id, { active: true }),
-      () => this.socket.emit("update:hackathon", {}),
-    );
+    const hackathon = await this.hackathonRepo
+      .patchOne(id, { active: true })
+      .exec();
+
+    this.socket.emit("update:hackathon", hackathon);
+
+    return hackathon;
   }
 }

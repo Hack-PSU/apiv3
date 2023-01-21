@@ -8,6 +8,7 @@ import { EventModule } from "modules/event/event.module";
 import { UserModule } from "modules/user/user.module";
 import { FirebaseModule } from "common/firebase";
 import { SocketModule } from "modules/socket/socket.module";
+import { OrganizerModule } from "modules/organizer/organizer.module";
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { SocketModule } from "modules/socket/socket.module";
     LocationModule,
     EventModule,
     UserModule,
+    OrganizerModule,
 
     // WebSocket
     SocketModule,

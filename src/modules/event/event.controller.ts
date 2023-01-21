@@ -29,44 +29,44 @@ export class EventController {
 
   @Get("/")
   async getAll() {
-    return this.eventRepo.findAll();
+    return this.eventRepo.findAll().byHackathon();
   }
 
   @UsePipes(new SanitizeFieldsPipe(["description"]))
   @Post("/")
   async createOne(@Body("data") data: CreateEntity) {
-    return this.eventRepo.withEmit(
-      () => this.eventRepo.createOne(data),
-      () => this.socket.emit("update:event", {}),
-    );
+    const event = await this.eventRepo.createOne(data).exec();
+    this.socket.emit("create:event", event);
+
+    return event;
   }
 
   @Get(":id")
   async getOne(@Param("id") id: string) {
-    return this.eventRepo.findOne(id, false);
+    return this.eventRepo.findOne(id).exec();
   }
 
   @Patch(":id")
   async patchOne(@Param("id") id: string, @Body("data") data: PatchEntity) {
-    return this.eventRepo.withEmit(
-      () => this.eventRepo.patchOne(id, data, false),
-      () => this.socket.emit("update:event", {}),
-    );
+    const event = await this.eventRepo.patchOne(id, data).exec();
+    this.socket.emit("update:event", event);
+
+    return event;
   }
 
   @Put(":id")
   async replaceOne(@Param("id") id: string, @Body("data") data: CreateEntity) {
-    return this.eventRepo.withEmit(
-      () => this.eventRepo.replaceOne(id, data, false),
-      () => this.socket.emit("update:event", {}),
-    );
+    const event = await this.eventRepo.replaceOne(id, data).exec();
+    this.socket.emit("update:event", event);
+
+    return event;
   }
 
   @Delete(":id")
   async deleteOne(@Param("id") id: string) {
-    return this.eventRepo.withEmit(
-      () => this.eventRepo.deleteOne(id, false),
-      () => this.socket.emit("update:event", {}),
-    );
+    const event = await this.eventRepo.deleteOne(id).exec();
+    this.socket.emit("delete:event", event);
+
+    return event;
   }
 }

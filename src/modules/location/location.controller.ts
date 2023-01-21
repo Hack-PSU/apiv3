@@ -27,43 +27,43 @@ export class LocationController {
 
   @Get("/")
   async getAll() {
-    return this.locationRepo.findAll();
+    return this.locationRepo.findAll().exec();
   }
 
   @Post("/")
   async createOne(@Body("data") data: CreateEntity) {
-    return this.locationRepo.withEmit(
-      () => this.locationRepo.createOne(data),
-      () => this.socket.emit("update:location", {}),
-    );
+    const location = await this.locationRepo.createOne(data).exec();
+    this.socket.emit("create:location", location);
+
+    return location;
   }
 
   @Get(":id")
   async getOne(@Param("id") id: number) {
-    return this.locationRepo.findOne(id);
+    return this.locationRepo.findOne(id).exec();
   }
 
   @Patch(":id")
   async patchOne(@Param("id") id: number, @Body("data") data: PatchEntity) {
-    return this.locationRepo.withEmit(
-      () => this.locationRepo.patchOne(id, data),
-      () => this.socket.emit("update:location", {}),
-    );
+    const location = await this.locationRepo.patchOne(id, data).exec();
+    this.socket.emit("update:location", location);
+
+    return location;
   }
 
   @Put(":id")
   async replaceOne(@Param("id") id: number, @Body("data") data: CreateEntity) {
-    return this.locationRepo.withEmit(
-      () => this.locationRepo.replaceOne(id, data),
-      () => this.socket.emit("update:location", {}),
-    );
+    const location = await this.locationRepo.replaceOne(id, data).exec();
+    this.socket.emit("update:location", location);
+
+    return location;
   }
 
   @Delete(":id")
   async deleteOne(@Param("id") id: number) {
-    return this.locationRepo.withEmit(
-      () => this.locationRepo.deleteOne(id),
-      () => this.socket.emit("update:location", {}),
-    );
+    const location = await this.locationRepo.deleteOne(id).exec();
+    this.socket.emit("delete:location", location);
+
+    return location;
   }
 }

@@ -5,7 +5,11 @@ import {
   FirebaseAppProvider,
   FirebaseConfigProvider,
 } from "./firebase.constants";
-import { FirebaseAuthModule } from "common/firebase/auth";
+import { FirebaseAuthModule, FirebaseAuthService } from "common/firebase/auth";
+import { HttpModule } from "@nestjs/axios";
+
+// FirebaseModule is a global module that allows FirebaseAuth to be injected
+// into submodules.
 
 @Global()
 @Module({})
@@ -26,9 +30,13 @@ export class FirebaseModule {
 
     return {
       module: FirebaseModule,
-      imports: [...options.imports, FirebaseAuthModule],
-      providers: [firebaseConfigProvider, firebaseAppProvider],
-      exports: [firebaseAppProvider],
+      imports: [...options.imports, HttpModule, FirebaseAuthModule],
+      providers: [
+        firebaseConfigProvider,
+        firebaseAppProvider,
+        FirebaseAuthService,
+      ],
+      exports: [firebaseAppProvider, FirebaseAuthService],
     };
   }
 }

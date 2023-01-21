@@ -4,6 +4,11 @@ import { Injectable } from "@nestjs/common";
 import { QueryBuilder } from "common/objection/query-builder";
 import { Hackathon } from "entities/hackathon.entity";
 
+type StagedQuery<TResponse> = {
+  exec(): Promise<TResponse>;
+  byHackathon(hackathonId?: string): Promise<TResponse>;
+};
+
 @Injectable()
 export class Repository<TEntity extends Entity = Entity> {
   constructor(
@@ -13,9 +18,9 @@ export class Repository<TEntity extends Entity = Entity> {
 
   private async _resolveWithHackathon(
     query: QueryBuilder<any, any>,
-    byHackathon?: string | boolean,
+    byHackathon?: string,
   ) {
-    if (this.disableByHackathon || byHackathon === false) {
+    if (this.disableByHackathon) {
       return query;
     }
 
@@ -31,59 +36,37 @@ export class Repository<TEntity extends Entity = Entity> {
     }
   }
 
-  async findOne(
-    id: string | number,
-    byHackathon?: string | boolean,
-  ): Promise<TEntity> {
-    return this._resolveWithHackathon(
-      this.model.query().findById(id),
-      byHackathon ?? false,
-    );
+  private _stageQuery<TResponse>(
+    query: QueryBuilder<any, any>,
+  ): StagedQuery<TResponse> {
+    return {
+      exec: async () => query,
+      byHackathon: async (hackathonId?: string) =>
+        this._resolveWithHackathon(query, hackathonId),
+    };
   }
 
-  async findAll(byHackathon?: string | boolean): Promise<TEntity[]> {
-    return this._resolveWithHackathon(this.model.query(), byHackathon);
+  findOne(id: string | number): StagedQuery<TEntity> {
+    return this._stageQuery(this.model.query().findById(id));
   }
 
-  async replaceOne(
-    id: string | number,
-    data: any,
-    byHackathon?: string | boolean,
-  ): Promise<TEntity> {
-    return this._resolveWithHackathon(
-      this.model.query().updateAndFetchById(id, data),
-      byHackathon ?? false,
-    );
+  findAll(): StagedQuery<TEntity[]> {
+    return this._stageQuery(this.model.query());
   }
 
-  async patchOne(
-    id: string | number,
-    data: any,
-    byHackathon?: string | boolean,
-  ): Promise<TEntity> {
-    return this._resolveWithHackathon(
-      this.model.query().patchAndFetchById(id, data),
-      byHackathon ?? false,
-    );
+  replaceOne(id: string | number, data: any): StagedQuery<TEntity> {
+    return this._stageQuery(this.model.query().updateAndFetchById(id, data));
   }
 
-  async createOne(data: any): Promise<TEntity> {
-    return (await this.model.query().insertAndFetch(data)) as TEntity;
+  patchOne(id: string | number, data: any): StagedQuery<TEntity> {
+    return this._stageQuery(this.model.query().patchAndFetchById(id, data));
   }
 
-  async deleteOne(
-    id: string | number,
-    byHackathon?: string | boolean,
-  ): Promise<TEntity> {
-    return this._resolveWithHackathon(
-      this.model.query().deleteById(id),
-      byHackathon ?? false,
-    );
+  createOne(data: any): StagedQuery<TEntity> {
+    return this._stageQuery(this.model.query().insertAndFetch(data));
   }
 
-  async withEmit<T>(query: () => Promise<T>, after?: () => void): Promise<T> {
-    const result = await query();
-    await after?.();
-    return result;
+  deleteOne(id: string | number): StagedQuery<TEntity> {
+    return this._stageQuery(this.model.query().deleteById(id));
   }
 }

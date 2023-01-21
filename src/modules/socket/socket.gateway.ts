@@ -1,16 +1,19 @@
-import { Injectable, UseGuards } from "@nestjs/common";
+import { UseGuards } from "@nestjs/common";
 import {
   ConnectedSocket,
   OnGatewayConnection,
   OnGatewayInit,
   SubscribeMessage,
+  WebSocketGateway,
   WebSocketServer,
 } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
 import { SocketRoom } from "common/socket";
 import { Role, Roles, RolesGuard } from "common/firebase";
 
-@Injectable()
+@WebSocketGateway({
+  namespace: "socket",
+})
 export class SocketGateway implements OnGatewayInit, OnGatewayConnection {
   @WebSocketServer() public socket: Server;
 

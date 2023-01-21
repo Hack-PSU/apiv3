@@ -11,7 +11,6 @@ import { InjectRepository, Repository } from "common/objection";
 import { User } from "entities/user.entity";
 import { OmitType, PartialType } from "@nestjs/swagger";
 import { SocketGateway } from "modules/socket/socket.gateway";
-import { SocketRoom } from "common/socket";
 
 class CreateEntity extends OmitType(User, ["id"] as const) {}
 
@@ -27,40 +26,43 @@ export class UserController {
 
   @Get("/")
   async getAll() {
-    return this.userRepo.findAll();
+    return this.userRepo.findAll().byHackathon();
   }
 
   @Post("/")
   async createOne(@Body("data") data: CreateEntity) {
-    return this.userRepo.createOne(data);
+    const user = await this.userRepo.createOne(data).exec();
+    this.socket.emit("create:user", user);
+
+    return user;
   }
 
   @Get(":id")
   async getOne(id: string) {
-    return this.userRepo.findOne(id);
+    return this.userRepo.findOne(id).byHackathon();
   }
 
   @Patch(":id")
   async patchOne(id: string, @Body("data") data: PatchEntity) {
-    return this.userRepo.withEmit(
-      () => this.userRepo.patchOne(id, data),
-      () => this.socket.emit("update:user", {}, SocketRoom.MOBILE),
-    );
+    const user = await this.userRepo.patchOne(id, data).exec();
+    this.socket.emit("update:user", user);
+
+    return user;
   }
 
   @Put(":id")
   async replaceOne(id: string, @Body("data") data: CreateEntity) {
-    return this.userRepo.withEmit(
-      () => this.userRepo.replaceOne(id, data),
-      () => this.socket.emit("update:user", {}, SocketRoom.MOBILE),
-    );
+    const user = await this.userRepo.replaceOne(id, data).exec();
+    this.socket.emit("update:user", user);
+
+    return user;
   }
 
   @Delete(":id")
   async deleteOne(id: string) {
-    return this.userRepo.withEmit(
-      () => this.userRepo.deleteOne(id),
-      () => this.socket.emit("update:user", {}, SocketRoom.MOBILE),
-    );
+    const user = await this.userRepo.deleteOne(id).exec();
+    this.socket.emit("update:user", user);
+
+    return user;
   }
 }
