@@ -3,6 +3,7 @@ import { ModelClass } from "objection";
 import { Injectable } from "@nestjs/common";
 import { QueryBuilder } from "common/objection/query-builder";
 import { Hackathon } from "entities/hackathon.entity";
+import { TableMetadataKey } from "common/objection/decorators/decorator.constants";
 
 type StagedQuery<TResponse> = {
   exec(): Promise<TResponse>;
@@ -20,7 +21,11 @@ export class Repository<TEntity extends Entity = Entity> {
     query: QueryBuilder<any, any>,
     byHackathon?: string,
   ) {
-    if (this.disableByHackathon) {
+    // defined in @Table decorator
+    const metadata =
+      Reflect.getOwnMetadata(TableMetadataKey, this.model.prototype) || {};
+
+    if (metadata?.disableByHackathon || this.disableByHackathon) {
       return query;
     }
 
@@ -30,7 +35,7 @@ export class Repository<TEntity extends Entity = Entity> {
         .where("hackathons.id", byHackathon);
     } else {
       return query.where(
-        "hackathonId",
+        metadata?.hackathonId ?? "hackathonId",
         Hackathon.query().select("id").where("active", true),
       );
     }

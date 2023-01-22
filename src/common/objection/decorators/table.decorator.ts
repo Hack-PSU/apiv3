@@ -3,7 +3,11 @@
 
 import { Model, Modifiers, RelationMappings } from "objection";
 import { QueryBuilder } from "../query-builder";
-import { TableIDKey, TableSchemaKey } from "./decorator.constants";
+import {
+  TableIDKey,
+  TableMetadataKey,
+  TableSchemaKey,
+} from "./decorator.constants";
 
 type TableOptions<T extends Model> = {
   name: string;
@@ -17,6 +21,8 @@ export function Table<T extends Model>(
   options: TableOptions<T>,
 ): ClassDecorator {
   return function (constructor) {
+    Reflect.defineMetadata(TableMetadataKey, options, constructor.prototype);
+
     // @ts-ignore
     constructor.tableName = options.name;
 
@@ -27,7 +33,7 @@ export function Table<T extends Model>(
     if (!options.disableByHackathon && options.hackathonId) {
       // @ts-ignore
       constructor.relationMappings = {
-        hackathon: {
+        hackathons: {
           relation: Model.BelongsToOneRelation,
           modelClass: "Hackathon",
           join: {

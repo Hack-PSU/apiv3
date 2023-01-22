@@ -26,19 +26,15 @@ export class ObjectionModule {
   static forFeature(entities: EntityOrCustom[]): DynamicModule {
     const modelProviders = entities.map((entity) => {
       if (isCustomEntity(entity)) {
-        if (entity.schema.name !== "Hackathon") {
-          return {
-            provide: `${ObjectionBaseEntityProvider}${entity.schema.name}`,
-            useValue: new Repository(entity.schema, entity.disableByHackathon),
-          };
-        }
+        return {
+          provide: `${ObjectionBaseEntityProvider}${entity.schema.name}`,
+          useValue: new Repository(entity.schema, entity.disableByHackathon),
+        };
       } else {
-        if (entity.name !== "Hackathon") {
-          return {
-            provide: `${ObjectionBaseEntityProvider}${entity.name}`,
-            useValue: new Repository(entity),
-          };
-        }
+        return {
+          provide: `${ObjectionBaseEntityProvider}${entity.name}`,
+          useValue: new Repository(entity),
+        };
       }
     });
 
