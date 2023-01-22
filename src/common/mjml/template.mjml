@@ -1,0 +1,58 @@
+<mjml>
+  <mj-head>
+    <mj-preview>
+      {{ previewText }}
+    </mj-preview>
+  </mj-head>
+  <mj-body>
+    <mj-section>
+      <mj-column>
+        <mj-image width="120px" align="center" src="https://firebasestorage.googleapis.com/v0/b/hackpsu18.appspot.com/o/email-template%2Fassets%2Flogo.png?alt=media&token=c036606a-27bc-4e7d-a5e2-1593a99ea185" />
+        <mj-divider border-color="#E37051" border-width="1px" />
+        <mj-divider border-color="#E37051" border-width="1px" padding-top="20px"/>
+        <mj-text align="center" font-size="26px">
+          LEARN.
+          <span style="color: #E37051">BUILD</span>.
+          <span style="color: #6D89B5">SHARE</span>.
+        </mj-text>
+        <mj-divider border-color="#E37051" border-width="1px" />
+      </mj-column>
+    </mj-section>
+    {{{ body }}}
+    <mj-section>
+      <mj-column>
+        <mj-divider border-color="#E37051" border-width="1px" />
+      </mj-column>
+    </mj-section>
+    <mj-section background-color="#193752">
+      <mj-column>
+        <mj-social inner-padding="8px" icon-size="25px">
+          <mj-social-element href="https://www.facebook.com/HackPSU" border-radius="100%" src="https://firebasestorage.googleapis.com/v0/b/hackpsu18.appspot.com/o/email-template%2Fassets%2Ffacebook-outline.png?alt=media&token=825bdc08-4d3f-4593-a764-c83dd790f4d3" />
+          <mj-social-element href="https://twitter.com/hackpsu" border-radius="100%" src="https://firebasestorage.googleapis.com/v0/b/hackpsu18.appspot.com/o/email-template%2Fassets%2Ftwitter-outline.png?alt=media&token=95d327b4-6d64-40eb-b2cb-08f9097df578" />
+          <mj-social-element href="https://www.instagram.com/hack_psu/" border-radius="100%" src="https://firebasestorage.googleapis.com/v0/b/hackpsu18.appspot.com/o/email-template%2Fassets%2Finstagram-outline.png?alt=media&token=f6dfab09-4224-4501-bf37-fdd8781abdd6" />
+          <mj-social-element href="https://hackpsu.org/live" border-radius="100%" src="https://firebasestorage.googleapis.com/v0/b/hackpsu18.appspot.com/o/email-template%2Fassets%2Foutline-link.png?alt=media&token=eed0a211-dcb8-42a5-9be8-5d80afb752dc" />
+        </mj-social>
+
+        <mj-text align="center" color="white" font-size="10px">
+          <i>Copyright</i> &#169; 2023 &#124; <i>HackPSU, All rights reserved</i>
+        </mj-text>
+
+        <mj-spacer height="10px" />
+
+        <mj-text align="center" color="white" font-size="12px">
+          <span style="font-weight: bold;">Our mailing address is:</span>
+        </mj-text>
+
+        <mj-text padding="0" align="center" color="white" font-size="12px">
+          <a href="mailto:communication@hackpsu.org" style="color: white; font-size: 12px;">communication@hackpsu.org</a>
+        </mj-text>
+
+        <mj-spacer height="20px" />
+
+        <mj-text align="center" color="white">
+          Just send us an email if you wish to stop receiving these emails
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>
