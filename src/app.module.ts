@@ -9,6 +9,8 @@ import { UserModule } from "modules/user/user.module";
 import { FirebaseModule } from "common/firebase";
 import { SocketModule } from "modules/socket/socket.module";
 import { OrganizerModule } from "modules/organizer/organizer.module";
+import { MailModule } from "modules/mail/mail.module";
+import { JudgingModule } from "modules/judging/judging.module";
 
 @Module({
   imports: [
@@ -39,9 +41,13 @@ import { OrganizerModule } from "modules/organizer/organizer.module";
     EventModule,
     UserModule,
     OrganizerModule,
+    JudgingModule,
 
     // WebSocket
     SocketModule,
+
+    // Mail
+    MailModule,
   ],
 })
 export class AppModule {}

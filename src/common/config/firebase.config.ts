@@ -11,6 +11,7 @@ export const firebaseConfig = registerAs<FirebaseConfig>(
       const serviceAccount = require(process.env.GOOGLE_CERT);
       return {
         credential: admin.credential.cert(serviceAccount),
+        storageBucket: `${process.env.STAGING_STORAGE}.appspot.com`,
       };
     } else {
       return {
