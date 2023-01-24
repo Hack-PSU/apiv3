@@ -4,6 +4,40 @@ import Objection from "objection";
 
 @Table({
   name: "hackathons",
+  relationMappings: {
+    scores: {
+      relation: Entity.HasManyRelation,
+      modelClass: "score.entity.js",
+      join: {
+        from: "hackathons.id",
+        to: "scores.hackathonId",
+      },
+    },
+    events: {
+      relation: Entity.HasManyRelation,
+      modelClass: "event.entity.js",
+      join: {
+        from: "hackathons.id",
+        to: "events.hackathonId",
+      },
+    },
+    projects: {
+      relation: Entity.HasManyRelation,
+      modelClass: "project.entity.js",
+      join: {
+        from: "hackathons.id",
+        to: "projects.hackathonId",
+      },
+    },
+    users: {
+      relation: Entity.HasManyRelation,
+      modelClass: "user.entity.js",
+      join: {
+        from: "hackathon.id",
+        to: "users.hackathonId",
+      },
+    },
+  },
 })
 export class Hackathon extends Entity {
   @ID({ type: "string" })
@@ -13,10 +47,10 @@ export class Hackathon extends Entity {
   name: string;
 
   @Column({ type: "integer" })
-  startTime: string;
+  startTime: number;
 
   @Column({ type: "integer" })
-  endTime: string;
+  endTime: number;
 
   @Column({ type: "boolean" })
   active: boolean;

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // ts-ignore required to inject static properties into constructor
 
-import { Model, Modifiers, RelationMappings } from "objection";
+import { Model, Modifiers, Relation, RelationMappings } from "objection";
 import { QueryBuilder } from "../query-builder";
 import {
   TableIDKey,
@@ -15,6 +15,20 @@ type TableOptions<T extends Model> = {
   disableByHackathon?: boolean;
   hackathonId?: string;
   relationMappings?: RelationMappings;
+};
+
+const resolveRelations = (relations?: RelationMappings): RelationMappings => {
+  if (!relations) {
+    return {};
+  }
+
+  return Object.entries(relations).reduce((acc, curr) => {
+    acc[curr[0]] = {
+      ...curr[1],
+      modelClass: `${(curr[1].modelClass as string).toLowerCase()}.entity.js`,
+    };
+    return acc;
+  }, {} as RelationMappings);
 };
 
 export function Table<T extends Model>(
@@ -33,9 +47,9 @@ export function Table<T extends Model>(
     if (!options.disableByHackathon && options.hackathonId) {
       // @ts-ignore
       constructor.relationMappings = {
-        hackathons: {
+        hackathon: {
           relation: Model.BelongsToOneRelation,
-          modelClass: "Hackathon",
+          modelClass: "hackathon.entity.ts",
           join: {
             from: `${options.name}.${options.hackathonId}`,
             to: "hackathons.id",

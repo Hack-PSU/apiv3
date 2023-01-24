@@ -1,14 +1,6 @@
 import { SetMetadata } from "@nestjs/common";
 import { FirebaseAuthRoles } from "./firebase-auth.constants";
-
-export enum Role {
-  NONE,
-  VOLUNTEER,
-  TEAM,
-  EXEC,
-  TECH,
-  FINANCE,
-}
+import { Role } from "./firebase-auth.types";
 
 export const Roles = (...access: Role[]) =>
   SetMetadata(FirebaseAuthRoles, access);

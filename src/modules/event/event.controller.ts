@@ -14,6 +14,7 @@ import { Event } from "entities/event.entity";
 import { OmitType, PartialType } from "@nestjs/swagger";
 import { SanitizeFieldsPipe } from "common/pipes";
 import { SocketGateway } from "modules/socket/socket.gateway";
+import { nanoid } from "nanoid";
 
 class CreateEntity extends OmitType(Event, ["id"] as const) {}
 
@@ -35,7 +36,13 @@ export class EventController {
   @UsePipes(new SanitizeFieldsPipe(["description"]))
   @Post("/")
   async createOne(@Body("data") data: CreateEntity) {
-    const event = await this.eventRepo.createOne(data).exec();
+    const event = await this.eventRepo
+      .createOne({
+        id: nanoid(),
+        ...data,
+      })
+      .exec();
+
     this.socket.emit("create:event", event);
 
     return event;

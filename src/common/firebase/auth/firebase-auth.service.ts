@@ -1,9 +1,11 @@
 import { Injectable } from "@nestjs/common";
 import { HttpService } from "@nestjs/axios";
 import { FirebaseAuthJWTKeySets } from "common/firebase/auth/firebase-auth.constants";
-import { Role } from "common/firebase/auth/roles.decorator";
+import { Role } from "./firebase-auth.types";
 import jwtDecode, { JwtPayload } from "jwt-decode";
 import * as admin from "firebase-admin";
+import { Request } from "express";
+import { RestrictedEndpointHandler } from "common/firebase";
 
 type FirebaseJwtPayload = JwtPayload & { privilege?: number };
 
@@ -11,20 +13,61 @@ type FirebaseJwtPayload = JwtPayload & { privilege?: number };
 export class FirebaseAuthService {
   constructor(private readonly httpService: HttpService) {}
 
+  private decodeToken(token: string) {
+    return jwtDecode(token) as FirebaseJwtPayload;
+  }
+
+  private validateAccess(user: any, access?: Role[]) {
+    if (!access) {
+      return true;
+    }
+
+    return access.every((role) => user.privilege && user.privilege >= role);
+  }
+
+  extractAuthToken(token: string) {
+    if (token.startsWith("Bearer")) {
+      return token.replace("Bearer ", "");
+    }
+    return token;
+  }
+
   getJWTKeys() {
     return this.httpService.get(FirebaseAuthJWTKeySets);
   }
 
-  validateHttpUser(user: any, access: Role[]) {
-    return access.every((role) => user.privilege && user.privilege >= role);
+  // Only use for HTTP
+  validateRestrictedAccess(
+    request: any,
+    handler?: RestrictedEndpointHandler,
+    access?: Role[],
+  ): boolean {
+    if (!handler) {
+      return true;
+    }
+
+    const resource = handler(request);
+    const user = request.user;
+
+    if (user && user.sub && resource !== user.sub) {
+      return false;
+    }
+
+    if (!access) {
+      return true;
+    }
+
+    return this.validateHttpUser(user, access);
   }
 
-  validateWsUser(token: string, access: Role[]) {
-    const decodedToken = jwtDecode(token) as FirebaseJwtPayload;
+  validateHttpUser(user: any, access?: Role[]) {
+    return this.validateAccess(user, access);
+  }
+
+  validateWsUser(token: string, access?: Role[]) {
+    const decodedToken = this.decodeToken(token);
     if (decodedToken) {
-      return access.every(
-        (role) => decodedToken.privilege && decodedToken.privilege >= role,
-      );
+      return this.validateAccess(decodedToken, access);
     }
     return false;
   }

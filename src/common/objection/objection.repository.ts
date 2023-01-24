@@ -6,9 +6,12 @@ import { Hackathon } from "entities/hackathon.entity";
 import { TableMetadataKey } from "common/objection/decorators/decorator.constants";
 
 type StagedQuery<TResponse> = {
+  raw(): QueryBuilder<any, any>;
   exec(): Promise<TResponse>;
-  byHackathon(hackathonId?: string): Promise<TResponse>;
+  byHackathon(hackathonId?: string): QueryBuilder<any, any>;
 };
+
+type LazyQuery = (qb: QueryBuilder<any, any>) => QueryBuilder<any, any>;
 
 @Injectable()
 export class Repository<TEntity extends Entity = Entity> {
@@ -17,61 +20,57 @@ export class Repository<TEntity extends Entity = Entity> {
     private readonly disableByHackathon: boolean = false,
   ) {}
 
-  private async _resolveWithHackathon(
-    query: QueryBuilder<any, any>,
+  private _resolveWithHackathon(
+    query: LazyQuery,
     byHackathon?: string,
-  ) {
+  ): QueryBuilder<any, any> {
     // defined in @Table decorator
     const metadata =
       Reflect.getOwnMetadata(TableMetadataKey, this.model.prototype) || {};
 
     if (metadata?.disableByHackathon || this.disableByHackathon) {
-      return query;
+      return query(this.model.query());
     }
 
+    const relatedQuery = Hackathon.relatedQuery(this.model.tableName);
+
     if (byHackathon) {
-      return query
-        .joinRelated("hackathons")
-        .where("hackathons.id", byHackathon);
+      return query(relatedQuery.for(byHackathon));
     } else {
-      return query.where(
-        metadata?.hackathonId ?? "hackathonId",
-        Hackathon.query().select("id").where("active", true),
-      );
+      return query(relatedQuery.for(Hackathon.query().where("active", true)));
     }
   }
 
-  private _stageQuery<TResponse>(
-    query: QueryBuilder<any, any>,
-  ): StagedQuery<TResponse> {
+  private _stageQuery<TEntity>(query: LazyQuery): StagedQuery<TEntity> {
     return {
-      exec: async () => query,
-      byHackathon: async (hackathonId?: string) =>
+      raw: () => query(this.model.query()),
+      exec: async () => await query(this.model.query()),
+      byHackathon: (hackathonId?: string) =>
         this._resolveWithHackathon(query, hackathonId),
     };
   }
 
   findOne(id: string | number): StagedQuery<TEntity> {
-    return this._stageQuery(this.model.query().findById(id));
+    return this._stageQuery((qb) => qb.findById(id));
   }
 
   findAll(): StagedQuery<TEntity[]> {
-    return this._stageQuery(this.model.query());
+    return this._stageQuery((qb) => qb);
   }
 
   replaceOne(id: string | number, data: any): StagedQuery<TEntity> {
-    return this._stageQuery(this.model.query().updateAndFetchById(id, data));
+    return this._stageQuery((qb) => qb.updateAndFetchById(id, data));
   }
 
   patchOne(id: string | number, data: any): StagedQuery<TEntity> {
-    return this._stageQuery(this.model.query().patchAndFetchById(id, data));
+    return this._stageQuery((qb) => qb.patchAndFetchById(id, data));
   }
 
   createOne(data: any): StagedQuery<TEntity> {
-    return this._stageQuery(this.model.query().insertAndFetch(data));
+    return this._stageQuery((qb) => qb.insertAndFetch(data));
   }
 
   deleteOne(id: string | number): StagedQuery<TEntity> {
-    return this._stageQuery(this.model.query().deleteById(id));
+    return this._stageQuery((qb) => qb.deleteById(id));
   }
 }

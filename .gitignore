@@ -38,7 +38,6 @@ lerna-debug.log*
 db/local/
 
 # Environment
-.env.local
 .env
 
 # Keys

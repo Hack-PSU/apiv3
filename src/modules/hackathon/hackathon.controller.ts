@@ -13,6 +13,8 @@ import { Hackathon } from "entities/hackathon.entity";
 import { OmitType, PartialType } from "@nestjs/swagger";
 import { Role, Roles } from "common/firebase";
 import { SocketGateway } from "modules/socket/socket.gateway";
+import { Event } from "entities/event.entity";
+import { nanoid } from "nanoid";
 
 class UpdateEntity extends OmitType(Hackathon, ["id"] as const) {}
 
@@ -25,6 +27,8 @@ export class HackathonController {
   constructor(
     @InjectRepository(Hackathon)
     private readonly hackathonRepo: Repository<Hackathon>,
+    @InjectRepository(Event)
+    private readonly eventRepo: Repository<Event>,
     private readonly socket: SocketGateway,
   ) {}
 
@@ -36,7 +40,7 @@ export class HackathonController {
 
   @Post("/")
   async createOne(@Body("data") data: CreateEntity) {
-    const newHackathonId = crypto.randomUUID().replace(/-/g, "");
+    const newHackathonId = nanoid(32);
 
     await Hackathon.query().patch({ active: false }).where("active", true);
 
@@ -48,14 +52,39 @@ export class HackathonController {
       })
       .exec();
 
+    const newCheckInEvent = await this.eventRepo
+      .createOne({
+        id: nanoid(),
+        name: "Check-in",
+        type: "checkIn",
+        startTime: data.startTime,
+        endTime: data.endTime,
+        hackathonId: newHackathonId,
+      })
+      .exec();
+
     this.socket.emit("create:hackathon", newHackathon);
 
-    return newHackathon;
+    return {
+      ...newHackathon,
+      checkInId: newCheckInEvent.id,
+    };
   }
 
   @Get("/active")
   async getActive() {
-    return Hackathon.query().where("active", true);
+    const hackathon = Hackathon.query().where("active", true);
+    const checkIn = await Hackathon.relatedQuery<Event>("events")
+      .for(hackathon)
+      .where("type", "checkIn")
+      .first();
+
+    const activeHackathon = await hackathon;
+
+    return {
+      ...activeHackathon,
+      checkInId: checkIn.id,
+    };
   }
 
   @Get(":id")

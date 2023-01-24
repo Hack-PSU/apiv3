@@ -6,7 +6,7 @@ import { Entity } from "entities/base.entity";
   relationMappings: {
     location: {
       relation: Entity.BelongsToOneRelation,
-      modelClass: "Location",
+      modelClass: "location.entity.js",
       join: {
         from: "events.locationId",
         to: "locations.id",
@@ -23,7 +23,7 @@ export class Event extends Entity {
   name: string;
 
   @Column({ type: "string" })
-  type: "activity" | "food" | "workshop";
+  type: "activity" | "food" | "workshop" | "checkIn";
 
   @Column({ type: "string", required: false, nullable: true })
   description: string;

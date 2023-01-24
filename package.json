@@ -36,6 +36,7 @@
     "knex": "^2.4.0",
     "mjml": "^4.13.0",
     "mysql": "^2.18.1",
+    "nanoid": "^4.0.0",
     "objection": "^3.0.1",
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.1",

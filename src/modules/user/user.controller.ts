@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Param,
   Patch,
   Post,
   Put,
@@ -11,6 +12,7 @@ import { InjectRepository, Repository } from "common/objection";
 import { User } from "entities/user.entity";
 import { OmitType, PartialType } from "@nestjs/swagger";
 import { SocketGateway } from "modules/socket/socket.gateway";
+import { RestrictedRoles, Role } from "common/firebase";
 
 class CreateEntity extends OmitType(User, ["id"] as const) {}
 
@@ -38,12 +40,16 @@ export class UserController {
   }
 
   @Get(":id")
-  async getOne(id: string) {
+  @RestrictedRoles({
+    roles: [Role.NONE],
+    handler: (req) => req.params.id,
+  })
+  async getOne(@Param("id") id: string) {
     return this.userRepo.findOne(id).byHackathon();
   }
 
   @Patch(":id")
-  async patchOne(id: string, @Body("data") data: PatchEntity) {
+  async patchOne(@Param("id") id: string, @Body("data") data: PatchEntity) {
     const user = await this.userRepo.patchOne(id, data).exec();
     this.socket.emit("update:user", user);
 
@@ -51,7 +57,7 @@ export class UserController {
   }
 
   @Put(":id")
-  async replaceOne(id: string, @Body("data") data: CreateEntity) {
+  async replaceOne(@Param("id") id: string, @Body("data") data: CreateEntity) {
     const user = await this.userRepo.replaceOne(id, data).exec();
     this.socket.emit("update:user", user);
 
@@ -59,7 +65,7 @@ export class UserController {
   }
 
   @Delete(":id")
-  async deleteOne(id: string) {
+  async deleteOne(@Param("id") id: string) {
     const user = await this.userRepo.deleteOne(id).exec();
     this.socket.emit("update:user", user);
 
