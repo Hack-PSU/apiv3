@@ -1,10 +1,10 @@
-import { Role } from "common/firebase";
+import { Role } from "common/gcp";
 import { SetMetadata } from "@nestjs/common";
 import { Request } from "express";
 import {
   FirebaseAuthRestrictedEndpoint,
   FirebaseAuthRestrictedRoles,
-} from "common/firebase/auth/firebase-auth.constants";
+} from "common/gcp/auth/firebase-auth.constants";
 
 export type RestrictedEndpointHandler = (req: Request) => string;
 

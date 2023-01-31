@@ -3,11 +3,8 @@ import * as admin from "firebase-admin";
 import {
   DefaultTopic,
   Payload,
-} from "common/firebase/messaging/firebase-messaging.types";
-import {
-  FirestoreModel,
-  InjectFirestoreModel,
-} from "common/firebase/firestore";
+} from "common/gcp/messaging/firebase-messaging.types";
+import { FirestoreModel, InjectFirestoreModel } from "common/gcp/firestore";
 import { catchError, from, map, Observable } from "rxjs";
 import { FirestoreUser } from "entities/firestore-user.entity";
 

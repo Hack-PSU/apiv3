@@ -14,7 +14,7 @@ import { InjectRepository, Repository } from "common/objection";
 import { Organizer } from "entities/organizer.entity";
 import { SocketGateway } from "modules/socket/socket.gateway";
 import { OmitType, PartialType } from "@nestjs/swagger";
-import { FirebaseAuthService } from "common/firebase";
+import { FirebaseAuthService } from "common/gcp";
 import { take, toArray } from "rxjs";
 import { OrganizerService } from "modules/organizer/organizer.service";
 import { SocketRoom } from "common/socket";

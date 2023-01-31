@@ -6,7 +6,7 @@ import { ConfigToken, dbConfig, firebaseConfig } from "common/config";
 import { LocationModule } from "modules/location/location.module";
 import { EventModule } from "modules/event/event.module";
 import { UserModule } from "modules/user/user.module";
-import { FirebaseModule } from "common/firebase";
+import { GoogleCloudModule } from "common/gcp";
 import { SocketModule } from "modules/socket/socket.module";
 import { OrganizerModule } from "modules/organizer/organizer.module";
 import { MailModule } from "modules/mail/mail.module";
@@ -27,11 +27,11 @@ import { JudgingModule } from "modules/judging/judging.module";
       inject: [ConfigService],
     }),
 
-    // Firebase
-    FirebaseModule.forRoot({
+    // Google Cloud
+    GoogleCloudModule.forRoot({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) =>
-        configService.get(ConfigToken.FIREBASE),
+        configService.get(ConfigToken.GCP),
       inject: [ConfigService],
     }),
 

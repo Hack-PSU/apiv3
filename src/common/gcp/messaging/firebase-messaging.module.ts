@@ -1,5 +1,5 @@
 import { Module } from "@nestjs/common";
-import { FirebaseFirestoreModule } from "common/firebase/firestore";
+import { FirebaseFirestoreModule } from "common/gcp/firestore";
 import { FirestoreUser } from "entities/firestore-user.entity";
 import { FirebaseMessagingService } from "./firebase-messaging.service";
 

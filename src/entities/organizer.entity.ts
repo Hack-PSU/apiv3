@@ -1,6 +1,6 @@
 import { Column, ID, Table } from "common/objection";
 import { Entity } from "entities/base.entity";
-import { Role } from "common/firebase";
+import { Role } from "common/gcp";
 
 @Table({
   name: "organizers",

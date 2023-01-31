@@ -1,5 +1,5 @@
 export enum ConfigToken {
   DB = "DB",
-  FIREBASE = "FIREBASE",
+  GCP = "GCP",
   MJML = "MJML",
 }

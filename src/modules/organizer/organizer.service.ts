@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { FirebaseAuthService } from "common/firebase";
+import { FirebaseAuthService } from "common/gcp";
 import { Organizer } from "entities/organizer.entity";
 import { from, map, mergeMap } from "rxjs";
 

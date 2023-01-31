@@ -9,7 +9,7 @@ import {
 } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
 import { SocketRoom } from "common/socket";
-import { Role, Roles, RolesGuard } from "common/firebase";
+import { Role, Roles, RolesGuard } from "common/gcp";
 
 @WebSocketGateway({
   namespace: "socket",

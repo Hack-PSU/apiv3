@@ -1,11 +1,10 @@
 import { Injectable } from "@nestjs/common";
 import { HttpService } from "@nestjs/axios";
-import { FirebaseAuthJWTKeySets } from "common/firebase/auth/firebase-auth.constants";
+import { FirebaseAuthJWTKeySets } from "common/gcp/auth";
 import { Role } from "./firebase-auth.types";
 import jwtDecode, { JwtPayload } from "jwt-decode";
 import * as admin from "firebase-admin";
-import { Request } from "express";
-import { RestrictedEndpointHandler } from "common/firebase";
+import { RestrictedEndpointHandler } from "common/gcp";
 
 type FirebaseJwtPayload = JwtPayload & { privilege?: number };
 
@@ -65,7 +64,7 @@ export class FirebaseAuthService {
   }
 
   validateWsUser(token: string, access?: Role[]) {
-    const decodedToken = this.decodeToken(token);
+    const decodedToken = this.decodeToken(this.extractAuthToken(token));
     if (decodedToken) {
       return this.validateAccess(decodedToken, access);
     }

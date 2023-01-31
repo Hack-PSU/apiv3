@@ -4,7 +4,7 @@ export type FirebaseConfig = AppOptions & {
   appName?: string;
 };
 
-export type FirebaseCoreModuleOptions = {
+export type GoogleCloudCoreModuleOptions = {
   imports?: any[];
   useFactory: (...args: any[]) => FirebaseConfig;
   inject?: any[];
