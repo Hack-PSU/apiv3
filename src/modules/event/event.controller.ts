@@ -7,6 +7,7 @@ import {
   Patch,
   Post,
   Put,
+  UseInterceptors,
   UsePipes,
 } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
@@ -15,8 +16,12 @@ import { OmitType, PartialType } from "@nestjs/swagger";
 import { SanitizeFieldsPipe } from "common/pipes";
 import { SocketGateway } from "modules/socket/socket.gateway";
 import { nanoid } from "nanoid";
+import { FileInterceptor } from "@nestjs/platform-express";
+import { UploadedIcon } from "modules/event/uploaded-icon.decorator";
+import { Express } from "express";
+import { EventService } from "modules/event/event.service";
 
-class CreateEntity extends OmitType(Event, ["id"] as const) {}
+class CreateEntity extends OmitType(Event, ["id", "icon"] as const) {}
 
 class PatchEntity extends PartialType(CreateEntity) {}
 
@@ -26,6 +31,7 @@ export class EventController {
     @InjectRepository(Event)
     private readonly eventRepo: Repository<Event>,
     private readonly socket: SocketGateway,
+    private readonly eventService: EventService,
   ) {}
 
   @Get("/")
@@ -33,12 +39,24 @@ export class EventController {
     return this.eventRepo.findAll().byHackathon();
   }
 
-  @UsePipes(new SanitizeFieldsPipe(["description"]))
   @Post("/")
-  async createOne(@Body("data") data: CreateEntity) {
+  @UsePipes(new SanitizeFieldsPipe(["description"]))
+  @UseInterceptors(FileInterceptor("icon"))
+  async createOne(
+    @Body("data") data: CreateEntity,
+    @UploadedIcon() icon?: Express.Multer.File,
+  ) {
+    const eventId = nanoid();
+    let iconUrl = null;
+
+    if (icon) {
+      iconUrl = await this.eventService.uploadIcon(eventId, icon);
+    }
+
     const event = await this.eventRepo
       .createOne({
-        id: nanoid(),
+        id: eventId,
+        icon: iconUrl,
         ...data,
       })
       .exec();
@@ -54,16 +72,44 @@ export class EventController {
   }
 
   @Patch(":id")
-  async patchOne(@Param("id") id: string, @Body("data") data: PatchEntity) {
-    const event = await this.eventRepo.patchOne(id, data).exec();
+  @UseInterceptors(FileInterceptor("icon"))
+  async patchOne(
+    @Param("id") id: string,
+    @Body("data") data: PatchEntity,
+    @UploadedIcon() icon?: Express.Multer.File,
+  ) {
+    let iconUrl = null;
+
+    if (icon) {
+      iconUrl = await this.eventService.uploadIcon(id, icon);
+    }
+
+    const event = await this.eventRepo
+      .patchOne(id, { ...data, ...(iconUrl ? { icon: iconUrl } : {}) })
+      .exec();
+
     this.socket.emit("update:event", event);
 
     return event;
   }
 
   @Put(":id")
-  async replaceOne(@Param("id") id: string, @Body("data") data: CreateEntity) {
-    const event = await this.eventRepo.replaceOne(id, data).exec();
+  @UseInterceptors(FileInterceptor("icon"))
+  async replaceOne(
+    @Param("id") id: string,
+    @Body("data") data: CreateEntity,
+    @UploadedIcon() icon?: Express.Multer.File,
+  ) {
+    let iconUrl = null;
+
+    if (icon) {
+      iconUrl = await this.eventService.uploadIcon(id, icon);
+    }
+
+    const event = await this.eventRepo
+      .replaceOne(id, { ...data, ...(iconUrl ? { icon: iconUrl } : {}) })
+      .exec();
+
     this.socket.emit("update:event", event);
 
     return event;
@@ -72,6 +118,9 @@ export class EventController {
   @Delete(":id")
   async deleteOne(@Param("id") id: string) {
     const event = await this.eventRepo.deleteOne(id).exec();
+
+    await this.eventService.deleteIcon(id);
+
     this.socket.emit("delete:event", event);
 
     return event;

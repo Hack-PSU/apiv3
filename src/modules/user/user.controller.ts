@@ -47,12 +47,20 @@ export class UserController {
     @Body("data") data: CreateEntity,
     @UploadedResume() resume?: Express.Multer.File,
   ) {
-    const user = await this.userRepo
+    let user = await this.userRepo
       .createOne(data)
       .byHackathon(data.hackathonId);
 
     if (resume) {
-      await this.userService.uploadResume(user.hackathonId, user.id, resume);
+      const resumeUrl = await this.userService.uploadResume(
+        user.hackathonId,
+        user.id,
+        resume,
+      );
+
+      user = await this.userRepo
+        .patchOne(user.id, { resume: resumeUrl })
+        .exec();
     }
 
     this.socket.emit("create:user", user);
@@ -76,11 +84,23 @@ export class UserController {
     @Body("data") data: PatchEntity,
     @UploadedResume() resume?: Express.Multer.File,
   ) {
-    const user = await this.userRepo.patchOne(id, data).exec();
+    const currentUser = await this.userRepo.findOne(id).exec();
+    let resumeUrl = null;
 
     if (resume) {
-      await this.userService.uploadResume(user.hackathonId, user.id, resume);
+      resumeUrl = await this.userService.uploadResume(
+        currentUser.hackathonId,
+        id,
+        resume,
+      );
     }
+
+    const user = await this.userRepo
+      .patchOne(id, {
+        ...data,
+        ...(resumeUrl ? { resume: resumeUrl } : {}),
+      })
+      .exec();
 
     this.socket.emit("update:user", user);
 
@@ -94,11 +114,23 @@ export class UserController {
     @Body("data") data: UpdateEntity,
     @UploadedResume() resume?: Express.Multer.File,
   ) {
-    const user = await this.userRepo.replaceOne(id, data).exec();
+    const currentUser = await this.userRepo.findOne(id).exec();
+    let resumeUrl = null;
 
     if (resume) {
-      await this.userService.uploadResume(user.hackathonId, user.id, resume);
+      resumeUrl = await this.userService.uploadResume(
+        currentUser.hackathonId,
+        id,
+        resume,
+      );
     }
+
+    const user = await this.userRepo
+      .replaceOne(id, {
+        ...data,
+        ...(resumeUrl ? { resume: resumeUrl } : {}),
+      })
+      .exec();
 
     this.socket.emit("update:user", user);
 

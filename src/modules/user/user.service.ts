@@ -13,10 +13,18 @@ export class UserService {
     return `${hackathonId}-${userId}.pdf`;
   }
 
-  uploadResume(hackathonId: string, userId: string, file: Express.Multer.File) {
-    return this.resumeBucket
+  async uploadResume(
+    hackathonId: string,
+    userId: string,
+    file: Express.Multer.File,
+  ) {
+    await this.resumeBucket
       .file(this.getFile(hackathonId, userId))
       .save(file.buffer);
+
+    return this.resumeBucket
+      .file(this.getFile(hackathonId, userId))
+      .publicUrl();
   }
 
   deleteResume(hackathonId: string, userId: string) {
