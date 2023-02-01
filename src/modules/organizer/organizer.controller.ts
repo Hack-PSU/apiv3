@@ -11,7 +11,7 @@ import {
   Put,
 } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
-import { Organizer } from "entities/organizer.entity";
+import { Organizer, OrganizerEntity } from "entities/organizer.entity";
 import { SocketGateway } from "modules/socket/socket.gateway";
 import { OmitType, PartialType } from "@nestjs/swagger";
 import { FirebaseAuthService } from "common/gcp";
@@ -19,7 +19,7 @@ import { take, toArray } from "rxjs";
 import { OrganizerService } from "modules/organizer/organizer.service";
 import { SocketRoom } from "common/socket";
 
-class CreateEntity extends Organizer {}
+class CreateEntity extends OrganizerEntity {}
 
 class UpdateEntity extends PartialType(
   OmitType(CreateEntity, ["id"] as const),

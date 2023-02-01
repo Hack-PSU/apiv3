@@ -1,6 +1,7 @@
 import { Column, ID, Table } from "common/objection";
 import { Entity } from "entities/base.entity";
 import Objection from "objection";
+import { PickType } from "@nestjs/swagger";
 
 @Table({
   name: "scores",
@@ -82,3 +83,19 @@ export class Score extends Entity {
     return json;
   }
 }
+
+export class ScoreEntity extends PickType(Score, [
+  "id",
+  "creativity",
+  "technical",
+  "implementation",
+  "clarity",
+  "growth",
+  "energy",
+  "supplyChain",
+  "environmental",
+  "hackathonId",
+  "judgeId",
+  "projectId",
+  "submitted",
+] as const) {}

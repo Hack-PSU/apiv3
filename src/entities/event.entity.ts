@@ -1,3 +1,4 @@
+import { PickType } from "@nestjs/swagger";
 import { Column, ID, Table } from "common/objection";
 import { Entity } from "entities/base.entity";
 
@@ -55,3 +56,19 @@ export class Event extends Entity {
   @Column({ type: "string", nullable: true })
   hackathonId?: string;
 }
+
+export class EventEntity extends PickType(Event, [
+  "id",
+  "name",
+  "type",
+  "description",
+  "locationId",
+  "icon",
+  "startTime",
+  "endTime",
+  "wsPresenterNames",
+  "wsRelevantSkills",
+  "wsSkillLevel",
+  "wsUrls",
+  "hackathonId",
+] as const) {}

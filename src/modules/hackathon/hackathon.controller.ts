@@ -9,14 +9,14 @@ import {
   Put,
 } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
-import { Hackathon } from "entities/hackathon.entity";
+import { Hackathon, HackathonEntity } from "entities/hackathon.entity";
 import { OmitType, PartialType } from "@nestjs/swagger";
 import { Role, Roles } from "common/gcp";
 import { SocketGateway } from "modules/socket/socket.gateway";
 import { Event } from "entities/event.entity";
 import { nanoid } from "nanoid";
 
-class UpdateEntity extends OmitType(Hackathon, ["id"] as const) {}
+class UpdateEntity extends OmitType(HackathonEntity, ["id"] as const) {}
 
 class CreateEntity extends OmitType(UpdateEntity, ["active"] as const) {}
 

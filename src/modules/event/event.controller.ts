@@ -11,7 +11,7 @@ import {
   UsePipes,
 } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
-import { Event } from "entities/event.entity";
+import { Event, EventEntity } from "entities/event.entity";
 import { OmitType, PartialType } from "@nestjs/swagger";
 import { SanitizeFieldsPipe } from "common/pipes";
 import { SocketGateway } from "modules/socket/socket.gateway";
@@ -21,7 +21,7 @@ import { UploadedIcon } from "modules/event/uploaded-icon.decorator";
 import { Express } from "express";
 import { EventService } from "modules/event/event.service";
 
-class CreateEntity extends OmitType(Event, ["id", "icon"] as const) {}
+class CreateEntity extends OmitType(EventEntity, ["id", "icon"] as const) {}
 
 class PatchEntity extends PartialType(CreateEntity) {}
 

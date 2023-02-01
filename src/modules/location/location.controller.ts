@@ -9,11 +9,11 @@ import {
   Put,
 } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
-import { Location } from "entities/location.entity";
+import { Location, LocationEntity } from "entities/location.entity";
 import { OmitType, PartialType } from "@nestjs/swagger";
 import { SocketGateway } from "modules/socket/socket.gateway";
 
-class CreateEntity extends OmitType(Location, ["id"] as const) {}
+class CreateEntity extends OmitType(LocationEntity, ["id"] as const) {}
 
 class PatchEntity extends PartialType(CreateEntity) {}
 

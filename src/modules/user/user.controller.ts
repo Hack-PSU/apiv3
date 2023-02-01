@@ -10,7 +10,7 @@ import {
   UseInterceptors,
 } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
-import { User } from "entities/user.entity";
+import { User, UserEntity } from "entities/user.entity";
 import { OmitType, PartialType } from "@nestjs/swagger";
 import { SocketGateway } from "modules/socket/socket.gateway";
 import { RestrictedRoles, Role } from "common/gcp";
@@ -19,7 +19,10 @@ import { UserService } from "modules/user/user.service";
 import { UploadedResume } from "modules/user/uploaded-resume.decorator";
 import { Express } from "express";
 
-class CreateEntity extends OmitType(User, ["resume", "hackathonId"] as const) {
+class CreateEntity extends OmitType(UserEntity, [
+  "resume",
+  "hackathonId",
+] as const) {
   hackathonId?: string;
 }
 

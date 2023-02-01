@@ -1,3 +1,4 @@
+import { PickType } from "@nestjs/swagger";
 import { Column, ID, Table } from "common/objection";
 import { Entity } from "entities/base.entity";
 
@@ -105,3 +106,38 @@ export class User extends Entity {
   @Column({ type: "integer" })
   time: number;
 }
+
+export class UserEntity extends PickType(User, [
+  "id",
+  "firstName",
+  "lastName",
+  "gender",
+  "shirtSize",
+  "dietaryRestriction",
+  "allergies",
+  "travelReimbursement",
+  "driving",
+  "firstHackathon",
+  "university",
+  "email",
+  "academicYear",
+  "educationalInstitutionType",
+  "major",
+  "phone",
+  "address",
+  "race",
+  "resume",
+  "codingExperience",
+  "eighteenBeforeEvent",
+  "mlhCoc",
+  "mlhDcp",
+  "referral",
+  "project",
+  "expectations",
+  "shareAddressMlh",
+  "shareAddressSponsors",
+  "shareEmailMlh",
+  "veteran",
+  "hackathonId",
+  "time",
+] as const) {}

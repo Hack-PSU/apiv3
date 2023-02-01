@@ -1,6 +1,7 @@
 import { Column, ID, Table } from "common/objection";
 import { Entity } from "entities/base.entity";
 import Objection from "objection";
+import { OmitType, PickType } from "@nestjs/swagger";
 
 @Table({
   name: "hackathons",
@@ -33,8 +34,16 @@ import Objection from "objection";
       relation: Entity.HasManyRelation,
       modelClass: "user.entity.js",
       join: {
-        from: "hackathon.id",
+        from: "hackathons.id",
         to: "users.hackathonId",
+      },
+    },
+    sponsors: {
+      relation: Entity.HasManyRelation,
+      modelClass: "sponsor.entity.js",
+      join: {
+        from: "hackathons.id",
+        to: "sponsors.hackathonId",
       },
     },
   },
@@ -65,3 +74,11 @@ export class Hackathon extends Entity {
     };
   }
 }
+
+export class HackathonEntity extends PickType(Hackathon, [
+  "id",
+  "name",
+  "startTime",
+  "endTime",
+  "active",
+] as const) {}

@@ -9,10 +9,10 @@ import {
   Put,
 } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
-import { Project } from "entities/project.entity";
+import { Project, ProjectEntity } from "entities/project.entity";
 import { OmitType, PartialType } from "@nestjs/swagger";
 
-class CreateEntity extends OmitType(Project, ["id"] as const) {}
+class CreateEntity extends OmitType(ProjectEntity, ["id"] as const) {}
 
 class PatchEntity extends PartialType(CreateEntity) {}
 

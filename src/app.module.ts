@@ -11,6 +11,7 @@ import { SocketModule } from "modules/socket/socket.module";
 import { OrganizerModule } from "modules/organizer/organizer.module";
 import { MailModule } from "modules/mail/mail.module";
 import { JudgingModule } from "modules/judging/judging.module";
+import { SponsorModule } from "modules/sponsor/sponsor.module";
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { JudgingModule } from "modules/judging/judging.module";
     UserModule,
     OrganizerModule,
     JudgingModule,
+    SponsorModule,
 
     // WebSocket
     SocketModule,
