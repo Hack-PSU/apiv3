@@ -16,14 +16,15 @@ import {
 import { InjectRepository, Repository } from "common/objection";
 import { Event, EventEntity } from "entities/event.entity";
 import {
-  ApiBearerAuth,
   ApiBody,
+  ApiConsumes,
   ApiCreatedResponse,
-  ApiOAuth2,
+  ApiExtraModels,
+  ApiNoContentResponse,
   ApiOkResponse,
   ApiOperation,
-  ApiResponse,
-  ApiSecurity,
+  ApiParam,
+  ApiProperty,
   ApiTags,
   OmitType,
   PartialType,
@@ -39,7 +40,10 @@ import { Scan, ScanEntity } from "entities/scan.entity";
 import { ApiAuth } from "common/docs/api-auth";
 import { Role } from "common/gcp";
 
-class CreateEntity extends OmitType(EventEntity, ["id", "icon"] as const) {}
+class CreateEntity extends OmitType(EventEntity, ["id", "icon"] as const) {
+  @ApiProperty({ type: "string", format: "binary", required: false })
+  icon?: any;
+}
 
 class PatchEntity extends PartialType(CreateEntity) {}
 
@@ -64,8 +68,9 @@ export class EventController {
   ) {}
 
   @Get("/")
-  @ApiOkResponse({ type: EventEntity })
   @ApiOperation({ summary: "Get All Events" })
+  @ApiOkResponse({ type: [EventEntity] })
+  @ApiAuth(Role.NONE)
   async getAll() {
     return this.eventRepo.findAll().byHackathon();
   }
@@ -74,11 +79,12 @@ export class EventController {
   @UsePipes(new SanitizeFieldsPipe(["description"]))
   @UseInterceptors(FileInterceptor("icon"))
   @ApiOperation({ summary: "Create an Event" })
+  @ApiConsumes("multipart/form-data")
   @ApiCreatedResponse({ type: EventEntity })
   @ApiAuth(Role.TEAM)
   @ApiBody({ type: CreateEntity })
   async createOne(
-    @Body("data") data: CreateEntity,
+    @Body() data: CreateEntity,
     @UploadedIcon() icon?: Express.Multer.File,
   ) {
     const eventId = nanoid();
@@ -103,6 +109,9 @@ export class EventController {
 
   @Get(":id")
   @ApiOperation({ summary: "Get an Event" })
+  @ApiOkResponse({ type: EventEntity })
+  @ApiParam({ name: "id", description: "ID must be set to the event's ID" })
+  @ApiAuth(Role.NONE)
   async getOne(@Param("id") id: string) {
     return this.eventRepo.findOne(id).exec();
   }
@@ -111,9 +120,13 @@ export class EventController {
   @UseInterceptors(FileInterceptor("icon"))
   @ApiOperation({ summary: "Patch an Event" })
   @ApiBody({ type: PatchEntity })
+  @ApiConsumes("multipart/form-data")
+  @ApiParam({ name: "id", description: "ID must be set to the event's ID" })
+  @ApiOkResponse({ type: EventEntity })
+  @ApiAuth(Role.TEAM)
   async patchOne(
     @Param("id") id: string,
-    @Body("data") data: PatchEntity,
+    @Body() data: PatchEntity,
     @UploadedIcon() icon?: Express.Multer.File,
   ) {
     let iconUrl = null;
@@ -134,10 +147,14 @@ export class EventController {
   @Put(":id")
   @UseInterceptors(FileInterceptor("icon"))
   @ApiOperation({ summary: "Replace an Event" })
+  @ApiConsumes("multipart/form-data")
   @ApiBody({ type: CreateEntity })
+  @ApiParam({ name: "id", description: "ID must be set to the event's ID" })
+  @ApiOkResponse({ type: EventEntity })
+  @ApiAuth(Role.TEAM)
   async replaceOne(
     @Param("id") id: string,
-    @Body("data") data: CreateEntity,
+    @Body() data: CreateEntity,
     @UploadedIcon() icon?: Express.Multer.File,
   ) {
     let iconUrl = null;
@@ -157,6 +174,9 @@ export class EventController {
 
   @Delete(":id")
   @ApiOperation({ summary: "Delete an Event" })
+  @ApiNoContentResponse()
+  @ApiParam({ name: "id", description: "ID must be set to the event's ID" })
+  @ApiAuth(Role.TEAM)
   async deleteOne(@Param("id") id: string) {
     const event = await this.eventRepo.deleteOne(id).exec();
 
@@ -169,10 +189,12 @@ export class EventController {
 
   @Post(":id/check-in")
   @HttpCode(HttpStatus.NO_CONTENT)
-  async checkInEvent(
-    @Param("id") id: string,
-    @Body("data") data: CreateScanEntity,
-  ) {
+  @ApiOperation({ summary: "Check-In by Event" })
+  @ApiBody({ type: CreateScanEntity })
+  @ApiParam({ name: "id", description: "ID must be set to the event's ID" })
+  @ApiNoContentResponse()
+  @ApiAuth(Role.TEAM)
+  async checkInEvent(@Param("id") id: string, @Body() data: CreateScanEntity) {
     const hasEvent = await this.eventRepo.findOne(id).exec();
 
     if (!hasEvent) {

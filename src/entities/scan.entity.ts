@@ -1,6 +1,6 @@
 import { Column, ID, Table } from "common/objection";
 import { Entity } from "entities/base.entity";
-import { PickType } from "@nestjs/swagger";
+import { ApiProperty, PickType } from "@nestjs/swagger";
 
 @Table({
   name: "scans",
@@ -33,18 +33,22 @@ import { PickType } from "@nestjs/swagger";
   },
 })
 export class Scan extends Entity {
+  @ApiProperty()
   @ID({ type: "number" })
   id: number;
 
+  @ApiProperty()
   @Column({ type: "string" })
   eventId: string;
 
+  @ApiProperty()
   @Column({ type: "string" })
   userId: string;
 
   @Column({ type: "string" })
   organizerId: string;
 
+  @ApiProperty({ required: false })
   @Column({ type: "string" })
   hackathonId: string;
 }
