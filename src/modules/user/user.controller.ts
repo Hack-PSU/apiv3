@@ -3,6 +3,9 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpException,
+  HttpStatus,
   Param,
   Patch,
   Post,
@@ -18,6 +21,9 @@ import { FileInterceptor } from "@nestjs/platform-express";
 import { UserService } from "modules/user/user.service";
 import { UploadedResume } from "modules/user/uploaded-resume.decorator";
 import { Express } from "express";
+import { Scan, ScanEntity } from "entities/scan.entity";
+import { ExtraCreditClass } from "entities/extra-credit-class.entity";
+import { ExtraCreditAssignment } from "entities/extra-credit-assignment.entity";
 
 class CreateEntity extends OmitType(UserEntity, [
   "resume",
@@ -30,11 +36,25 @@ class UpdateEntity extends OmitType(CreateEntity, ["id"] as const) {}
 
 class PatchEntity extends PartialType(UpdateEntity) {}
 
+class CreateScanEntity extends OmitType(ScanEntity, [
+  "id",
+  "hackathonId",
+  "userId",
+] as const) {
+  hackathonId?: string;
+}
+
 @Controller("users")
 export class UserController {
   constructor(
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
+    @InjectRepository(Scan)
+    private readonly scanRepo: Repository<Scan>,
+    @InjectRepository(ExtraCreditClass)
+    private readonly ecClassRepo: Repository<ExtraCreditClass>,
+    @InjectRepository(ExtraCreditAssignment)
+    private readonly ecAssignmentRepo: Repository<ExtraCreditAssignment>,
     private readonly socket: SocketGateway,
     private readonly userService: UserService,
   ) {}
@@ -150,5 +170,43 @@ export class UserController {
     this.socket.emit("update:user", user.id);
 
     return deletedUser;
+  }
+
+  @Post(":id/check-in")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async checkIn(@Param("id") id: string, @Body("data") data: CreateScanEntity) {
+    const hasUser = await this.userRepo.findOne(id).exec();
+
+    if (!hasUser) {
+      throw new HttpException("user not found", HttpStatus.BAD_REQUEST);
+    }
+
+    const { hackathonId, ...rest } = data;
+
+    await this.scanRepo.createOne(rest).byHackathon(hackathonId);
+  }
+
+  @Get(":id/extra-credit/classes")
+  async classesByUser(@Param("id") id: string) {
+    return User.relatedQuery("extraCreditClasses").for(id);
+  }
+
+  @Post(":id/extra-credit/assign/:classId")
+  async assignClassToUser(
+    @Param("id") id: string,
+    @Param("classId") classId: number,
+  ) {
+    const hasUser = await this.userRepo.findOne(id).exec();
+    const hasClass = await this.ecClassRepo.findOne(classId).exec();
+
+    if (!hasUser) {
+      throw new HttpException("user not found", HttpStatus.BAD_REQUEST);
+    }
+
+    if (!hasClass) {
+      throw new HttpException("class not found", HttpStatus.BAD_REQUEST);
+    }
+
+    return this.ecAssignmentRepo.createOne({ userId: id, classId });
   }
 }

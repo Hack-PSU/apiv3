@@ -12,6 +12,8 @@ import { OrganizerModule } from "modules/organizer/organizer.module";
 import { MailModule } from "modules/mail/mail.module";
 import { JudgingModule } from "modules/judging/judging.module";
 import { SponsorModule } from "modules/sponsor/sponsor.module";
+import { ScanModule } from "modules/scan/scan.module";
+import { ExtraCreditModule } from "modules/extra-credit/extra-credit.module";
 
 @Module({
   imports: [
@@ -44,6 +46,8 @@ import { SponsorModule } from "modules/sponsor/sponsor.module";
     OrganizerModule,
     JudgingModule,
     SponsorModule,
+    ScanModule,
+    ExtraCreditModule,
 
     // WebSocket
     SocketModule,

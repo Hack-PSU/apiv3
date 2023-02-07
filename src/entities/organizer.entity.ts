@@ -6,6 +6,16 @@ import { PickType } from "@nestjs/swagger";
 @Table({
   name: "organizers",
   disableByHackathon: true,
+  relationMappings: {
+    scans: {
+      relation: Entity.HasManyRelation,
+      modelClass: "scan.entity.js",
+      join: {
+        from: "users.id",
+        to: "scans.userId",
+      },
+    },
+  },
 })
 export class Organizer extends Entity {
   @ID({ type: "string" })

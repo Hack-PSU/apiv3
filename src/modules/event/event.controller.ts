@@ -3,6 +3,9 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpException,
+  HttpStatus,
   Param,
   Patch,
   Post,
@@ -12,7 +15,19 @@ import {
 } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
 import { Event, EventEntity } from "entities/event.entity";
-import { OmitType, PartialType } from "@nestjs/swagger";
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiCreatedResponse,
+  ApiOAuth2,
+  ApiOkResponse,
+  ApiOperation,
+  ApiResponse,
+  ApiSecurity,
+  ApiTags,
+  OmitType,
+  PartialType,
+} from "@nestjs/swagger";
 import { SanitizeFieldsPipe } from "common/pipes";
 import { SocketGateway } from "modules/socket/socket.gateway";
 import { nanoid } from "nanoid";
@@ -20,21 +35,37 @@ import { FileInterceptor } from "@nestjs/platform-express";
 import { UploadedIcon } from "modules/event/uploaded-icon.decorator";
 import { Express } from "express";
 import { EventService } from "modules/event/event.service";
+import { Scan, ScanEntity } from "entities/scan.entity";
+import { ApiAuth } from "common/docs/api-auth";
+import { Role } from "common/gcp";
 
 class CreateEntity extends OmitType(EventEntity, ["id", "icon"] as const) {}
 
 class PatchEntity extends PartialType(CreateEntity) {}
 
+class CreateScanEntity extends OmitType(ScanEntity, [
+  "id",
+  "hackathonId",
+  "eventId",
+] as const) {
+  hackathonId?: string;
+}
+
+@ApiTags("Events")
 @Controller("events")
 export class EventController {
   constructor(
     @InjectRepository(Event)
     private readonly eventRepo: Repository<Event>,
+    @InjectRepository(Scan)
+    private readonly scanRepo: Repository<Scan>,
     private readonly socket: SocketGateway,
     private readonly eventService: EventService,
   ) {}
 
   @Get("/")
+  @ApiOkResponse({ type: EventEntity })
+  @ApiOperation({ summary: "Get All Events" })
   async getAll() {
     return this.eventRepo.findAll().byHackathon();
   }
@@ -42,6 +73,10 @@ export class EventController {
   @Post("/")
   @UsePipes(new SanitizeFieldsPipe(["description"]))
   @UseInterceptors(FileInterceptor("icon"))
+  @ApiOperation({ summary: "Create an Event" })
+  @ApiCreatedResponse({ type: EventEntity })
+  @ApiAuth(Role.TEAM)
+  @ApiBody({ type: CreateEntity })
   async createOne(
     @Body("data") data: CreateEntity,
     @UploadedIcon() icon?: Express.Multer.File,
@@ -67,12 +102,15 @@ export class EventController {
   }
 
   @Get(":id")
+  @ApiOperation({ summary: "Get an Event" })
   async getOne(@Param("id") id: string) {
     return this.eventRepo.findOne(id).exec();
   }
 
   @Patch(":id")
   @UseInterceptors(FileInterceptor("icon"))
+  @ApiOperation({ summary: "Patch an Event" })
+  @ApiBody({ type: PatchEntity })
   async patchOne(
     @Param("id") id: string,
     @Body("data") data: PatchEntity,
@@ -95,6 +133,8 @@ export class EventController {
 
   @Put(":id")
   @UseInterceptors(FileInterceptor("icon"))
+  @ApiOperation({ summary: "Replace an Event" })
+  @ApiBody({ type: CreateEntity })
   async replaceOne(
     @Param("id") id: string,
     @Body("data") data: CreateEntity,
@@ -116,6 +156,7 @@ export class EventController {
   }
 
   @Delete(":id")
+  @ApiOperation({ summary: "Delete an Event" })
   async deleteOne(@Param("id") id: string) {
     const event = await this.eventRepo.deleteOne(id).exec();
 
@@ -124,5 +165,22 @@ export class EventController {
     this.socket.emit("delete:event", event);
 
     return event;
+  }
+
+  @Post(":id/check-in")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async checkInEvent(
+    @Param("id") id: string,
+    @Body("data") data: CreateScanEntity,
+  ) {
+    const hasEvent = await this.eventRepo.findOne(id).exec();
+
+    if (!hasEvent) {
+      throw new HttpException("event not found", HttpStatus.BAD_REQUEST);
+    }
+
+    const { hackathonId, ...rest } = data;
+
+    await this.scanRepo.createOne(rest).byHackathon(hackathonId);
   }
 }

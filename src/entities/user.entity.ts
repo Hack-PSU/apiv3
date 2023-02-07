@@ -5,6 +5,21 @@ import { Entity } from "entities/base.entity";
 @Table({
   name: "users",
   hackathonId: "hackathonId",
+  relationMappings: {
+    extraCreditClasses: {
+      relation: Entity.ManyToManyRelation,
+      modelClass: "extra-credit-class.entity.js",
+      join: {
+        from: "users.id",
+        through: {
+          modelClass: "extra-credit-assignment.entity.js",
+          from: "extraCreditAssignments.userId",
+          to: "extraCreditAssignments.classId",
+        },
+        to: "extraCreditClasses.id",
+      },
+    },
+  },
 })
 export class User extends Entity {
   @ID({ type: "string" })

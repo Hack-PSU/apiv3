@@ -46,17 +46,17 @@ export function Table<T extends Model>(
 
     if (!options.disableByHackathon && options.hackathonId) {
       // @ts-ignore
-      constructor.relationMappings = {
-        hackathon: {
-          relation: Model.BelongsToOneRelation,
-          modelClass: "hackathon.entity.ts",
-          join: {
-            from: `${options.name}.${options.hackathonId}`,
-            to: "hackathons.id",
-          },
-        },
-        ...options.relationMappings,
-      } as RelationMappings;
+      // constructor.relationMappings = {
+      //   hackathon: {
+      //     relation: Model.BelongsToOneRelation,
+      //     modelClass: "hackathon.entity.ts",
+      //     join: {
+      //       from: `${options.name}.${options.hackathonId}`,
+      //       to: "hackathons.id",
+      //     },
+      //   },
+      //   ...options.relationMappings,
+      // } as RelationMappings;
     } else {
       // @ts-ignore
       constructor.relationMappings = options.relationMappings;
