@@ -6,11 +6,13 @@ export class SanitizeFieldsPipe implements PipeTransform {
   constructor(private readonly fields: string[]) {}
 
   transform(value: Record<string, any>): any {
-    this.fields.forEach((field) => {
-      if (Object.keys(value).includes(field)) {
-        value[field] = sanitizeHtml(value[field]);
-      }
-    });
+    if (value) {
+      this.fields.forEach((field) => {
+        if (Object.keys(value).includes(field)) {
+          value[field] = sanitizeHtml(value[field]);
+        }
+      });
+    }
 
     return value;
   }

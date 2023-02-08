@@ -32,7 +32,7 @@ export class ScoreController {
   }
 
   @Post("/")
-  async createOne(@Body("data") data: CreateEntity) {
+  async createOne(@Body() data: CreateEntity) {
     return this.scoreRepo
       .createOne(data)
       .raw()
@@ -48,7 +48,7 @@ export class ScoreController {
   }
 
   @Patch(":id")
-  async patchOne(@Param("id") id: number, @Body("data") data: PatchEntity) {
+  async patchOne(@Param("id") id: number, @Body() data: PatchEntity) {
     return this.scoreRepo
       .patchOne(id, data)
       .raw()
@@ -56,7 +56,7 @@ export class ScoreController {
   }
 
   @Put(":id")
-  async replaceOne(@Param("id") id: number, @Body("data") data: CreateEntity) {
+  async replaceOne(@Param("id") id: number, @Body() data: CreateEntity) {
     return this.scoreRepo
       .replaceOne(id, data)
       .raw()

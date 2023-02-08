@@ -70,7 +70,7 @@ export class Hackathon extends Entity {
     return {
       ...json,
       // map database active field to boolean
-      active: json.active === 1,
+      ...(json.active ? { active: json.active === 1 } : {}),
     };
   }
 }

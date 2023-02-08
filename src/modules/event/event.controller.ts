@@ -12,6 +12,7 @@ import {
   Put,
   UseInterceptors,
   UsePipes,
+  ValidationPipe,
 } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
 import { Event, EventEntity } from "entities/event.entity";
@@ -39,6 +40,8 @@ import { EventService } from "modules/event/event.service";
 import { Scan, ScanEntity } from "entities/scan.entity";
 import { ApiAuth } from "common/docs/api-auth";
 import { Role } from "common/gcp";
+import * as mime from "mime-types";
+import { Hackathon } from "entities/hackathon.entity";
 
 class CreateEntity extends OmitType(EventEntity, ["id", "icon"] as const) {
   @ApiProperty({ type: "string", format: "binary", required: false })
@@ -76,15 +79,19 @@ export class EventController {
   }
 
   @Post("/")
-  @UsePipes(new SanitizeFieldsPipe(["description"]))
   @UseInterceptors(FileInterceptor("icon"))
   @ApiOperation({ summary: "Create an Event" })
   @ApiConsumes("multipart/form-data")
   @ApiCreatedResponse({ type: EventEntity })
   @ApiAuth(Role.TEAM)
   @ApiBody({ type: CreateEntity })
+  // @UsePipes(new SanitizeFieldsPipe(["description"]))
   async createOne(
-    @Body() data: CreateEntity,
+    @Body(
+      new SanitizeFieldsPipe(["description"]),
+      new ValidationPipe({ transform: true, forbidUnknownValues: false }),
+    )
+    data: CreateEntity,
     @UploadedIcon() icon?: Express.Multer.File,
   ) {
     const eventId = nanoid();
@@ -100,7 +107,7 @@ export class EventController {
         icon: iconUrl,
         ...data,
       })
-      .exec();
+      .byHackathon();
 
     this.socket.emit("create:event", event);
 
@@ -126,7 +133,11 @@ export class EventController {
   @ApiAuth(Role.TEAM)
   async patchOne(
     @Param("id") id: string,
-    @Body() data: PatchEntity,
+    @Body(
+      new SanitizeFieldsPipe(["description"]),
+      new ValidationPipe({ transform: true, forbidUnknownValues: false }),
+    )
+    data: PatchEntity,
     @UploadedIcon() icon?: Express.Multer.File,
   ) {
     let iconUrl = null;
@@ -154,17 +165,24 @@ export class EventController {
   @ApiAuth(Role.TEAM)
   async replaceOne(
     @Param("id") id: string,
-    @Body() data: CreateEntity,
+    @Body(
+      new SanitizeFieldsPipe(["description"]),
+      new ValidationPipe({ transform: true, forbidUnknownValues: false }),
+    )
+    data: CreateEntity,
     @UploadedIcon() icon?: Express.Multer.File,
   ) {
     let iconUrl = null;
+
+    // delete all icons from event
+    await this.eventService.deleteIcon(id);
 
     if (icon) {
       iconUrl = await this.eventService.uploadIcon(id, icon);
     }
 
     const event = await this.eventRepo
-      .replaceOne(id, { ...data, ...(iconUrl ? { icon: iconUrl } : {}) })
+      .replaceOne(id, { ...data, icon: iconUrl })
       .exec();
 
     this.socket.emit("update:event", event);

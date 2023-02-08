@@ -29,7 +29,7 @@ export class ProjectController {
   }
 
   @Post("/")
-  async createOne(@Body("data") data: CreateEntity) {
+  async createOne(@Body() data: CreateEntity) {
     return this.projectRepo.createOne(data).exec();
   }
 
@@ -39,12 +39,12 @@ export class ProjectController {
   }
 
   @Patch(":id")
-  async patchOne(@Param("id") id: number, @Body("data") data: PatchEntity) {
+  async patchOne(@Param("id") id: number, @Body() data: PatchEntity) {
     return this.projectRepo.patchOne(id, data).exec();
   }
 
   @Put(":id")
-  async replaceOne(@Param("id") id: number, @Body("data") data: CreateEntity) {
+  async replaceOne(@Param("id") id: number, @Body() data: CreateEntity) {
     return this.projectRepo.replaceOne(id, data).exec();
   }
 

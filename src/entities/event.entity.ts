@@ -1,6 +1,7 @@
 import { ApiProperty, PickType } from "@nestjs/swagger";
 import { Column, ID, Table } from "common/objection";
 import { Entity } from "entities/base.entity";
+import { Type } from "class-transformer";
 
 @Table({
   name: "events",
@@ -33,6 +34,7 @@ export class Event extends Entity {
   @Column({ type: "string", required: false, nullable: true })
   description: string;
 
+  @Type(() => Number)
   @ApiProperty()
   @Column({ type: "integer", required: false, nullable: true })
   locationId: number;
@@ -41,10 +43,12 @@ export class Event extends Entity {
   @Column({ type: "string", required: false, nullable: true })
   icon?: string;
 
+  @Type(() => Number)
   @ApiProperty()
   @Column({ type: "integer" })
   startTime: number;
 
+  @Type(() => Number)
   @ApiProperty()
   @Column({ type: "integer" })
   endTime: number;
@@ -66,7 +70,7 @@ export class Event extends Entity {
   wsUrls?: string;
 
   @ApiProperty({ required: false })
-  @Column({ type: "string", nullable: true })
+  @Column({ type: "string", nullable: true, required: false })
   hackathonId?: string;
 }
 

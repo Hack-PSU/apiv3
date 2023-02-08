@@ -31,7 +31,7 @@ export class LocationController {
   }
 
   @Post("/")
-  async createOne(@Body("data") data: CreateEntity) {
+  async createOne(@Body() data: CreateEntity) {
     const location = await this.locationRepo.createOne(data).exec();
     this.socket.emit("create:location", location);
 
@@ -44,7 +44,7 @@ export class LocationController {
   }
 
   @Patch(":id")
-  async patchOne(@Param("id") id: number, @Body("data") data: PatchEntity) {
+  async patchOne(@Param("id") id: number, @Body() data: PatchEntity) {
     const location = await this.locationRepo.patchOne(id, data).exec();
     this.socket.emit("update:location", location);
 
@@ -52,7 +52,7 @@ export class LocationController {
   }
 
   @Put(":id")
-  async replaceOne(@Param("id") id: number, @Body("data") data: CreateEntity) {
+  async replaceOne(@Param("id") id: number, @Body() data: CreateEntity) {
     const location = await this.locationRepo.replaceOne(id, data).exec();
     this.socket.emit("update:location", location);
 

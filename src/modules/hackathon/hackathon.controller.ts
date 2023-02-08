@@ -39,7 +39,7 @@ export class HackathonController {
   }
 
   @Post("/")
-  async createOne(@Body("data") data: CreateEntity) {
+  async createOne(@Body() data: CreateEntity) {
     const newHackathonId = nanoid(32);
 
     await Hackathon.query().patch({ active: false }).where("active", true);
@@ -93,7 +93,7 @@ export class HackathonController {
   }
 
   @Patch(":id")
-  async patchOne(@Param("id") id: string, @Body("data") data: PatchEntity) {
+  async patchOne(@Param("id") id: string, @Body() data: PatchEntity) {
     const hackathon = await this.hackathonRepo.patchOne(id, data).exec();
     this.socket.emit("update:hackathon", hackathon);
 
@@ -101,7 +101,7 @@ export class HackathonController {
   }
 
   @Put(":id")
-  async replaceOne(@Param("id") id: string, @Body("data") data: UpdateEntity) {
+  async replaceOne(@Param("id") id: string, @Body() data: UpdateEntity) {
     const hackathon = await this.hackathonRepo.replaceOne(id, data).exec();
     this.socket.emit("update:hackathon", hackathon);
 

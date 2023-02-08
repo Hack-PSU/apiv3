@@ -67,7 +67,7 @@ export class UserController {
   @Post("/")
   @UseInterceptors(FileInterceptor("resume"))
   async createOne(
-    @Body("data") data: CreateEntity,
+    @Body() data: CreateEntity,
     @UploadedResume() resume?: Express.Multer.File,
   ) {
     let user = await this.userRepo
@@ -104,7 +104,7 @@ export class UserController {
   @UseInterceptors(FileInterceptor("resume"))
   async patchOne(
     @Param("id") id: string,
-    @Body("data") data: PatchEntity,
+    @Body() data: PatchEntity,
     @UploadedResume() resume?: Express.Multer.File,
   ) {
     const currentUser = await this.userRepo.findOne(id).exec();
@@ -134,7 +134,7 @@ export class UserController {
   @UseInterceptors(FileInterceptor("resume"))
   async replaceOne(
     @Param("id") id: string,
-    @Body("data") data: UpdateEntity,
+    @Body() data: UpdateEntity,
     @UploadedResume() resume?: Express.Multer.File,
   ) {
     const currentUser = await this.userRepo.findOne(id).exec();
@@ -174,7 +174,7 @@ export class UserController {
 
   @Post(":id/check-in")
   @HttpCode(HttpStatus.NO_CONTENT)
-  async checkIn(@Param("id") id: string, @Body("data") data: CreateScanEntity) {
+  async checkIn(@Param("id") id: string, @Body() data: CreateScanEntity) {
     const hasUser = await this.userRepo.findOne(id).exec();
 
     if (!hasUser) {

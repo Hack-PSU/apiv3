@@ -44,7 +44,7 @@ export class SponsorController {
   @Post("/")
   @UseInterceptors(FileInterceptor("logo"))
   async createOne(
-    @Body("data") data: CreateEntity,
+    @Body() data: CreateEntity,
     @UploadedLogo() logo?: Express.Multer.File,
   ) {
     let sponsor = await this.sponsorRepo.createOne(data).byHackathon();
@@ -69,7 +69,7 @@ export class SponsorController {
   }
 
   @Patch("/batch")
-  async patchBatch(@Body("data") data: PatchBatchEntity[]) {
+  async patchBatch(@Body() data: PatchBatchEntity[]) {
     const sponsors = await Promise.all(
       data.map(({ id, ...data }) => this.sponsorRepo.patchOne(id, data)),
     );
@@ -88,7 +88,7 @@ export class SponsorController {
   @UseInterceptors(FileInterceptor("logo"))
   async patchOne(
     @Param("id") id: number,
-    @Body("data") data: PatchEntity,
+    @Body() data: PatchEntity,
     @UploadedLogo() logo?: Express.Multer.File,
   ) {
     const currentSponsor = await this.sponsorRepo.findOne(id).exec();
@@ -120,7 +120,7 @@ export class SponsorController {
   @UseInterceptors(FileInterceptor("logo"))
   async replaceOne(
     @Param("id") id: number,
-    @Body("data") data: CreateEntity,
+    @Body() data: CreateEntity,
     @UploadedLogo() logo?: Express.Multer.File,
   ) {
     const currentSponsor = await this.sponsorRepo.findOne(id).exec();

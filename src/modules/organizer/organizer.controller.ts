@@ -43,7 +43,7 @@ export class OrganizerController {
   }
 
   @Post("/")
-  async createOne(@Body("data") data: CreateEntity) {
+  async createOne(@Body() data: CreateEntity) {
     const userExists = await this.auth.validateUser(data.id);
 
     if (!userExists) {
@@ -68,7 +68,7 @@ export class OrganizerController {
   }
 
   @Patch(":id")
-  async patchOne(@Param("id") id: string, @Body("data") data: UpdateEntity) {
+  async patchOne(@Param("id") id: string, @Body() data: UpdateEntity) {
     const organizer = await this.organizerRepo.patchOne(id, data).exec();
 
     if (data.privilege) {
@@ -81,7 +81,7 @@ export class OrganizerController {
   }
 
   @Put(":id")
-  async replaceOne(@Param("id") id: string, @Body("data") data: UpdateEntity) {
+  async replaceOne(@Param("id") id: string, @Body() data: UpdateEntity) {
     const organizer = await this.organizerRepo.replaceOne(id, data).exec();
 
     await this.auth.updateUserClaims(id, organizer.privilege);

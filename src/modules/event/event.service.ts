@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import * as admin from "firebase-admin";
 import { Express } from "express";
+import * as mime from "mime-types";
 
 @Injectable()
 export class EventService {
@@ -13,16 +14,24 @@ export class EventService {
   }
 
   private getFile(eventId: string, file: Express.Multer.File) {
-    const ext = file.mimetype.split("/");
-    return `${this.prefix}/${eventId}.${ext[ext.length - 1]}`;
+    let ext = mime.extension(file.mimetype);
+
+    if (!ext) {
+      ext = file.mimetype.split("/");
+      ext = ext[ext.length - 1];
+    }
+
+    return `${this.prefix}/${eventId}.${ext}`;
   }
 
   async uploadIcon(eventId: string, file: Express.Multer.File) {
-    await this.eventIconBucket
-      .file(this.getFile(eventId, file))
-      .save(file.buffer, { private: false });
+    const blob = this.eventIconBucket.file(this.getFile(eventId, file));
 
-    return this.eventIconBucket.file(this.getFile(eventId, file)).publicUrl();
+    await blob.save(file.buffer, { private: false, public: true });
+
+    await blob.makePublic();
+
+    return blob.publicUrl();
   }
 
   async deleteIcon(eventId: string) {
