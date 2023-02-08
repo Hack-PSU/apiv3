@@ -1,7 +1,7 @@
 import { Column, ID, Table } from "common/objection";
 import { Entity } from "entities/base.entity";
 import Objection from "objection";
-import { OmitType, PickType } from "@nestjs/swagger";
+import { ApiProperty, OmitType, PickType } from "@nestjs/swagger";
 
 @Table({
   name: "hackathons",
@@ -49,18 +49,23 @@ import { OmitType, PickType } from "@nestjs/swagger";
   },
 })
 export class Hackathon extends Entity {
+  @ApiProperty()
   @ID({ type: "string" })
   id: string;
 
+  @ApiProperty()
   @Column({ type: "string" })
   name: string;
 
+  @ApiProperty()
   @Column({ type: "integer" })
   startTime: number;
 
+  @ApiProperty()
   @Column({ type: "integer" })
   endTime: number;
 
+  @ApiProperty()
   @Column({ type: "boolean" })
   active: boolean;
 
@@ -70,7 +75,7 @@ export class Hackathon extends Entity {
     return {
       ...json,
       // map database active field to boolean
-      ...(json.active ? { active: json.active === 1 } : {}),
+      ...(json.active !== undefined ? { active: json.active === 1 } : {}),
     };
   }
 }

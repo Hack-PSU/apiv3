@@ -15,16 +15,16 @@ export class Sponsor extends Entity {
   @Column({ type: "string" })
   level: string;
 
-  @Column({ type: "string" })
+  @Column({ type: "string", required: false, nullable: true })
   link?: string;
 
-  @Column({ type: "string" })
+  @Column({ type: "string", required: false, nullable: true })
   logo?: string;
 
   @Column({ type: "integer" })
   order: number;
 
-  @Column({ type: "string" })
+  @Column({ type: "string", required: false })
   hackathonId: string;
 }
 

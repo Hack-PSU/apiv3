@@ -19,11 +19,14 @@ import { Express } from "express";
 import { SponsorService } from "modules/sponsor/sponsor.service";
 import { SocketRoom } from "common/socket";
 
-class CreateEntity extends OmitType(SponsorEntity, ["id", "logo"] as const) {}
+class SponsorCreateEntity extends OmitType(SponsorEntity, [
+  "id",
+  "logo",
+] as const) {}
 
-class PatchEntity extends PartialType(CreateEntity) {}
+class SponsorPatchEntity extends PartialType(SponsorCreateEntity) {}
 
-class PatchBatchEntity extends PatchEntity {
+class SponsorPatchBatchEntity extends SponsorPatchEntity {
   id: number;
 }
 
@@ -44,7 +47,7 @@ export class SponsorController {
   @Post("/")
   @UseInterceptors(FileInterceptor("logo"))
   async createOne(
-    @Body() data: CreateEntity,
+    @Body() data: SponsorCreateEntity,
     @UploadedLogo() logo?: Express.Multer.File,
   ) {
     let sponsor = await this.sponsorRepo.createOne(data).byHackathon();
@@ -68,17 +71,6 @@ export class SponsorController {
     return sponsor;
   }
 
-  @Patch("/batch")
-  async patchBatch(@Body() data: PatchBatchEntity[]) {
-    const sponsors = await Promise.all(
-      data.map(({ id, ...data }) => this.sponsorRepo.patchOne(id, data)),
-    );
-
-    this.socket.emit("batch_update:sponsor", sponsors, SocketRoom.MOBILE);
-
-    return sponsors;
-  }
-
   @Get(":id")
   async getOne(@Param("id") id: number) {
     return this.sponsorRepo.findOne(id).exec();
@@ -88,7 +80,7 @@ export class SponsorController {
   @UseInterceptors(FileInterceptor("logo"))
   async patchOne(
     @Param("id") id: number,
-    @Body() data: PatchEntity,
+    @Body() data: SponsorPatchEntity,
     @UploadedLogo() logo?: Express.Multer.File,
   ) {
     const currentSponsor = await this.sponsorRepo.findOne(id).exec();
@@ -120,7 +112,7 @@ export class SponsorController {
   @UseInterceptors(FileInterceptor("logo"))
   async replaceOne(
     @Param("id") id: number,
-    @Body() data: CreateEntity,
+    @Body() data: SponsorCreateEntity,
     @UploadedLogo() logo?: Express.Multer.File,
   ) {
     const currentSponsor = await this.sponsorRepo.findOne(id).exec();
@@ -160,5 +152,16 @@ export class SponsorController {
     this.socket.emit("update:sponsor", sponsor, SocketRoom.MOBILE);
 
     return sponsor;
+  }
+
+  @Patch("/batch/update")
+  async patchBatch(@Body() data: SponsorPatchBatchEntity[]) {
+    const sponsors = await Promise.all(
+      data.map(({ id, ...data }) => this.sponsorRepo.patchOne(id, data)),
+    );
+
+    this.socket.emit("batch_update:sponsor", sponsors, SocketRoom.MOBILE);
+
+    return sponsors;
   }
 }

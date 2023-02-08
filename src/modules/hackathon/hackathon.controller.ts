@@ -3,25 +3,87 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   Patch,
   Post,
   Put,
+  Query,
+  ValidationPipe,
 } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
 import { Hackathon, HackathonEntity } from "entities/hackathon.entity";
-import { OmitType, PartialType } from "@nestjs/swagger";
+import {
+  ApiBody,
+  ApiExtraModels,
+  ApiNoContentResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiProperty,
+  ApiQuery,
+  ApiTags,
+  getSchemaPath,
+  IntersectionType,
+  OmitType,
+  PartialType,
+} from "@nestjs/swagger";
 import { Role, Roles } from "common/gcp";
 import { SocketGateway } from "modules/socket/socket.gateway";
 import { Event } from "entities/event.entity";
 import { nanoid } from "nanoid";
+import { IsOptional } from "class-validator";
+import { Transform } from "class-transformer";
+import { ApiAuth } from "common/docs/api-auth";
 
-class UpdateEntity extends OmitType(HackathonEntity, ["id"] as const) {}
+class HackathonUpdateEntity extends OmitType(HackathonEntity, [
+  "id",
+] as const) {}
 
-class CreateEntity extends OmitType(UpdateEntity, ["active"] as const) {}
+class HackathonCreateEntity extends OmitType(HackathonUpdateEntity, [
+  "active",
+] as const) {}
 
-class PatchEntity extends PartialType(UpdateEntity) {}
+class HackathonPatchEntity extends PartialType(HackathonUpdateEntity) {}
 
+class HackathonCheckInResponse {
+  @ApiProperty({
+    description: "Included when active is set to true",
+  })
+  checkInId?: string;
+}
+
+class ConditionalHackathonResponse extends IntersectionType(
+  HackathonEntity,
+  PartialType(HackathonCheckInResponse),
+) {}
+
+class HackathonResponse extends IntersectionType(
+  HackathonEntity,
+  HackathonCheckInResponse,
+) {}
+
+class ActiveHackathonParams {
+  @ApiProperty({
+    required: false,
+    description: "active can either be a boolean or undefined",
+  })
+  @IsOptional()
+  @Transform(({ value }) => {
+    switch (value) {
+      case "true":
+        return true;
+      case "false":
+        return false;
+      default:
+        return undefined;
+    }
+  })
+  active?: boolean;
+}
+
+@ApiTags("Hackathons")
 @Controller("hackathons")
 export class HackathonController {
   constructor(
@@ -32,14 +94,48 @@ export class HackathonController {
     private readonly socket: SocketGateway,
   ) {}
 
+  private async getActiveHackathon() {
+    const hackathon = Hackathon.query().findOne({ active: true });
+    const checkIn = await Hackathon.relatedQuery<Event>("events")
+      .for(hackathon)
+      .where("type", "checkIn")
+      .first();
+
+    const activeHackathon = await hackathon;
+
+    return [
+      {
+        ...activeHackathon,
+        checkInId: checkIn.id,
+      },
+    ];
+  }
+
   @Get("/")
+  @ApiOperation({ summary: "Get All Hackathons" })
+  @ApiQuery({ name: "active", type: ActiveHackathonParams })
+  @ApiOkResponse({ type: ConditionalHackathonResponse })
+  @ApiAuth(Role.TEAM)
   @Roles(Role.TEAM)
-  async getAll() {
-    return this.hackathonRepo.findAll().exec();
+  async getAll(
+    @Query(new ValidationPipe({ transform: true }))
+    { active }: ActiveHackathonParams,
+  ) {
+    if (active === undefined) {
+      return this.hackathonRepo.findAll().exec();
+    } else if (active === true) {
+      return this.getActiveHackathon();
+    } else {
+      return this.hackathonRepo.findAll().raw().where("active", false);
+    }
   }
 
   @Post("/")
-  async createOne(@Body() data: CreateEntity) {
+  @ApiOperation({ summary: "Create a Hackathon" })
+  @ApiOkResponse({ type: HackathonResponse })
+  @ApiBody({ type: HackathonCreateEntity })
+  @ApiAuth(Role.EXEC)
+  async createOne(@Body() data: HackathonCreateEntity) {
     const newHackathonId = nanoid(32);
 
     await Hackathon.query().patch({ active: false }).where("active", true);
@@ -71,29 +167,21 @@ export class HackathonController {
     };
   }
 
-  @Get("/active")
-  async getActive() {
-    const hackathon = Hackathon.query().where("active", true);
-    const checkIn = await Hackathon.relatedQuery<Event>("events")
-      .for(hackathon)
-      .where("type", "checkIn")
-      .first();
-
-    const activeHackathon = await hackathon;
-
-    return {
-      ...activeHackathon,
-      checkInId: checkIn.id,
-    };
-  }
-
   @Get(":id")
+  @ApiOperation({ summary: "Get a Hackathon" })
+  @ApiParam({ name: "id", description: "ID must be set to a hackathon's ID" })
+  @ApiOkResponse({ type: HackathonEntity })
+  @ApiAuth(Role.TEAM)
   async getOne(@Param("id") id: string) {
     return this.hackathonRepo.findOne(id).exec();
   }
 
   @Patch(":id")
-  async patchOne(@Param("id") id: string, @Body() data: PatchEntity) {
+  @ApiOperation({ summary: "Patch a Hackathon" })
+  @ApiParam({ name: "id", description: "ID must be set to a hackaton's ID" })
+  @ApiOkResponse({ type: HackathonEntity })
+  @ApiAuth(Role.EXEC)
+  async patchOne(@Param("id") id: string, @Body() data: HackathonPatchEntity) {
     const hackathon = await this.hackathonRepo.patchOne(id, data).exec();
     this.socket.emit("update:hackathon", hackathon);
 
@@ -101,7 +189,14 @@ export class HackathonController {
   }
 
   @Put(":id")
-  async replaceOne(@Param("id") id: string, @Body() data: UpdateEntity) {
+  @ApiOperation({ summary: "Replace a Hackathon" })
+  @ApiParam({ name: "id", description: "ID must be set to a hackathon's ID" })
+  @ApiOkResponse({ type: HackathonEntity })
+  @ApiAuth(Role.EXEC)
+  async replaceOne(
+    @Param("id") id: string,
+    @Body() data: HackathonUpdateEntity,
+  ) {
     const hackathon = await this.hackathonRepo.replaceOne(id, data).exec();
     this.socket.emit("update:hackathon", hackathon);
 
@@ -109,6 +204,11 @@ export class HackathonController {
   }
 
   @Delete(":id")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: "Delete a Hackathon" })
+  @ApiParam({ name: "id", description: "ID must be set to a hackathon's ID" })
+  @ApiNoContentResponse()
+  @ApiAuth(Role.EXEC)
   async deleteOne(@Param("id") id: string) {
     const hackathon = await this.hackathonRepo.deleteOne(id).exec();
     this.socket.emit("delete:hackathon", hackathon);
@@ -116,7 +216,11 @@ export class HackathonController {
     return hackathon;
   }
 
-  @Post(":id/active")
+  @Patch(":id/active")
+  @ApiOperation({ summary: "Mark Active Hackathon" })
+  @ApiParam({ name: "id", description: "ID must be set to a hackathon's ID" })
+  @ApiOkResponse({ type: HackathonEntity })
+  @ApiAuth(Role.EXEC)
   async markActive(@Param("id") id: string) {
     // mark current as inactive
     await Hackathon.query().patch({ active: false }).where("active", true);
