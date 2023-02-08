@@ -43,12 +43,12 @@ import { Role } from "common/gcp";
 import * as mime from "mime-types";
 import { Hackathon } from "entities/hackathon.entity";
 
-class CreateEntity extends OmitType(EventEntity, ["id", "icon"] as const) {
+class EventCreateEntity extends OmitType(EventEntity, ["id", "icon"] as const) {
   @ApiProperty({ type: "string", format: "binary", required: false })
   icon?: any;
 }
 
-class PatchEntity extends PartialType(CreateEntity) {}
+class EventPatchEntity extends PartialType(EventCreateEntity) {}
 
 class CreateScanEntity extends OmitType(ScanEntity, [
   "id",
@@ -84,14 +84,13 @@ export class EventController {
   @ApiConsumes("multipart/form-data")
   @ApiCreatedResponse({ type: EventEntity })
   @ApiAuth(Role.TEAM)
-  @ApiBody({ type: CreateEntity })
-  // @UsePipes(new SanitizeFieldsPipe(["description"]))
+  @ApiBody({ type: EventCreateEntity })
   async createOne(
     @Body(
       new SanitizeFieldsPipe(["description"]),
       new ValidationPipe({ transform: true, forbidUnknownValues: false }),
     )
-    data: CreateEntity,
+    data: EventCreateEntity,
     @UploadedIcon() icon?: Express.Multer.File,
   ) {
     const eventId = nanoid();
@@ -126,7 +125,7 @@ export class EventController {
   @Patch(":id")
   @UseInterceptors(FileInterceptor("icon"))
   @ApiOperation({ summary: "Patch an Event" })
-  @ApiBody({ type: PatchEntity })
+  @ApiBody({ type: EventPatchEntity })
   @ApiConsumes("multipart/form-data")
   @ApiParam({ name: "id", description: "ID must be set to the event's ID" })
   @ApiOkResponse({ type: EventEntity })
@@ -137,7 +136,7 @@ export class EventController {
       new SanitizeFieldsPipe(["description"]),
       new ValidationPipe({ transform: true, forbidUnknownValues: false }),
     )
-    data: PatchEntity,
+    data: EventPatchEntity,
     @UploadedIcon() icon?: Express.Multer.File,
   ) {
     let iconUrl = null;
@@ -159,7 +158,7 @@ export class EventController {
   @UseInterceptors(FileInterceptor("icon"))
   @ApiOperation({ summary: "Replace an Event" })
   @ApiConsumes("multipart/form-data")
-  @ApiBody({ type: CreateEntity })
+  @ApiBody({ type: EventCreateEntity })
   @ApiParam({ name: "id", description: "ID must be set to the event's ID" })
   @ApiOkResponse({ type: EventEntity })
   @ApiAuth(Role.TEAM)
@@ -169,7 +168,7 @@ export class EventController {
       new SanitizeFieldsPipe(["description"]),
       new ValidationPipe({ transform: true, forbidUnknownValues: false }),
     )
-    data: CreateEntity,
+    data: EventCreateEntity,
     @UploadedIcon() icon?: Express.Multer.File,
   ) {
     let iconUrl = null;
@@ -191,6 +190,7 @@ export class EventController {
   }
 
   @Delete(":id")
+  @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Delete an Event" })
   @ApiNoContentResponse()
   @ApiParam({ name: "id", description: "ID must be set to the event's ID" })
