@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import * as admin from "firebase-admin";
 import { Express } from "express";
+import * as mime from "mime-types";
 
 type SponsorData = { id: number; name: string };
 
@@ -19,16 +20,24 @@ export class SponsorService {
   }
 
   private getFile(sponsor: SponsorData, file: Express.Multer.File) {
-    const ext = file.mimetype.split("/");
-    return `${this.prefix}/${this.getFilename(sponsor)}.${ext[ext.length - 1]}`;
+    let ext = mime.extension(file.mimetype);
+
+    if (!ext) {
+      ext = file.mimetype.split("/");
+      ext = ext[ext.length - 1];
+    }
+
+    return `${this.prefix}/${this.getFilename(sponsor)}.${ext}`;
   }
 
   async uploadLogo(sponsor: SponsorData, file: Express.Multer.File) {
-    await this.sponsorBucket
-      .file(this.getFile(sponsor, file))
-      .save(file.buffer, { public: true });
+    const blob = this.sponsorBucket.file(this.getFile(sponsor, file));
 
-    return this.sponsorBucket.file(this.getFile(sponsor, file)).publicUrl();
+    await blob.save(file.buffer, { public: true });
+
+    await blob.makePublic();
+
+    return blob.publicUrl();
   }
 
   async deleteLogo(sponsor: SponsorData) {

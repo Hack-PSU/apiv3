@@ -138,6 +138,8 @@ export class EventController {
     let iconUrl = null;
 
     if (icon) {
+      // delete if replacing the icon
+      await this.eventService.deleteIcon(id);
       iconUrl = await this.eventService.uploadIcon(id, icon);
     }
 
