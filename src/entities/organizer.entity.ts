@@ -47,7 +47,11 @@ export class Organizer extends Entity {
   @Column({ type: "string" })
   email: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    type: "number",
+    description:
+      "An organizer's permission level: 0 (NONE), 1 (Volunteer), 2 (Team), 3 (Exec), 4 (Tech Director)",
+  })
   privilege: Role;
 }
 

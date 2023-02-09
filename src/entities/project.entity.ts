@@ -1,11 +1,9 @@
 import { Column, ID, Table } from "common/objection";
 import { Entity } from "entities/base.entity";
 import { ApiProperty, PickType } from "@nestjs/swagger";
-import { raw } from "objection";
 
 @Table({
   name: "projects",
-  hackathonId: "hackathonId",
   relationMappings: {
     scores: {
       relation: Entity.HasManyRelation,
@@ -27,7 +25,7 @@ export class Project extends Entity {
   name: string;
 
   @ApiProperty()
-  @Column({ type: "string" })
+  @Column({ type: "string", required: false })
   hackathonId: string;
 }
 
