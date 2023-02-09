@@ -13,7 +13,7 @@ const config: { [key: string]: Knex.Config } = {
       host: "localhost",
     },
     seeds: {
-      directory: "./db/local/seeds",
+      directory: "./db/seeds",
     },
     migrations: {
       directory: "./db/migrations",
