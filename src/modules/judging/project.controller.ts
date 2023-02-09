@@ -18,6 +18,7 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiParam,
+  ApiTags,
   OmitType,
   PartialType,
 } from "@nestjs/swagger";
@@ -28,6 +29,7 @@ class ProjectCreateEntity extends OmitType(ProjectEntity, ["id"] as const) {}
 
 class ProjectPatchEntity extends PartialType(ProjectCreateEntity) {}
 
+@ApiTags("Judging")
 @Controller("judging/projects")
 export class ProjectController {
   constructor(

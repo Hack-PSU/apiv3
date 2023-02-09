@@ -31,7 +31,12 @@ class ScoreBreakdownEntity extends OmitType(ScoreEntity, [
   judge: ScoreBreakdownJudgeEntity;
 }
 
-class ProjectBreakdownEntity extends ProjectEntity {
+class ProjectBreakdownEntity extends OmitType(ProjectEntity, [
+  "name",
+] as const) {
+  @ApiProperty({ description: "The project's name" })
+  name: string;
+
   @ApiProperty()
   average: number;
 
