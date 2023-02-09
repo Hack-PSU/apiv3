@@ -11,7 +11,6 @@ import {
   Post,
   Put,
   UseInterceptors,
-  UsePipes,
   ValidationPipe,
 } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
@@ -20,7 +19,6 @@ import {
   ApiBody,
   ApiConsumes,
   ApiCreatedResponse,
-  ApiExtraModels,
   ApiNoContentResponse,
   ApiOkResponse,
   ApiOperation,
@@ -40,8 +38,6 @@ import { EventService } from "modules/event/event.service";
 import { Scan, ScanEntity } from "entities/scan.entity";
 import { ApiAuth } from "common/docs/api-auth";
 import { Role } from "common/gcp";
-import * as mime from "mime-types";
-import { Hackathon } from "entities/hackathon.entity";
 
 class EventCreateEntity extends OmitType(EventEntity, ["id", "icon"] as const) {
   @ApiProperty({ type: "string", format: "binary", required: false })

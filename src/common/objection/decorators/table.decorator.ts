@@ -44,23 +44,26 @@ export function Table<T extends Model>(
     constructor.idColumn =
       Reflect.getOwnMetadata(TableIDKey, constructor.prototype) ?? "id";
 
-    if (!options.disableByHackathon && options.hackathonId) {
-      // @ts-ignore
-      // constructor.relationMappings = {
-      //   hackathon: {
-      //     relation: Model.BelongsToOneRelation,
-      //     modelClass: "hackathon.entity.ts",
-      //     join: {
-      //       from: `${options.name}.${options.hackathonId}`,
-      //       to: "hackathons.id",
-      //     },
-      //   },
-      //   ...options.relationMappings,
-      // } as RelationMappings;
-    } else {
-      // @ts-ignore
-      constructor.relationMappings = options.relationMappings;
-    }
+    // @ts-ignore
+    constructor.relationMappings = options.relationMappings;
+
+    // if (!options.disableByHackathon && options.hackathonId) {
+    //   // @ts-ignore
+    //   // constructor.relationMappings = {
+    //   //   hackathon: {
+    //   //     relation: Model.BelongsToOneRelation,
+    //   //     modelClass: "hackathon.entity.ts",
+    //   //     join: {
+    //   //       from: `${options.name}.${options.hackathonId}`,
+    //   //       to: "hackathons.id",
+    //   //     },
+    //   //   },
+    //   //   ...options.relationMappings,
+    //   // } as RelationMappings;
+    // } else {
+    //   // @ts-ignore
+    //   constructor.relationMappings = options.relationMappings;
+    // }
 
     // @ts-ignore
     constructor.modifiers = options.modifiers;

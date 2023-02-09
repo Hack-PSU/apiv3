@@ -1,6 +1,6 @@
 import { Column, ID, Table } from "common/objection";
 import { Entity } from "entities/base.entity";
-import { PickType } from "@nestjs/swagger";
+import { ApiProperty, PickType } from "@nestjs/swagger";
 
 @Table({
   name: "extraCreditClasses",
@@ -16,7 +16,7 @@ import { PickType } from "@nestjs/swagger";
     users: {
       relation: Entity.ManyToManyRelation,
       modelClass: "user.entity.js",
-      filter: (qb) => qb.select("id"),
+      filter: (qb) => qb.select("users.id"),
       join: {
         from: "extraCreditClasses.id",
         through: {
@@ -30,9 +30,11 @@ import { PickType } from "@nestjs/swagger";
   },
 })
 export class ExtraCreditClass extends Entity {
+  @ApiProperty()
   @ID({ type: "integer" })
   id: number;
 
+  @ApiProperty()
   @Column({ type: "string" })
   name: string;
 }

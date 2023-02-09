@@ -1,7 +1,7 @@
 import { Column, ID, Table } from "common/objection";
 import { Entity } from "entities/base.entity";
 import { Role } from "common/gcp";
-import { PickType } from "@nestjs/swagger";
+import { ApiProperty, PickType } from "@nestjs/swagger";
 
 @Table({
   name: "organizers",
@@ -18,18 +18,23 @@ import { PickType } from "@nestjs/swagger";
   },
 })
 export class Organizer extends Entity {
+  @ApiProperty()
   @ID({ type: "string" })
   id: string;
 
+  @ApiProperty()
   @Column({ type: "string" })
   firstName: string;
 
+  @ApiProperty()
   @Column({ type: "string" })
   lastName: string;
 
+  @ApiProperty()
   @Column({ type: "string" })
   email: string;
 
+  @ApiProperty()
   privilege: Role;
 }
 

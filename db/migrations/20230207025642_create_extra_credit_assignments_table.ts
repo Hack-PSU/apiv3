@@ -12,6 +12,12 @@ export async function up(knex: Knex): Promise<void> {
       .references("id")
       .inTable("extra_credit_classes")
       .onUpdate("CASCADE");
+
+    t.uuid("hackathon_id").notNullable();
+    t.foreign("hackathon_id")
+      .references("id")
+      .inTable("hackathons")
+      .onUpdate("CASCADE");
   });
 }
 
