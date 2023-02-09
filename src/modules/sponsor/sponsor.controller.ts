@@ -35,8 +35,21 @@ import { SponsorService } from "modules/sponsor/sponsor.service";
 import { SocketRoom } from "common/socket";
 import { ApiAuth } from "common/docs/api-auth";
 import { Role } from "common/gcp";
+import * as _ from "lodash";
+import { ParseBatchUpdatePipe } from "modules/sponsor/parse-batch-update.pipe";
 
-class SponsorCreateEntity extends OmitType(SponsorEntity, ["id"] as const) {}
+class SponsorCreateEntity extends OmitType(SponsorEntity, [
+  "id",
+  "logo",
+] as const) {
+  @ApiProperty({
+    type: "string",
+    format: "binary",
+    required: false,
+    nullable: true,
+  })
+  logo?: any;
+}
 
 class SponsorPatchEntity extends PartialType(SponsorCreateEntity) {}
 
@@ -46,9 +59,6 @@ class SponsorPatchBatchEntity extends OmitType(SponsorPatchEntity, [
   "hackathonId",
 ] as const) {
   id: number;
-
-  // Required for internal types but api types will be removed
-  name: string;
 }
 
 @ApiTags("Sponsorship")
@@ -224,11 +234,12 @@ export class SponsorController {
   @ApiBody({ type: [SponsorPatchBatchEntity] })
   @ApiOkResponse({ type: [SponsorEntity] })
   @ApiAuth(Role.TEAM)
-  async patchBatch(@Body() data: SponsorPatchBatchEntity[]) {
+  async patchBatch(
+    @Body(new ParseBatchUpdatePipe(["name", "logo", "hackathonId"]))
+    data: SponsorPatchBatchEntity[],
+  ) {
     const sponsors = await Promise.all(
-      data.map(({ id, name, ...data }) =>
-        this.sponsorRepo.patchOne(id, data).exec(),
-      ),
+      data.map(({ id, ...data }) => this.sponsorRepo.patchOne(id, data).exec()),
     );
 
     this.socket.emit("batch_update:sponsor", sponsors, SocketRoom.MOBILE);

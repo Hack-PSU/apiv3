@@ -23,12 +23,7 @@ export class Sponsor extends Entity {
   @Column({ type: "string", required: false, nullable: true })
   link?: string;
 
-  @ApiProperty({
-    type: "string",
-    format: "binary",
-    required: false,
-    nullable: true,
-  })
+  @ApiProperty()
   @Column({ type: "string", required: false, nullable: true })
   logo?: string;
 

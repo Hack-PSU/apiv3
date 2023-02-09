@@ -2,6 +2,7 @@ import { Column, ID, Table } from "common/objection";
 import { Entity } from "entities/base.entity";
 import { Role } from "common/gcp";
 import { ApiProperty, PickType } from "@nestjs/swagger";
+import { Hackathon } from "entities/hackathon.entity";
 
 @Table({
   name: "organizers",
@@ -14,6 +15,18 @@ import { ApiProperty, PickType } from "@nestjs/swagger";
         from: "users.id",
         to: "scans.userId",
       },
+    },
+  },
+  modifiers: {
+    scansByHackathon: (qb, byHackathon?: string) => {
+      if (!byHackathon) {
+        return qb.where(
+          "scans.hackathonId",
+          Hackathon.query().findOne({ active: true }),
+        );
+      } else {
+        return qb.where("scans.hackathonId", byHackathon);
+      }
     },
   },
 })

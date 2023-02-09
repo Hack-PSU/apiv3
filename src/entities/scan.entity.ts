@@ -59,4 +59,4 @@ export class ScanEntity extends PickType(Scan, [
   "userId",
   "organizerId",
   "hackathonId",
-]) {}
+] as const) {}

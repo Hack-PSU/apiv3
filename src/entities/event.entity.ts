@@ -14,6 +14,16 @@ import { Type } from "class-transformer";
         to: "locations.id",
       },
     },
+    scans: {
+      relation: Entity.HasManyRelation,
+      modelClass: "scan.entity.js",
+      filter: (qb) =>
+        qb.select("scans.id", "scans.userId", "scans.organizerId"),
+      join: {
+        from: "events.id",
+        to: "scans.eventId",
+      },
+    },
   },
   hackathonId: "hackathonId",
 })
