@@ -1,6 +1,7 @@
 import { Column, ID, Table } from "common/objection";
 import { Entity } from "entities/base.entity";
 import { ApiProperty, PickType } from "@nestjs/swagger";
+import { raw } from "objection";
 
 @Table({
   name: "projects",
@@ -13,6 +14,12 @@ import { ApiProperty, PickType } from "@nestjs/swagger";
         to: "scores.projectId",
       },
     },
+  },
+  modifiers: {
+    scoreAvg: (qb) =>
+      qb
+        .select("projects.*", raw("AVG(scores.total)").as("average"))
+        .groupBy("projects.id", "scores.id"),
   },
 })
 export class Project extends Entity {

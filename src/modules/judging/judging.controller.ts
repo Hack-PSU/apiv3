@@ -56,18 +56,16 @@ export class JudgingController {
   ) {}
 
   @Get("/breakdown")
-  @ApiOperation({ summary: "Get Project and Score Breakdown" })
+  @ApiOperation({ summary: "Get Score Breakdowns By Project" })
   @ApiOkResponse({ type: [ProjectBreakdownEntity] })
   @ApiAuth(Role.TEAM)
   async getBreakdown() {
-    const projects = await this.projectRepo
+    // withGraphJoined creates a single join query allowing for modifiers
+    // to be applied unlike withGraphFetched, which generates more than 1 query
+    return this.projectRepo
       .findAll()
       .byHackathon()
-      .withGraphFetched("scores(agg).judge");
-
-    return projects.map((project) => ({
-      ...project,
-      average: _.meanBy(project.scores, (score: any) => score.total),
-    }));
+      .withGraphJoined("scores(agg).judge")
+      .modify("scoreAvg");
   }
 }
