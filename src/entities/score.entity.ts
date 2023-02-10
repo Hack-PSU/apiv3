@@ -42,39 +42,39 @@ export class Score extends Entity {
   id: number;
 
   @ApiProperty()
-  @Column({ type: "integer" })
+  @Column({ type: "integer", required: false })
   creativity: number;
 
   @ApiProperty()
-  @Column({ type: "integer" })
+  @Column({ type: "integer", required: false })
   technical: number;
 
   @ApiProperty()
-  @Column({ type: "integer" })
+  @Column({ type: "integer", required: false })
   implementation: number;
 
   @ApiProperty()
-  @Column({ type: "integer" })
+  @Column({ type: "integer", required: false })
   clarity: number;
 
   @ApiProperty()
-  @Column({ type: "integer" })
+  @Column({ type: "integer", required: false })
   growth: number;
 
   @ApiProperty()
-  @Column({ type: "integer" })
+  @Column({ type: "integer", required: false })
   energy: number;
 
   @ApiProperty()
-  @Column({ type: "integer" })
+  @Column({ type: "integer", required: false })
   supplyChain: number;
 
   @ApiProperty()
-  @Column({ type: "integer" })
+  @Column({ type: "integer", required: false })
   environmental: number;
 
-  @ApiProperty()
-  @Column({ type: "string" })
+  @ApiProperty({ required: false, default: "Current Hackathon" })
+  @Column({ type: "string", required: false })
   hackathonId: string;
 
   @ApiProperty()
@@ -86,7 +86,7 @@ export class Score extends Entity {
   projectId: number;
 
   @ApiProperty()
-  @Column({ type: "boolean" })
+  @Column({ type: "boolean", required: false })
   submitted: boolean;
 
   $parseDatabaseJson(json: Objection.Pojo): Objection.Pojo {

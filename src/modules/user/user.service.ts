@@ -18,13 +18,13 @@ export class UserService {
     userId: string,
     file: Express.Multer.File,
   ) {
-    await this.resumeBucket
-      .file(this.getFile(hackathonId, userId))
-      .save(file.buffer);
+    const blob = this.resumeBucket.file(this.getFile(hackathonId, userId));
 
-    return this.resumeBucket
-      .file(this.getFile(hackathonId, userId))
-      .publicUrl();
+    await blob.save(file.buffer);
+
+    await blob.makePublic();
+
+    return blob.publicUrl();
   }
 
   deleteResume(hackathonId: string, userId: string) {

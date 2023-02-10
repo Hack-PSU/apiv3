@@ -76,8 +76,10 @@ export class RolesGuard extends AuthGuard("jwt") {
       this.reflector.get(FirebaseAuthRestrictedRoles, context.getHandler());
 
     if (restrictedRoles) {
-      restricted.roles = restrictedRoles.roles;
-      restricted.handler = restrictedRoles.handler;
+      restricted = {
+        roles: restrictedRoles.roles,
+        handler: restrictedRoles.handler,
+      };
     }
 
     // if no authorization required default to passportAccess
@@ -95,15 +97,17 @@ export class RolesGuard extends AuthGuard("jwt") {
       // HTTP requests are checked against possible restricted roles
       const request = context.switchToHttp().getRequest();
 
-      let restrictedAccess = true;
-
       // if any route is defined as restricted
       if (restricted) {
-        restrictedAccess = this.authService.validateRestrictedAccess(
+        // isAllowed === undefined if user is not a part of restriction
+        // or not enough information to determine authorization
+        const isAllowed = this.authService.validateRestrictedAccess(
           request,
           restricted.handler,
           restricted.roles,
         );
+
+        if (isAllowed !== undefined) return isAllowed;
       }
 
       const generalAccess = this.authService.validateHttpUser(
@@ -111,7 +115,7 @@ export class RolesGuard extends AuthGuard("jwt") {
         rolesList,
       );
 
-      return restrictedAccess || generalAccess;
+      return generalAccess;
     }
   }
 }

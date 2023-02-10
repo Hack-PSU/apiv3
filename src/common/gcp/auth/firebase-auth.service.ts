@@ -8,6 +8,10 @@ import { RestrictedEndpointHandler } from "common/gcp";
 
 type FirebaseJwtPayload = JwtPayload & { privilege?: number };
 
+type ValidateFn = (user: any, role: Role) => boolean;
+
+type ValidateCmp = (role: Role) => boolean;
+
 @Injectable()
 export class FirebaseAuthService {
   constructor(private readonly httpService: HttpService) {}
@@ -16,12 +20,13 @@ export class FirebaseAuthService {
     return jwtDecode(token) as FirebaseJwtPayload;
   }
 
-  private validateAccess(user: any, access?: Role[]) {
+  private validateAccess(user: any, access?: Role[], fn?: ValidateCmp) {
     if (!access) {
       return true;
     }
-
-    return access.every((role) => user.privilege && user.privilege >= role);
+    return access.every(
+      fn ?? ((role) => user.privilege && user.privilege >= role),
+    );
   }
 
   extractAuthToken(token: string) {
@@ -35,32 +40,38 @@ export class FirebaseAuthService {
     return this.httpService.get(FirebaseAuthJWTKeySets);
   }
 
+  validateHttpUser(user: any, access?: Role[]) {
+    return this.validateAccess(user, access);
+  }
+
+  intersectRoles(user: any, access?: Role[], fn?: ValidateFn) {
+    return this.validateAccess(user, access, (role) => fn(user, role));
+  }
+
   // Only use for HTTP
   validateRestrictedAccess(
     request: any,
     handler?: RestrictedEndpointHandler,
     access?: Role[],
-  ): boolean {
-    if (!handler) {
-      return true;
+  ): boolean | undefined {
+    if (!handler || !access) {
+      // unable to determine access
+      return undefined;
     }
 
     const resource = handler(request);
     const user = request.user;
 
+    // check for intersecting roles
+    if (user && !access.includes(user.privilege)) {
+      return undefined;
+    }
+
     if (user && user.sub && resource !== user.sub) {
       return false;
     }
 
-    if (!access) {
-      return true;
-    }
-
-    return this.validateHttpUser(user, access);
-  }
-
-  validateHttpUser(user: any, access?: Role[]) {
-    return this.validateAccess(user, access);
+    return true;
   }
 
   validateWsUser(token: string, access?: Role[]) {

@@ -1,6 +1,7 @@
 import { PickType } from "@nestjs/swagger";
 import { Column, ID, Table } from "common/objection";
 import { Entity } from "entities/base.entity";
+import { Type } from "class-transformer";
 
 @Table({
   name: "users",
@@ -43,12 +44,15 @@ export class User extends Entity {
   @Column({ type: "string", required: false, nullable: true })
   allergies?: string;
 
+  @Type(() => Boolean)
   @Column({ type: "boolean" })
   travelReimbursement: boolean;
 
+  @Type(() => Boolean)
   @Column({ type: "boolean" })
   driving: boolean;
 
+  @Type(() => Boolean)
   @Column({ type: "boolean" })
   firstHackathon: boolean;
 
@@ -82,12 +86,15 @@ export class User extends Entity {
   @Column({ type: "string", required: false, nullable: true })
   codingExperience?: string;
 
+  @Type(() => Boolean)
   @Column({ type: "boolean" })
   eighteenBeforeEvent: boolean;
 
+  @Type(() => Boolean)
   @Column({ type: "boolean" })
   mlhCoc: boolean;
 
+  @Type(() => Boolean)
   @Column({ type: "boolean" })
   mlhDcp: boolean;
 
@@ -100,12 +107,15 @@ export class User extends Entity {
   @Column({ type: "string", required: false, nullable: true })
   expectations?: string;
 
+  @Type(() => Boolean)
   @Column({ type: "boolean", required: false, nullable: true })
   shareAddressMlh?: boolean;
 
+  @Type(() => Boolean)
   @Column({ type: "boolean", required: false, nullable: true })
   shareAddressSponsors?: boolean;
 
+  @Type(() => Boolean)
   @Column({ type: "boolean", required: false, nullable: true })
   shareEmailMlh?: boolean;
 
@@ -118,6 +128,7 @@ export class User extends Entity {
   @Column({ type: "string" })
   hackathonId: string;
 
+  @Type(() => Number)
   @Column({ type: "integer" })
   time: number;
 }

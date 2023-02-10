@@ -93,7 +93,7 @@ export class UserController {
 
   @Get(":id")
   @RestrictedRoles({
-    roles: [Role.NONE],
+    roles: [Role.NONE, Role.VOLUNTEER],
     handler: (req) => req.params.id,
   })
   async getOne(@Param("id") id: string) {
@@ -109,6 +109,8 @@ export class UserController {
   ) {
     const currentUser = await this.userRepo.findOne(id).exec();
     let resumeUrl = null;
+
+    await this.userService.deleteResume(currentUser.hackathonId, id);
 
     if (resume) {
       resumeUrl = await this.userService.uploadResume(
@@ -141,6 +143,9 @@ export class UserController {
     let resumeUrl = null;
 
     if (resume) {
+      // remove current resume
+      await this.userService.deleteResume(currentUser.hackathonId, id);
+
       resumeUrl = await this.userService.uploadResume(
         currentUser.hackathonId,
         id,
