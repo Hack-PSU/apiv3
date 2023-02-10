@@ -50,6 +50,7 @@ class CreateScanEntity extends OmitType(ScanEntity, [
   "id",
   "hackathonId",
   "eventId",
+  "userId",
 ] as const) {
   hackathonId?: string;
 }
@@ -203,14 +204,19 @@ export class EventController {
     return event;
   }
 
-  @Post(":id/check-in")
+  @Post(":id/check-in/user/:userId")
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Check-In by Event" })
   @ApiBody({ type: CreateScanEntity })
   @ApiParam({ name: "id", description: "ID must be set to the event's ID" })
+  @ApiParam({ name: "userId", description: "ID must be set to a user's ID" })
   @ApiNoContentResponse()
   @ApiAuth(Role.TEAM)
-  async checkInEvent(@Param("id") id: string, @Body() data: CreateScanEntity) {
+  async checkInEvent(
+    @Param("id") id: string,
+    @Param("userId") userId: string,
+    @Body() data: CreateScanEntity,
+  ) {
     const hasEvent = await this.eventRepo.findOne(id).exec();
 
     if (!hasEvent) {
@@ -219,6 +225,12 @@ export class EventController {
 
     const { hackathonId, ...rest } = data;
 
-    await this.scanRepo.createOne(rest).byHackathon(hackathonId);
+    await this.scanRepo
+      .createOne({
+        ...rest,
+        userId,
+        eventId: id,
+      })
+      .byHackathon(hackathonId);
   }
 }

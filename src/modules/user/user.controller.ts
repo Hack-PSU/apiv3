@@ -24,6 +24,7 @@ import { Express } from "express";
 import { Scan, ScanEntity } from "entities/scan.entity";
 import { ExtraCreditClass } from "entities/extra-credit-class.entity";
 import { ExtraCreditAssignment } from "entities/extra-credit-assignment.entity";
+import { Hackathon } from "entities/hackathon.entity";
 
 class CreateEntity extends OmitType(UserEntity, [
   "resume",
@@ -40,6 +41,7 @@ class CreateScanEntity extends OmitType(ScanEntity, [
   "id",
   "hackathonId",
   "userId",
+  "eventId",
 ] as const) {
   hackathonId?: string;
 }
@@ -70,21 +72,26 @@ export class UserController {
     @Body() data: CreateEntity,
     @UploadedResume() resume?: Express.Multer.File,
   ) {
-    let user = await this.userRepo
-      .createOne(data)
-      .byHackathon(data.hackathonId);
+    let resumeUrl = null;
 
     if (resume) {
-      const resumeUrl = await this.userService.uploadResume(
-        user.hackathonId,
-        user.id,
+      const currentHackathon = await Hackathon.query().findOne({
+        active: true,
+      });
+
+      resumeUrl = await this.userService.uploadResume(
+        data.hackathonId ?? currentHackathon.id,
+        data.id,
         resume,
       );
-
-      user = await this.userRepo
-        .patchOne(user.id, { resume: resumeUrl })
-        .exec();
     }
+
+    const user = await this.userRepo
+      .createOne({
+        ...data,
+        resume: resumeUrl,
+      })
+      .byHackathon();
 
     this.socket.emit("create:user", user);
 
@@ -110,9 +117,10 @@ export class UserController {
     const currentUser = await this.userRepo.findOne(id).exec();
     let resumeUrl = null;
 
-    await this.userService.deleteResume(currentUser.hackathonId, id);
-
     if (resume) {
+      // remove current resume
+      await this.userService.deleteResume(currentUser.hackathonId, id);
+
       resumeUrl = await this.userService.uploadResume(
         currentUser.hackathonId,
         id,
@@ -142,10 +150,9 @@ export class UserController {
     const currentUser = await this.userRepo.findOne(id).exec();
     let resumeUrl = null;
 
-    if (resume) {
-      // remove current resume
-      await this.userService.deleteResume(currentUser.hackathonId, id);
+    await this.userService.deleteResume(currentUser.hackathonId, id);
 
+    if (resume) {
       resumeUrl = await this.userService.uploadResume(
         currentUser.hackathonId,
         id,
@@ -156,7 +163,7 @@ export class UserController {
     const user = await this.userRepo
       .replaceOne(id, {
         ...data,
-        ...(resumeUrl ? { resume: resumeUrl } : {}),
+        resume: resumeUrl,
       })
       .exec();
 
@@ -177,9 +184,13 @@ export class UserController {
     return deletedUser;
   }
 
-  @Post(":id/check-in")
+  @Post(":id/check-in/event/:eventId")
   @HttpCode(HttpStatus.NO_CONTENT)
-  async checkIn(@Param("id") id: string, @Body() data: CreateScanEntity) {
+  async checkIn(
+    @Param("id") id: string,
+    @Param("eventId") eventId: string,
+    @Body() data: CreateScanEntity,
+  ) {
     const hasUser = await this.userRepo.findOne(id).exec();
 
     if (!hasUser) {
