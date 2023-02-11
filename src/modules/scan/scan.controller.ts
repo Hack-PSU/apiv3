@@ -13,6 +13,7 @@ import { ApiAuth } from "common/docs/api-auth";
 import { Role } from "common/gcp";
 import { Event, EventEntity } from "entities/event.entity";
 import { Organizer } from "entities/organizer.entity";
+import { Hackathon } from "entities/hackathon.entity";
 
 class AnalyticsEventsScansEntity extends EventEntity {
   @ApiProperty({ type: [ScanEntity] })
@@ -56,7 +57,11 @@ export class ScanController {
     return this.organizerRepo
       .findAll()
       .raw()
-      .withGraphFetched("scans(scansByHackathon)");
+      .withGraphJoined("scans")
+      .where(
+        "scans.hackathonId",
+        Hackathon.query().findOne({ active: true }).select("hackathons.id"),
+      );
   }
 
   @Get("analytics/organizers/:id")

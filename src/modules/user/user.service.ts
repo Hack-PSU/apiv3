@@ -17,8 +17,16 @@ export class UserService {
     }
   }
 
+  private get prefix() {
+    if (this.configService.get("GOOGLE_CERT")) {
+      return "resumes/";
+    } else {
+      return "";
+    }
+  }
+
   private getFile(hackathonId: string, userId: string) {
-    return `${hackathonId}-${userId}.pdf`;
+    return `${this.prefix}${hackathonId}-${userId}.pdf`;
   }
 
   async uploadResume(
