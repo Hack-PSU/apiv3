@@ -31,11 +31,12 @@ import {
 } from "@nestjs/swagger";
 import { Role, Roles } from "common/gcp";
 import { SocketGateway } from "modules/socket/socket.gateway";
-import { Event } from "entities/event.entity";
+import { Event, EventEntity } from "entities/event.entity";
 import { nanoid } from "nanoid";
 import { IsOptional } from "class-validator";
 import { Transform } from "class-transformer";
 import { ApiAuth } from "common/docs/api-auth";
+import { SponsorEntity } from "entities/sponsor.entity";
 
 class HackathonUpdateEntity extends OmitType(HackathonEntity, [
   "id",
@@ -64,6 +65,14 @@ class HackathonResponse extends IntersectionType(
   HackathonCheckInResponse,
 ) {}
 
+class StaticActiveHackathonEntity extends HackathonEntity {
+  @ApiProperty({ type: [EventEntity] })
+  events: EventEntity[];
+
+  @ApiProperty({ type: [SponsorEntity] })
+  sponsors: SponsorEntity[];
+}
+
 class ActiveHackathonParams {
   @ApiProperty({
     required: false,
@@ -85,6 +94,7 @@ class ActiveHackathonParams {
 
 @ApiTags("Hackathons")
 @Controller("hackathons")
+@ApiExtraModels(StaticActiveHackathonEntity)
 export class HackathonController {
   constructor(
     @InjectRepository(Hackathon)
@@ -233,5 +243,15 @@ export class HackathonController {
     this.socket.emit("update:hackathon", hackathon);
 
     return hackathon;
+  }
+
+  @Get("/active/static")
+  @ApiOperation({ summary: "Get Active Hackathon For Static" })
+  @ApiOkResponse({ type: StaticActiveHackathonEntity })
+  @ApiAuth(Role.NONE)
+  async getForStatic() {
+    return Hackathon.query()
+      .findOne({ active: true })
+      .withGraphFetched("[events, sponsors]");
   }
 }
