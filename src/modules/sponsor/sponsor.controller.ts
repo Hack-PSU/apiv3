@@ -34,7 +34,7 @@ import { Express } from "express";
 import { SponsorService } from "modules/sponsor/sponsor.service";
 import { SocketRoom } from "common/socket";
 import { ApiAuth } from "common/docs/api-auth";
-import { Role } from "common/gcp";
+import { Role, Roles } from "common/gcp";
 import * as _ from "lodash";
 import { ParseBatchUpdatePipe } from "modules/sponsor/parse-batch-update.pipe";
 
@@ -72,6 +72,7 @@ export class SponsorController {
   ) {}
 
   @Get("/")
+  @Roles(Role.TEAM)
   @ApiOperation({ summary: "Get All Sponsors" })
   @ApiOkResponse({ type: [SponsorEntity] })
   @ApiAuth(Role.TEAM)
@@ -80,6 +81,7 @@ export class SponsorController {
   }
 
   @Post("/")
+  @Roles(Role.TEAM)
   @UseInterceptors(FileInterceptor("logo"))
   @ApiOperation({ summary: "Create a Sponsor" })
   @ApiConsumes("multipart/form-data")
@@ -113,6 +115,7 @@ export class SponsorController {
   }
 
   @Get(":id")
+  @Roles(Role.TEAM)
   @ApiOperation({ summary: "Get a Sponsor" })
   @ApiParam({ name: "id", description: "ID must be set to a sponsor's ID" })
   @ApiOkResponse({ type: SponsorEntity })
@@ -122,6 +125,7 @@ export class SponsorController {
   }
 
   @Patch(":id")
+  @Roles(Role.TEAM)
   @UseInterceptors(FileInterceptor("logo"))
   @ApiOperation({ summary: "Patch a Sponsor" })
   @ApiConsumes("multipart/form-data")
@@ -166,6 +170,7 @@ export class SponsorController {
   }
 
   @Put(":id")
+  @Roles(Role.TEAM)
   @UseInterceptors(FileInterceptor("logo"))
   @ApiOperation({ summary: "Replace a Sponsor" })
   @ApiConsumes("multipart/form-data")
@@ -210,6 +215,7 @@ export class SponsorController {
 
   @Delete(":id")
   @HttpCode(HttpStatus.NO_CONTENT)
+  @Roles(Role.TEAM)
   @ApiOperation({ summary: "Delete a Sponsor" })
   @ApiParam({ name: "id", description: "ID must be set to a sponsor's ID" })
   @ApiNoContentResponse()
@@ -230,6 +236,7 @@ export class SponsorController {
   }
 
   @Patch("/batch/update")
+  @Roles(Role.TEAM)
   @ApiOperation({ summary: "Batch Update Sponsors" })
   @ApiBody({ type: [SponsorPatchBatchEntity] })
   @ApiOkResponse({ type: [SponsorEntity] })

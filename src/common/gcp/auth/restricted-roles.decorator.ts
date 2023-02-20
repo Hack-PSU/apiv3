@@ -6,10 +6,11 @@ import {
   FirebaseAuthRestrictedRoles,
 } from "common/gcp/auth/firebase-auth.constants";
 
-export type RestrictedEndpointHandler = (req: Request) => string;
+// export type RestrictedEndpointHandler<T = string> = (req: Request) => T;
+export type RestrictedEndpointPredicate = (request: any) => boolean;
 
 export type RestrictedRolesOptions = {
-  handler: RestrictedEndpointHandler;
+  predicate: RestrictedEndpointPredicate;
   roles: Role[];
 };
 
@@ -17,11 +18,11 @@ export type RestrictedRolesOptions = {
  * Decorate endpoint to enforce all provided roles according to the handler.
  * The decorator will enforce a matching user id using the handler and the provided
  * token.
- * @param handler
+ * @param predicate
  * @constructor
  */
-export const RestrictedEndpoint = (handler: RestrictedEndpointHandler) =>
-  SetMetadata(FirebaseAuthRestrictedEndpoint, handler);
+export const RestrictedEndpoint = (predicate: RestrictedEndpointPredicate) =>
+  SetMetadata(FirebaseAuthRestrictedEndpoint, predicate);
 
 /**
  * RestrictedRoles imply a restricted endpoint. Roles that intersect with the

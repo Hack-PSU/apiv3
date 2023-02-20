@@ -23,7 +23,7 @@ import {
   PartialType,
 } from "@nestjs/swagger";
 import { ApiAuth } from "common/docs/api-auth";
-import { Role } from "common/gcp";
+import { Role, Roles } from "common/gcp";
 
 class ProjectCreateEntity extends OmitType(ProjectEntity, ["id"] as const) {}
 
@@ -38,6 +38,7 @@ export class ProjectController {
   ) {}
 
   @Get("/")
+  @Roles(Role.TEAM)
   @ApiOperation({ summary: "Get All Projects" })
   @ApiOkResponse({ type: [ProjectEntity] })
   @ApiAuth(Role.TEAM)
@@ -46,6 +47,7 @@ export class ProjectController {
   }
 
   @Post("/")
+  @Roles(Role.TEAM)
   @ApiOperation({ summary: "Create a Project" })
   @ApiBody({ type: ProjectCreateEntity })
   @ApiOkResponse({ type: ProjectEntity })
@@ -55,6 +57,7 @@ export class ProjectController {
   }
 
   @Get(":id")
+  @Roles(Role.TEAM)
   @ApiOperation({ summary: "Get a Project" })
   @ApiParam({ name: "id", description: "ID must be set to a project's ID" })
   @ApiOkResponse({ type: ProjectEntity })
@@ -64,6 +67,7 @@ export class ProjectController {
   }
 
   @Patch(":id")
+  @Roles(Role.TEAM)
   @ApiOperation({ summary: "Patch a Project" })
   @ApiParam({ name: "id", description: "ID must be set to a project's ID" })
   @ApiBody({ type: ProjectPatchEntity })
@@ -74,6 +78,7 @@ export class ProjectController {
   }
 
   @Put(":id")
+  @Roles(Role.TEAM)
   @ApiOperation({ summary: "Replace a Project" })
   @ApiParam({ name: "id", description: "ID must be set to a project's ID" })
   @ApiBody({ type: ProjectCreateEntity })
@@ -84,6 +89,7 @@ export class ProjectController {
   }
 
   @Delete(":id")
+  @Roles(Role.EXEC)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Delete a Project" })
   @ApiParam({ name: "id", description: "ID must be set to a project's ID" })

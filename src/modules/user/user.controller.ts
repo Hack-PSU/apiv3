@@ -29,7 +29,7 @@ import {
   PartialType,
 } from "@nestjs/swagger";
 import { SocketGateway } from "modules/socket/socket.gateway";
-import { RestrictedRoles, Role } from "common/gcp";
+import { RestrictedRoles, Role, Roles } from "common/gcp";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { UserService } from "modules/user/user.service";
 import { UploadedResume } from "modules/user/uploaded-resume.decorator";
@@ -87,6 +87,7 @@ export class UserController {
   ) {}
 
   @Get("/")
+  @Roles(Role.TEAM)
   @ApiOperation({ summary: "Get All Users" })
   @ApiOkResponse({ type: [UserEntity] })
   @ApiAuth(Role.TEAM)
@@ -95,6 +96,7 @@ export class UserController {
   }
 
   @Post("/")
+  @Roles(Role.NONE)
   @UseInterceptors(FileInterceptor("resume"))
   @ApiOperation({ summary: "Create a User" })
   @ApiBody({ type: UserCreateEntity })
@@ -134,8 +136,9 @@ export class UserController {
   @Get(":id")
   @RestrictedRoles({
     roles: [Role.NONE, Role.VOLUNTEER],
-    handler: (req) => req.params.id,
+    predicate: (req) => req.user && req.user?.sub === req.params.id,
   })
+  @Roles(Role.TEAM)
   @ApiOperation({ summary: "Get a User" })
   @ApiOkResponse({ type: UserEntity })
   @ApiAuth(Role.NONE)
@@ -144,6 +147,11 @@ export class UserController {
   }
 
   @Patch(":id")
+  @RestrictedRoles({
+    roles: [Role.NONE, Role.VOLUNTEER],
+    predicate: (req) => req.user && req.user.sub === req.params.id,
+  })
+  @Roles(Role.NONE)
   @UseInterceptors(FileInterceptor("resume"))
   @ApiOperation({ summary: "Patch a User" })
   @ApiParam({ name: "id", description: "ID must be set to a user's ID" })
@@ -183,6 +191,11 @@ export class UserController {
   }
 
   @Put(":id")
+  @RestrictedRoles({
+    roles: [Role.NONE, Role.VOLUNTEER],
+    predicate: (req) => req.user && req.user.sub === req.params.id,
+  })
+  @Roles(Role.NONE)
   @UseInterceptors(FileInterceptor("resume"))
   @ApiOperation({ summary: "Replace a User" })
   @ApiParam({ name: "id", description: "ID must be set to a user's ID" })
@@ -221,6 +234,11 @@ export class UserController {
   }
 
   @Delete(":id")
+  @RestrictedRoles({
+    roles: [Role.NONE, Role.VOLUNTEER],
+    predicate: (req) => req.user && req.user.sub === req.params.id,
+  })
+  @Roles(Role.NONE)
   @ApiOperation({ summary: "Delete a User" })
   @ApiParam({ name: "id", description: "ID must be set to a user's ID" })
   @ApiNoContentResponse()
@@ -238,6 +256,7 @@ export class UserController {
 
   @Post(":id/check-in/event/:eventId")
   @HttpCode(HttpStatus.NO_CONTENT)
+  @Roles(Role.TEAM)
   @ApiOperation({ summary: "Check User Into Event" })
   @ApiParam({ name: "id", description: "ID must be set to a user's ID" })
   @ApiParam({ name: "eventId", description: "ID must be set to an event's ID" })
@@ -267,6 +286,11 @@ export class UserController {
   }
 
   @Get(":id/extra-credit/classes")
+  @RestrictedRoles({
+    roles: [Role.NONE, Role.VOLUNTEER],
+    predicate: (req) => req.user && req.user.sub === req.params.id,
+  })
+  @Roles(Role.TEAM)
   @ApiOperation({ summary: "Get All Extra Credit Classes By User" })
   @ApiParam({ name: "id", description: "ID must be set to a user's ID" })
   @ApiOkResponse({ type: [ExtraCreditClassEntity] })
@@ -276,6 +300,11 @@ export class UserController {
   }
 
   @Post(":id/extra-credit/assign/:classId")
+  @RestrictedRoles({
+    roles: [Role.NONE, Role.VOLUNTEER],
+    predicate: (req) => req.user && req.user.sub === req.params.id,
+  })
+  @Roles(Role.TEAM)
   @ApiOperation({ summary: "Assign Extra Credit Class to User" })
   @ApiParam({ name: "id", description: "ID must be set to a user's ID" })
   @ApiParam({ name: "classId", description: "ID must be set to an event's ID" })

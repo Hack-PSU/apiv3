@@ -28,7 +28,7 @@ import {
   PartialType,
 } from "@nestjs/swagger";
 import { ApiAuth } from "common/docs/api-auth";
-import { Role } from "common/gcp";
+import { Role, Roles } from "common/gcp";
 
 class ECClassCreateEntity extends OmitType(ExtraCreditClass, ["id"] as const) {}
 
@@ -54,6 +54,7 @@ export class ExtraCreditClassController {
   ) {}
 
   @Get("/")
+  @Roles(Role.NONE)
   @ApiOperation({ summary: "Get All Extra Credit Classes" })
   @ApiOkResponse({ type: [ExtraCreditClassEntity] })
   @ApiAuth(Role.NONE)
@@ -62,6 +63,7 @@ export class ExtraCreditClassController {
   }
 
   @Post("/")
+  @Roles(Role.TEAM)
   @ApiOperation({ summary: "Create an Extra Credit Class" })
   @ApiBody({ type: ECClassCreateEntity })
   @ApiOkResponse({ type: ExtraCreditClassEntity })
@@ -71,6 +73,7 @@ export class ExtraCreditClassController {
   }
 
   @Get(":id")
+  @Roles(Role.TEAM)
   @ApiOperation({ summary: "Get an Extra Credit Class" })
   @ApiParam({ name: "id", description: "ID must be set to a class's ID" })
   @ApiOkResponse({ type: ECClassResponse })
@@ -80,6 +83,7 @@ export class ExtraCreditClassController {
   }
 
   @Put(":id")
+  @Roles(Role.TEAM)
   @ApiOperation({ summary: "Replace an Extra Credit Class" })
   @ApiParam({ name: "id", description: "ID must be set to a class's ID" })
   @ApiBody({ type: ECClassCreateEntity })
@@ -90,6 +94,7 @@ export class ExtraCreditClassController {
   }
 
   @Patch(":id")
+  @Roles(Role.TEAM)
   @ApiOperation({ summary: "Patch an Extra Credit Class" })
   @ApiParam({ name: "id", description: "ID must be set to a class's ID" })
   @ApiBody({ type: ECClassPatchEntity })
@@ -100,6 +105,7 @@ export class ExtraCreditClassController {
   }
 
   @Delete(":id")
+  @Roles(Role.TEAM)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Delete an Extra Credit Class" })
   @ApiParam({ name: "id", description: "ID must be set to a class's ID" })

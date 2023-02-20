@@ -10,7 +10,7 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 import { ApiAuth } from "common/docs/api-auth";
-import { Role } from "common/gcp";
+import { RestrictedRoles, Role, Roles } from "common/gcp";
 import { Event, EventEntity } from "entities/event.entity";
 import { Organizer } from "entities/organizer.entity";
 import { Hackathon } from "entities/hackathon.entity";
@@ -36,6 +36,7 @@ export class ScanController {
   ) {}
 
   @Get("/")
+  @Roles(Role.TEAM)
   @ApiOperation({ summary: "Get All Scans" })
   @ApiOkResponse({ type: [ScanEntity] })
   @ApiAuth(Role.TEAM)
@@ -44,6 +45,7 @@ export class ScanController {
   }
 
   @Get(":id")
+  @Roles(Role.TEAM)
   @ApiOperation({ summary: "Get One Scan" })
   @ApiParam({ name: "id", description: "ID must be set to a scan's ID" })
   @ApiOkResponse({ type: ScanEntity })
@@ -53,6 +55,7 @@ export class ScanController {
   }
 
   @Get("analytics/organizers")
+  @Roles(Role.EXEC)
   async getAllByOrganizer() {
     return this.organizerRepo
       .findAll()
@@ -65,11 +68,17 @@ export class ScanController {
   }
 
   @Get("analytics/organizers/:id")
+  @RestrictedRoles({
+    roles: [Role.TEAM],
+    predicate: (req) => req.user && req.user.sub === req.params.id,
+  })
+  @Roles(Role.EXEC)
   async getByUser(@Param("id") id: string) {
     return this.scanRepo.findAll().byHackathon().where("organizerId", id);
   }
 
   @Get("analytics/events")
+  @Roles(Role.TEAM)
   @ApiOperation({ summary: "Get All Scans For All Events" })
   @ApiOkResponse({ type: AnalyticsEventsScansEntity })
   @ApiAuth(Role.TEAM)
@@ -78,6 +87,7 @@ export class ScanController {
   }
 
   @Get("analytics/events/:id")
+  @Roles(Role.TEAM)
   @ApiOperation({ summary: "Get All Scans for an Event" })
   @ApiParam({ name: "id", description: "ID must be set to an event's ID" })
   @ApiOkResponse({ type: [ScanEntity] })

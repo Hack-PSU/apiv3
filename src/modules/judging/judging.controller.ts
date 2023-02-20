@@ -12,7 +12,7 @@ import {
   OmitType,
 } from "@nestjs/swagger";
 import { ApiAuth } from "common/docs/api-auth";
-import { Role } from "common/gcp";
+import { Role, Roles } from "common/gcp";
 import { OrganizerEntity } from "entities/organizer.entity";
 
 class ScoreBreakdownJudgeEntity extends OmitType(OrganizerEntity, [
@@ -56,6 +56,7 @@ export class JudgingController {
   ) {}
 
   @Get("/breakdown")
+  @Roles(Role.TEAM)
   @ApiOperation({ summary: "Get Score Breakdowns By Project" })
   @ApiOkResponse({ type: [ProjectBreakdownEntity] })
   @ApiAuth(Role.TEAM)

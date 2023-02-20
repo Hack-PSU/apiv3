@@ -25,7 +25,7 @@ import {
 import { OrganizerEntity } from "entities/organizer.entity";
 import { ProjectEntity } from "entities/project.entity";
 import { ApiAuth } from "common/docs/api-auth";
-import { Role } from "common/gcp";
+import { Role, Roles } from "common/gcp";
 
 class ScoreCreateEntity extends OmitType(ScoreEntity, ["id"] as const) {
   @ApiProperty({ required: false, default: -1 })
@@ -89,6 +89,7 @@ export class ScoreController {
   ) {}
 
   @Get("/")
+  @Roles(Role.TEAM)
   @ApiOperation({ summary: "Get All Scores" })
   @ApiOkResponse({ type: [ScoreResponseEntity] })
   @ApiAuth(Role.TEAM)
@@ -100,6 +101,7 @@ export class ScoreController {
   }
 
   @Post("/")
+  @Roles(Role.TEAM)
   @ApiOperation({ summary: "Create a Score" })
   @ApiBody({ type: ScoreCreateEntity })
   @ApiOkResponse({ type: ScoreDataEntity })
@@ -109,6 +111,7 @@ export class ScoreController {
   }
 
   @Get(":id")
+  @Roles(Role.TEAM)
   @ApiOperation({ summary: "Get a Score" })
   @ApiParam({ name: "id", description: "ID must be set to a score's ID" })
   @ApiOkResponse({ type: ScoreResponseEntity })
@@ -121,6 +124,7 @@ export class ScoreController {
   }
 
   @Patch(":id")
+  @Roles(Role.TEAM)
   @ApiOperation({ summary: "Patch a Score" })
   @ApiParam({ name: "id", description: "ID must be set to a score's ID" })
   @ApiBody({ type: ScorePatchEntity })
@@ -135,6 +139,7 @@ export class ScoreController {
   }
 
   @Put(":id")
+  @Roles(Role.TEAM)
   @ApiOperation({ summary: "Replace a Score" })
   @ApiParam({ name: "id", description: "ID must be set to a score's ID" })
   @ApiBody({ type: ScoreCreateEntity })
@@ -156,6 +161,7 @@ export class ScoreController {
   }
 
   @Delete(":id")
+  @Roles(Role.TEAM)
   @ApiOperation({ summary: "Delete a Score" })
   @ApiParam({ name: "id", description: "ID must be set to a score's ID" })
   @ApiNoContentResponse()

@@ -37,7 +37,7 @@ import { Express } from "express";
 import { EventService } from "modules/event/event.service";
 import { Scan, ScanEntity } from "entities/scan.entity";
 import { ApiAuth } from "common/docs/api-auth";
-import { Role } from "common/gcp";
+import { Role, Roles } from "common/gcp";
 
 class EventCreateEntity extends OmitType(EventEntity, ["id", "icon"] as const) {
   @ApiProperty({ type: "string", format: "binary", required: false })
@@ -68,6 +68,7 @@ export class EventController {
   ) {}
 
   @Get("/")
+  @Roles(Role.NONE)
   @ApiOperation({ summary: "Get All Events" })
   @ApiOkResponse({ type: [EventEntity] })
   @ApiAuth(Role.NONE)
@@ -76,6 +77,7 @@ export class EventController {
   }
 
   @Post("/")
+  @Roles(Role.TEAM)
   @UseInterceptors(FileInterceptor("icon"))
   @ApiOperation({ summary: "Create an Event" })
   @ApiConsumes("multipart/form-data")
@@ -111,6 +113,7 @@ export class EventController {
   }
 
   @Get(":id")
+  @Roles(Role.NONE)
   @ApiOperation({ summary: "Get an Event" })
   @ApiOkResponse({ type: EventEntity })
   @ApiParam({ name: "id", description: "ID must be set to the event's ID" })
@@ -120,6 +123,7 @@ export class EventController {
   }
 
   @Patch(":id")
+  @Roles(Role.TEAM)
   @UseInterceptors(FileInterceptor("icon"))
   @ApiOperation({ summary: "Patch an Event" })
   @ApiBody({ type: EventPatchEntity })
@@ -154,6 +158,7 @@ export class EventController {
   }
 
   @Put(":id")
+  @Roles(Role.TEAM)
   @UseInterceptors(FileInterceptor("icon"))
   @ApiOperation({ summary: "Replace an Event" })
   @ApiConsumes("multipart/form-data")
@@ -189,6 +194,7 @@ export class EventController {
   }
 
   @Delete(":id")
+  @Roles(Role.TEAM)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Delete an Event" })
   @ApiNoContentResponse()
@@ -205,6 +211,7 @@ export class EventController {
   }
 
   @Post(":id/check-in/user/:userId")
+  @Roles(Role.TEAM)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Check-In by Event" })
   @ApiBody({ type: CreateScanEntity })
