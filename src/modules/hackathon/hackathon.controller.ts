@@ -24,7 +24,6 @@ import {
   ApiProperty,
   ApiQuery,
   ApiTags,
-  getSchemaPath,
   IntersectionType,
   OmitType,
   PartialType,

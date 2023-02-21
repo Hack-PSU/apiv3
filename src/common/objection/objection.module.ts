@@ -1,18 +1,7 @@
-import { DynamicModule, Module, Provider } from "@nestjs/common";
-import {
-  CustomEntity,
-  EntityOrCustom,
-  ObjectionCoreModuleOptions,
-} from "./objection.types";
+import { DynamicModule, Module } from "@nestjs/common";
+import { EntityOrCustom, ObjectionCoreModuleOptions } from "./objection.types";
 import { ObjectionCoreModule } from "./objection-core.module";
-import { Entity } from "entities/base.entity";
-import { ObjectionBaseEntityProvider } from "./objection.constants";
-import { Repository } from "./objection.repository";
-import { Hackathon } from "entities/hackathon.entity";
-
-const isCustomEntity = <TEntity extends Entity>(
-  entity: EntityOrCustom<TEntity>,
-): entity is CustomEntity<TEntity> => "schema" in entity;
+import { createObjectionProviders } from "common/objection/objection.utils";
 
 @Module({})
 export class ObjectionModule {
@@ -24,32 +13,11 @@ export class ObjectionModule {
   }
 
   static forFeature(entities: EntityOrCustom[]): DynamicModule {
-    const modelProviders = entities.map((entity) => {
-      if (isCustomEntity(entity)) {
-        return {
-          provide: `${ObjectionBaseEntityProvider}${entity.schema.name}`,
-          useValue: new Repository(entity.schema, entity.disableByHackathon),
-        };
-      } else {
-        return {
-          provide: `${ObjectionBaseEntityProvider}${entity.name}`,
-          useValue: new Repository(entity),
-        };
-      }
-    });
-
-    const hackathonProvider: Provider = {
-      provide: `${ObjectionBaseEntityProvider}Hackathon`,
-      useValue: new Repository(Hackathon, true),
-    };
-
-    // avoids providing 2 of the same models
-    const filteredModels = modelProviders.filter(Boolean);
-
+    const providers = createObjectionProviders(entities);
     return {
       module: ObjectionModule,
-      providers: [...filteredModels, hackathonProvider],
-      exports: [...filteredModels, hackathonProvider],
+      providers: providers,
+      exports: providers,
     };
   }
 }
