@@ -12,7 +12,7 @@ import {
   OmitType,
 } from "@nestjs/swagger";
 import { ApiAuth } from "common/docs/api-auth";
-import { Role } from "common/gcp";
+import { Role, Roles } from "common/gcp";
 import { OrganizerEntity } from "entities/organizer.entity";
 
 class ScoreBreakdownJudgeEntity extends OmitType(OrganizerEntity, [
@@ -56,18 +56,17 @@ export class JudgingController {
   ) {}
 
   @Get("/breakdown")
-  @ApiOperation({ summary: "Get Project and Score Breakdown" })
+  @Roles(Role.TEAM)
+  @ApiOperation({ summary: "Get Score Breakdowns By Project" })
   @ApiOkResponse({ type: [ProjectBreakdownEntity] })
   @ApiAuth(Role.TEAM)
   async getBreakdown() {
-    const projects = await this.projectRepo
+    // withGraphJoined creates a single join query allowing for modifiers
+    // to be applied unlike withGraphFetched, which generates more than 1 query
+    return this.projectRepo
       .findAll()
       .byHackathon()
-      .withGraphFetched("scores(agg).judge");
-
-    return projects.map((project) => ({
-      ...project,
-      average: _.meanBy(project.scores, (score: any) => score.total),
-    }));
+      .withGraphJoined("scores(agg).judge")
+      .modify("scoreAvg");
   }
 }

@@ -6,6 +6,7 @@ import { UserService } from "./user.service";
 import { Scan } from "entities/scan.entity";
 import { ExtraCreditAssignment } from "entities/extra-credit-assignment.entity";
 import { ExtraCreditClass } from "entities/extra-credit-class.entity";
+import { ConfigModule, ConfigService } from "@nestjs/config";
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { ExtraCreditClass } from "entities/extra-credit-class.entity";
       ExtraCreditClass,
       ExtraCreditAssignment,
     ]),
+    ConfigModule,
   ],
   providers: [UserService],
   controllers: [UserController],

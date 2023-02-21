@@ -6,7 +6,7 @@ import {
 } from "entities/extra-credit-assignment.entity";
 import { ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { ApiAuth } from "common/docs/api-auth";
-import { Role } from "common/gcp";
+import { Role, Roles } from "common/gcp";
 
 @ApiTags("Extra Credit")
 @Controller("extra-credit/assignments")
@@ -17,6 +17,7 @@ export class ExtraCreditAssignmentController {
   ) {}
 
   @Get("/")
+  @Roles(Role.TEAM)
   @ApiOperation({ summary: "Get All Extra Credit Assignments" })
   @ApiOkResponse({ type: [ExtraCreditAssignmentEntity] })
   @ApiAuth(Role.TEAM)
@@ -25,6 +26,7 @@ export class ExtraCreditAssignmentController {
   }
 
   @Get(":id")
+  @Roles(Role.TEAM)
   @ApiOperation({ summary: "Get an Extra Credit Assignment" })
   @ApiOkResponse({ type: ExtraCreditAssignmentEntity })
   @ApiAuth(Role.TEAM)

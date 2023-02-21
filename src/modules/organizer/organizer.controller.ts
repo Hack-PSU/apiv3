@@ -24,7 +24,7 @@ import {
   OmitType,
   PartialType,
 } from "@nestjs/swagger";
-import { FirebaseAuthService, Role } from "common/gcp";
+import { FirebaseAuthService, RestrictedRoles, Role, Roles } from "common/gcp";
 import { take, toArray } from "rxjs";
 import { OrganizerService } from "modules/organizer/organizer.service";
 import { SocketRoom } from "common/socket";
@@ -50,6 +50,7 @@ export class OrganizerController {
   ) {}
 
   @Get("/")
+  @Roles(Role.EXEC)
   @ApiOperation({ summary: "Get All Organizers" })
   @ApiOkResponse({ type: [OrganizerEntity] })
   @ApiAuth(Role.EXEC)
@@ -60,6 +61,7 @@ export class OrganizerController {
   }
 
   @Post("/")
+  @Roles(Role.EXEC)
   @ApiOperation({ summary: "Create an Organizer" })
   @ApiBody({ type: OrganizerCreateEntity })
   @ApiOkResponse({ type: OrganizerEntity })
@@ -82,6 +84,11 @@ export class OrganizerController {
   }
 
   @Get(":id")
+  @RestrictedRoles({
+    roles: [Role.TEAM],
+    predicate: (req) => req.user && req.user.sub === req.params.id,
+  })
+  @Roles(Role.EXEC)
   @ApiOperation({ summary: "Get an Organizer" })
   @ApiParam({ name: "id", description: "ID must be set to an organizer's ID" })
   @ApiOkResponse({ type: OrganizerEntity })
@@ -93,6 +100,7 @@ export class OrganizerController {
   }
 
   @Patch(":id")
+  @Roles(Role.EXEC)
   @ApiOperation({ summary: "Patch an Organizer" })
   @ApiParam({ name: "id", description: "ID must be set to an organizer's ID" })
   @ApiBody({ type: OrganizerUpdateEntity })
@@ -112,6 +120,7 @@ export class OrganizerController {
   }
 
   @Put(":id")
+  @Roles(Role.EXEC)
   @ApiOperation({ summary: "Replace an Organizer" })
   @ApiParam({ name: "id", description: "ID must be set to an organizer's ID" })
   @ApiBody({ type: OrganizerReplaceEntity })
@@ -132,6 +141,7 @@ export class OrganizerController {
 
   @Delete(":id")
   @HttpCode(HttpStatus.NO_CONTENT)
+  @Roles(Role.EXEC)
   @ApiOperation({ summary: "Delete an Organizer" })
   @ApiParam({ name: "id", description: "ID must be set to an organizer's ID" })
   @ApiNoContentResponse()

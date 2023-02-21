@@ -25,7 +25,7 @@ import {
 } from "@nestjs/swagger";
 import { SocketGateway } from "modules/socket/socket.gateway";
 import { ApiAuth } from "common/docs/api-auth";
-import { Role } from "common/gcp";
+import { Role, Roles } from "common/gcp";
 
 class LocationCreateEntity extends OmitType(LocationEntity, ["id"] as const) {}
 
@@ -41,6 +41,7 @@ export class LocationController {
   ) {}
 
   @Get("/")
+  @Roles(Role.TEAM)
   @ApiOperation({ summary: "Find All Locations" })
   @ApiOkResponse({ type: [LocationEntity] })
   @ApiAuth(Role.TEAM)
@@ -49,6 +50,7 @@ export class LocationController {
   }
 
   @Post("/")
+  @Roles(Role.TEAM)
   @ApiOperation({ summary: "Create a Location" })
   @ApiBody({ type: LocationCreateEntity })
   @ApiOkResponse({ type: LocationEntity })
@@ -61,6 +63,7 @@ export class LocationController {
   }
 
   @Get(":id")
+  @Roles(Role.TEAM)
   @ApiOperation({ summary: "Get a Location" })
   @ApiParam({ name: "id", description: "ID must be set to location's ID" })
   @ApiOkResponse({ type: LocationEntity })
@@ -70,6 +73,7 @@ export class LocationController {
   }
 
   @Patch(":id")
+  @Roles(Role.TEAM)
   @ApiOperation({ summary: "Patch a Location" })
   @ApiParam({ name: "id", description: "ID must set to location's ID" })
   @ApiBody({ type: LocationPatchEntity })
@@ -83,6 +87,7 @@ export class LocationController {
   }
 
   @Put(":id")
+  @Roles(Role.TEAM)
   @ApiOperation({ summary: "Replace a Location" })
   @ApiParam({ name: "id", description: "ID must be set to location's ID" })
   @ApiBody({ type: LocationCreateEntity })
@@ -100,6 +105,7 @@ export class LocationController {
 
   @Delete(":id")
   @HttpCode(HttpStatus.NO_CONTENT)
+  @Roles(Role.TEAM)
   @ApiOperation({ summary: "Delete a Location" })
   @ApiParam({ name: "id", description: "ID must be set to location's ID" })
   @ApiNoContentResponse()

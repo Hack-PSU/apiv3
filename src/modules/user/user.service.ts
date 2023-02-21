@@ -2,15 +2,31 @@ import { Injectable } from "@nestjs/common";
 import * as admin from "firebase-admin";
 import { Storage } from "common/gcp/storage";
 import { Express } from "express";
+import { ConfigService } from "@nestjs/config";
 
 @Injectable()
 export class UserService {
+  constructor(private readonly configService: ConfigService) {}
+
   private get resumeBucket() {
-    return admin.storage().bucket(Storage.RESUME);
+    if (this.configService.get("GOOGLE_CERT")) {
+      // is staging
+      return admin.storage().bucket();
+    } else {
+      return admin.storage().bucket(Storage.RESUME);
+    }
+  }
+
+  private get prefix() {
+    if (this.configService.get("GOOGLE_CERT")) {
+      return "resumes/";
+    } else {
+      return "";
+    }
   }
 
   private getFile(hackathonId: string, userId: string) {
-    return `${hackathonId}-${userId}.pdf`;
+    return `${this.prefix}${hackathonId}-${userId}.pdf`;
   }
 
   async uploadResume(

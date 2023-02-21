@@ -37,7 +37,7 @@ import { Express } from "express";
 import { EventService } from "modules/event/event.service";
 import { Scan, ScanEntity } from "entities/scan.entity";
 import { ApiAuth } from "common/docs/api-auth";
-import { Role } from "common/gcp";
+import { Role, Roles } from "common/gcp";
 
 class EventCreateEntity extends OmitType(EventEntity, ["id", "icon"] as const) {
   @ApiProperty({ type: "string", format: "binary", required: false })
@@ -50,6 +50,7 @@ class CreateScanEntity extends OmitType(ScanEntity, [
   "id",
   "hackathonId",
   "eventId",
+  "userId",
 ] as const) {
   hackathonId?: string;
 }
@@ -67,6 +68,7 @@ export class EventController {
   ) {}
 
   @Get("/")
+  @Roles(Role.NONE)
   @ApiOperation({ summary: "Get All Events" })
   @ApiOkResponse({ type: [EventEntity] })
   @ApiAuth(Role.NONE)
@@ -75,6 +77,7 @@ export class EventController {
   }
 
   @Post("/")
+  @Roles(Role.TEAM)
   @UseInterceptors(FileInterceptor("icon"))
   @ApiOperation({ summary: "Create an Event" })
   @ApiConsumes("multipart/form-data")
@@ -110,6 +113,7 @@ export class EventController {
   }
 
   @Get(":id")
+  @Roles(Role.NONE)
   @ApiOperation({ summary: "Get an Event" })
   @ApiOkResponse({ type: EventEntity })
   @ApiParam({ name: "id", description: "ID must be set to the event's ID" })
@@ -119,6 +123,7 @@ export class EventController {
   }
 
   @Patch(":id")
+  @Roles(Role.TEAM)
   @UseInterceptors(FileInterceptor("icon"))
   @ApiOperation({ summary: "Patch an Event" })
   @ApiBody({ type: EventPatchEntity })
@@ -153,6 +158,7 @@ export class EventController {
   }
 
   @Put(":id")
+  @Roles(Role.TEAM)
   @UseInterceptors(FileInterceptor("icon"))
   @ApiOperation({ summary: "Replace an Event" })
   @ApiConsumes("multipart/form-data")
@@ -188,6 +194,7 @@ export class EventController {
   }
 
   @Delete(":id")
+  @Roles(Role.TEAM)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Delete an Event" })
   @ApiNoContentResponse()
@@ -203,14 +210,20 @@ export class EventController {
     return event;
   }
 
-  @Post(":id/check-in")
+  @Post(":id/check-in/user/:userId")
+  @Roles(Role.TEAM)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Check-In by Event" })
   @ApiBody({ type: CreateScanEntity })
   @ApiParam({ name: "id", description: "ID must be set to the event's ID" })
+  @ApiParam({ name: "userId", description: "ID must be set to a user's ID" })
   @ApiNoContentResponse()
   @ApiAuth(Role.TEAM)
-  async checkInEvent(@Param("id") id: string, @Body() data: CreateScanEntity) {
+  async checkInEvent(
+    @Param("id") id: string,
+    @Param("userId") userId: string,
+    @Body() data: CreateScanEntity,
+  ) {
     const hasEvent = await this.eventRepo.findOne(id).exec();
 
     if (!hasEvent) {
@@ -219,6 +232,12 @@ export class EventController {
 
     const { hackathonId, ...rest } = data;
 
-    await this.scanRepo.createOne(rest).byHackathon(hackathonId);
+    await this.scanRepo
+      .createOne({
+        ...rest,
+        userId,
+        eventId: id,
+      })
+      .byHackathon(hackathonId);
   }
 }

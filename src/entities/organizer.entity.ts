@@ -12,21 +12,9 @@ import { Hackathon } from "entities/hackathon.entity";
       relation: Entity.HasManyRelation,
       modelClass: "scan.entity.js",
       join: {
-        from: "users.id",
-        to: "scans.userId",
+        from: "organizers.id",
+        to: "scans.organizerId",
       },
-    },
-  },
-  modifiers: {
-    scansByHackathon: (qb, byHackathon?: string) => {
-      if (!byHackathon) {
-        return qb.where(
-          "scans.hackathonId",
-          Hackathon.query().findOne({ active: true }),
-        );
-      } else {
-        return qb.where("scans.hackathonId", byHackathon);
-      }
     },
   },
 })

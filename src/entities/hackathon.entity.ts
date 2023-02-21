@@ -46,14 +46,30 @@ import { ApiProperty, OmitType, PickType } from "@nestjs/swagger";
         to: "sponsors.hackathonId",
       },
     },
+    scans: {
+      relation: Entity.HasManyRelation,
+      modelClass: "scan.entity.js",
+      join: {
+        from: "hackathons.id",
+        to: "scans.hackathonId",
+      },
+    },
+    extraCreditAssignments: {
+      relation: Entity.HasManyRelation,
+      modelClass: "extra-credit-assignment.entity.js",
+      join: {
+        from: "hackathons.id",
+        to: "extraCreditAssignments.hackathonId",
+      },
+    },
     extraCreditClasses: {
       relation: Entity.HasManyRelation,
       modelClass: "extra-credit-class.entity.js",
       join: {
         from: "hackathons.id",
         to: "extraCreditClass.hackathonId",
-      }
-    }
+      },
+    },
   },
 })
 export class Hackathon extends Entity {

@@ -49,7 +49,7 @@ export class Scan extends Entity {
   organizerId: string;
 
   @ApiProperty({ required: false })
-  @Column({ type: "string" })
+  @Column({ type: "string", required: false })
   hackathonId: string;
 }
 

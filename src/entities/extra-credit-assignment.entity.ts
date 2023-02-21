@@ -17,6 +17,10 @@ export class ExtraCreditAssignment extends Entity {
   @ApiProperty()
   @Column({ type: "integer" })
   classId: number;
+
+  @ApiProperty()
+  @Column({ type: "string", required: false })
+  hackathonId: string;
 }
 
 export class ExtraCreditAssignmentEntity extends PickType(

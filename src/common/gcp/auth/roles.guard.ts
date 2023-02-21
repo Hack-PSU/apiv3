@@ -8,7 +8,7 @@ import {
   FirebaseAuthRoles,
 } from "./firebase-auth.constants";
 import {
-  RestrictedEndpointHandler,
+  RestrictedEndpointPredicate,
   RestrictedRolesOptions,
 } from "./restricted-roles.decorator";
 
@@ -58,15 +58,13 @@ export class RolesGuard extends AuthGuard("jwt") {
 
     // handler is the provided extraction function from the @RestrictedEndpoint
     // decorator
-    const handler: RestrictedEndpointHandler | undefined = this.reflector.get(
-      FirebaseAuthRestrictedEndpoint,
-      context.getHandler(),
-    );
+    const predicate: RestrictedEndpointPredicate | undefined =
+      this.reflector.get(FirebaseAuthRestrictedEndpoint, context.getHandler());
 
-    if (handler) {
+    if (predicate) {
       restricted = {
-        handler,
         roles: rolesList ?? [],
+        predicate,
       };
     }
 
@@ -78,12 +76,12 @@ export class RolesGuard extends AuthGuard("jwt") {
     if (restrictedRoles) {
       restricted = {
         roles: restrictedRoles.roles,
-        handler: restrictedRoles.handler,
+        predicate: restrictedRoles.predicate,
       };
     }
 
     // if no authorization required default to passportAccess
-    if (!restrictedRoles && !handler && !rolesList) {
+    if (!restrictedRoles && !predicate && !rolesList) {
       return !!passportAccess;
     }
 
@@ -103,19 +101,14 @@ export class RolesGuard extends AuthGuard("jwt") {
         // or not enough information to determine authorization
         const isAllowed = this.authService.validateRestrictedAccess(
           request,
-          restricted.handler,
+          restricted.predicate,
           restricted.roles,
         );
 
         if (isAllowed !== undefined) return isAllowed;
       }
 
-      const generalAccess = this.authService.validateHttpUser(
-        request.user,
-        rolesList,
-      );
-
-      return generalAccess;
+      return this.authService.validateHttpUser(request.user, rolesList);
     }
   }
 }

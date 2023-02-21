@@ -1,10 +1,12 @@
 import { Injectable } from "@nestjs/common";
 import { HttpService } from "@nestjs/axios";
-import { FirebaseAuthJWTKeySets } from "common/gcp/auth";
+import {
+  FirebaseAuthJWTKeySets,
+  RestrictedEndpointPredicate,
+} from "common/gcp/auth";
 import { Role } from "./firebase-auth.types";
 import jwtDecode, { JwtPayload } from "jwt-decode";
 import * as admin from "firebase-admin";
-import { RestrictedEndpointHandler } from "common/gcp";
 
 type FirebaseJwtPayload = JwtPayload & { privilege?: number };
 
@@ -51,15 +53,14 @@ export class FirebaseAuthService {
   // Only use for HTTP
   validateRestrictedAccess(
     request: any,
-    handler?: RestrictedEndpointHandler,
+    predicate?: RestrictedEndpointPredicate,
     access?: Role[],
   ): boolean | undefined {
-    if (!handler || !access) {
+    if (!access || !predicate) {
       // unable to determine access
       return undefined;
     }
 
-    const resource = handler(request);
     const user = request.user;
 
     // check for intersecting roles
@@ -67,11 +68,7 @@ export class FirebaseAuthService {
       return undefined;
     }
 
-    if (user && user.sub && resource !== user.sub) {
-      return false;
-    }
-
-    return true;
+    return predicate(request);
   }
 
   validateWsUser(token: string, access?: Role[]) {

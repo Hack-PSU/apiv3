@@ -31,11 +31,12 @@ import {
 } from "@nestjs/swagger";
 import { Role, Roles } from "common/gcp";
 import { SocketGateway } from "modules/socket/socket.gateway";
-import { Event } from "entities/event.entity";
+import { Event, EventEntity } from "entities/event.entity";
 import { nanoid } from "nanoid";
 import { IsOptional } from "class-validator";
 import { Transform } from "class-transformer";
 import { ApiAuth } from "common/docs/api-auth";
+import { SponsorEntity } from "entities/sponsor.entity";
 
 class HackathonUpdateEntity extends OmitType(HackathonEntity, [
   "id",
@@ -64,6 +65,14 @@ class HackathonResponse extends IntersectionType(
   HackathonCheckInResponse,
 ) {}
 
+class StaticActiveHackathonEntity extends HackathonEntity {
+  @ApiProperty({ type: [EventEntity] })
+  events: EventEntity[];
+
+  @ApiProperty({ type: [SponsorEntity] })
+  sponsors: SponsorEntity[];
+}
+
 class ActiveHackathonParams {
   @ApiProperty({
     required: false,
@@ -85,6 +94,7 @@ class ActiveHackathonParams {
 
 @ApiTags("Hackathons")
 @Controller("hackathons")
+@ApiExtraModels(StaticActiveHackathonEntity)
 export class HackathonController {
   constructor(
     @InjectRepository(Hackathon)
@@ -112,11 +122,11 @@ export class HackathonController {
   }
 
   @Get("/")
+  @Roles(Role.TEAM)
   @ApiOperation({ summary: "Get All Hackathons" })
   @ApiQuery({ name: "active", type: ActiveHackathonParams })
   @ApiOkResponse({ type: ConditionalHackathonResponse })
   @ApiAuth(Role.TEAM)
-  @Roles(Role.TEAM)
   async getAll(
     @Query(new ValidationPipe({ transform: true }))
     { active }: ActiveHackathonParams,
@@ -131,6 +141,7 @@ export class HackathonController {
   }
 
   @Post("/")
+  @Roles(Role.EXEC)
   @ApiOperation({ summary: "Create a Hackathon" })
   @ApiOkResponse({ type: HackathonResponse })
   @ApiBody({ type: HackathonCreateEntity })
@@ -168,6 +179,7 @@ export class HackathonController {
   }
 
   @Get(":id")
+  @Roles(Role.TEAM)
   @ApiOperation({ summary: "Get a Hackathon" })
   @ApiParam({ name: "id", description: "ID must be set to a hackathon's ID" })
   @ApiOkResponse({ type: HackathonEntity })
@@ -177,6 +189,7 @@ export class HackathonController {
   }
 
   @Patch(":id")
+  @Roles(Role.EXEC)
   @ApiOperation({ summary: "Patch a Hackathon" })
   @ApiParam({ name: "id", description: "ID must be set to a hackaton's ID" })
   @ApiOkResponse({ type: HackathonEntity })
@@ -189,6 +202,7 @@ export class HackathonController {
   }
 
   @Put(":id")
+  @Roles(Role.EXEC)
   @ApiOperation({ summary: "Replace a Hackathon" })
   @ApiParam({ name: "id", description: "ID must be set to a hackathon's ID" })
   @ApiOkResponse({ type: HackathonEntity })
@@ -204,6 +218,7 @@ export class HackathonController {
   }
 
   @Delete(":id")
+  @Roles(Role.EXEC)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Delete a Hackathon" })
   @ApiParam({ name: "id", description: "ID must be set to a hackathon's ID" })
@@ -217,6 +232,7 @@ export class HackathonController {
   }
 
   @Patch(":id/active")
+  @Roles(Role.EXEC)
   @ApiOperation({ summary: "Mark Active Hackathon" })
   @ApiParam({ name: "id", description: "ID must be set to a hackathon's ID" })
   @ApiOkResponse({ type: HackathonEntity })
@@ -233,5 +249,14 @@ export class HackathonController {
     this.socket.emit("update:hackathon", hackathon);
 
     return hackathon;
+  }
+
+  @Get("/active/static")
+  @ApiOperation({ summary: "Get Active Hackathon For Static" })
+  @ApiOkResponse({ type: StaticActiveHackathonEntity })
+  async getForStatic() {
+    return Hackathon.query()
+      .findOne({ active: true })
+      .withGraphFetched("[events, sponsors]");
   }
 }
