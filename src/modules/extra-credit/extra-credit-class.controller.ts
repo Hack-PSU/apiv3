@@ -27,6 +27,7 @@ import {
   OmitType,
   PartialType,
 } from "@nestjs/swagger";
+import { Hackathon } from "entities/hackathon.entity";
 import { ApiAuth } from "common/docs/api-auth";
 import { Role } from "common/gcp";
 
@@ -70,6 +71,21 @@ export class ExtraCreditClassController {
     return this.ecClassRepo.createOne(data).exec();
   }
 
+  @Get("/hackathon:hackathonId")
+  @ApiOperation({summary: "Get an Extra Credit Class by Hackathon"})
+  @ApiBody({type: ECClassCreateEntity})
+  @ApiOkResponse({ type: ExtraCreditClassEntity })
+  @ApiAuth(Role.TEAM)
+  async getBy(@Param("hackathonId") hackathonId: string) {
+    if (!hackathonId) {
+      return this.ecClassRepo.findAll().raw().withGraphJoined("hackathons").where(
+        "ExtraCreditClasses.hackathonId", Hackathon.query().findOne({ active: true }).select("hackathons.id"))
+    }
+    else {
+      return this.ecClassRepo.findAll().raw().where("ExtraCreditClass.hackathonId",hackathonId)
+    }
+  }
+  
   @Get(":id")
   @ApiOperation({ summary: "Get an Extra Credit Class" })
   @ApiParam({ name: "id", description: "ID must be set to a class's ID" })

@@ -37,9 +37,14 @@ export class ExtraCreditClass extends Entity {
   @ApiProperty()
   @Column({ type: "string" })
   name: string;
+
+  @ApiProperty()
+  @Column({ type : "string", required: false })
+  hackathonId: string;
 }
 
 export class ExtraCreditClassEntity extends PickType(ExtraCreditClass, [
   "id",
   "name",
+  "hackathonId",
 ] as const) {}
