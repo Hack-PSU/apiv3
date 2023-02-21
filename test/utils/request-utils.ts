@@ -3,6 +3,7 @@ import * as request from "supertest";
 
 type ClientBuilder = {
   withToken: (token: string) => request.Test;
+  send: () => request.Test;
 };
 
 export type Client = (endpoint: string) => ClientBuilder;
@@ -13,5 +14,6 @@ export function getClient(app: INestApplication): Client {
       request(app.getHttpServer())
         .get(endpoint)
         .set("Authorization", `Bearer ${token}`),
+    send: () => request(app.getHttpServer()).get(endpoint),
   });
 }

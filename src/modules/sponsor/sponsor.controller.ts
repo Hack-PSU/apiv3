@@ -33,7 +33,7 @@ import { UploadedLogo } from "modules/sponsor/uploaded-logo.decorator";
 import { Express } from "express";
 import { SponsorService } from "modules/sponsor/sponsor.service";
 import { SocketRoom } from "common/socket";
-import { ApiAuth } from "common/docs/api-auth";
+import { ApiAuth } from "common/docs/api-auth.decorator";
 import { Role, Roles } from "common/gcp";
 import * as _ from "lodash";
 import { ParseBatchUpdatePipe } from "modules/sponsor/parse-batch-update.pipe";

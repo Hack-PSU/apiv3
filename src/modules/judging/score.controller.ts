@@ -24,7 +24,7 @@ import {
 } from "@nestjs/swagger";
 import { OrganizerEntity } from "entities/organizer.entity";
 import { ProjectEntity } from "entities/project.entity";
-import { ApiAuth } from "common/docs/api-auth";
+import { ApiAuth } from "common/docs/api-auth.decorator";
 import { Role, Roles } from "common/gcp";
 
 class ScoreCreateEntity extends OmitType(ScoreEntity, ["id"] as const) {

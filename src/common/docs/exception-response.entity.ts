@@ -7,3 +7,14 @@ export class ExceptionResponse {
   @ApiProperty()
   message: string;
 }
+
+export class BadRequestExceptionResponse {
+  @ApiProperty()
+  statusCode: number;
+
+  @ApiProperty()
+  message: string[];
+
+  @ApiProperty()
+  error: string;
+}

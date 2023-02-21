@@ -6,9 +6,11 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
   Put,
+  ValidationPipe,
 } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
 import { Location, LocationEntity } from "entities/location.entity";
@@ -24,7 +26,7 @@ import {
   PartialType,
 } from "@nestjs/swagger";
 import { SocketGateway } from "modules/socket/socket.gateway";
-import { ApiAuth } from "common/docs/api-auth";
+import { ApiAuth } from "common/docs/api-auth.decorator";
 import { Role, Roles } from "common/gcp";
 
 class LocationCreateEntity extends OmitType(LocationEntity, ["id"] as const) {}
@@ -55,7 +57,16 @@ export class LocationController {
   @ApiBody({ type: LocationCreateEntity })
   @ApiOkResponse({ type: LocationEntity })
   @ApiAuth(Role.TEAM)
-  async createOne(@Body("data") data: LocationCreateEntity) {
+  async createOne(
+    @Body(
+      new ValidationPipe({
+        forbidNonWhitelisted: true,
+        whitelist: true,
+        transform: true,
+      }),
+    )
+    data: LocationCreateEntity,
+  ) {
     const location = await this.locationRepo.createOne(data).exec();
     this.socket.emit("create:location", location);
 
@@ -68,7 +79,7 @@ export class LocationController {
   @ApiParam({ name: "id", description: "ID must be set to location's ID" })
   @ApiOkResponse({ type: LocationEntity })
   @ApiAuth(Role.TEAM)
-  async getOne(@Param("id") id: number) {
+  async getOne(@Param("id", ParseIntPipe) id: number) {
     return this.locationRepo.findOne(id).exec();
   }
 
@@ -79,7 +90,17 @@ export class LocationController {
   @ApiBody({ type: LocationPatchEntity })
   @ApiOkResponse({ type: LocationEntity })
   @ApiAuth(Role.TEAM)
-  async patchOne(@Param("id") id: number, @Body() data: LocationPatchEntity) {
+  async patchOne(
+    @Param("id", ParseIntPipe) id: number,
+    @Body(
+      new ValidationPipe({
+        forbidNonWhitelisted: true,
+        whitelist: true,
+        transform: true,
+      }),
+    )
+    data: LocationPatchEntity,
+  ) {
     const location = await this.locationRepo.patchOne(id, data).exec();
     this.socket.emit("update:location", location);
 
@@ -94,8 +115,15 @@ export class LocationController {
   @ApiOkResponse({ type: LocationEntity })
   @ApiAuth(Role.TEAM)
   async replaceOne(
-    @Param("id") id: number,
-    @Body() data: LocationCreateEntity,
+    @Param("id", ParseIntPipe) id: number,
+    @Body(
+      new ValidationPipe({
+        forbidNonWhitelisted: true,
+        whitelist: true,
+        transform: true,
+      }),
+    )
+    data: LocationCreateEntity,
   ) {
     const location = await this.locationRepo.replaceOne(id, data).exec();
     this.socket.emit("update:location", location);
@@ -110,7 +138,7 @@ export class LocationController {
   @ApiParam({ name: "id", description: "ID must be set to location's ID" })
   @ApiNoContentResponse()
   @ApiAuth(Role.TEAM)
-  async deleteOne(@Param("id") id: number) {
+  async deleteOne(@Param("id", ParseIntPipe) id: number) {
     const location = await this.locationRepo.deleteOne(id).exec();
     this.socket.emit("delete:location", location);
 

@@ -34,7 +34,7 @@ import { Event, EventEntity } from "entities/event.entity";
 import { nanoid } from "nanoid";
 import { IsOptional } from "class-validator";
 import { Transform } from "class-transformer";
-import { ApiAuth } from "common/docs/api-auth";
+import { ApiAuth } from "common/docs/api-auth.decorator";
 import { SponsorEntity } from "entities/sponsor.entity";
 
 class HackathonUpdateEntity extends OmitType(HackathonEntity, [

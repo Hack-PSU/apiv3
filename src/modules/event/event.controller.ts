@@ -36,7 +36,7 @@ import { UploadedIcon } from "modules/event/uploaded-icon.decorator";
 import { Express } from "express";
 import { EventService } from "modules/event/event.service";
 import { Scan, ScanEntity } from "entities/scan.entity";
-import { ApiAuth } from "common/docs/api-auth";
+import { ApiAuth } from "common/docs/api-auth.decorator";
 import { Role, Roles } from "common/gcp";
 
 class EventCreateEntity extends OmitType(EventEntity, ["id", "icon"] as const) {

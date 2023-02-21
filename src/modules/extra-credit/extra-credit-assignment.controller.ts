@@ -5,7 +5,7 @@ import {
   ExtraCreditAssignmentEntity,
 } from "entities/extra-credit-assignment.entity";
 import { ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
-import { ApiAuth } from "common/docs/api-auth";
+import { ApiAuth } from "common/docs/api-auth.decorator";
 import { Role, Roles } from "common/gcp";
 
 @ApiTags("Extra Credit")

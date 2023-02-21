@@ -10,6 +10,7 @@ import {
   Patch,
   Post,
   Put,
+  ValidationPipe,
 } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
 import { Organizer, OrganizerEntity } from "entities/organizer.entity";
@@ -28,7 +29,8 @@ import { FirebaseAuthService, RestrictedRoles, Role, Roles } from "common/gcp";
 import { take, toArray } from "rxjs";
 import { OrganizerService } from "modules/organizer/organizer.service";
 import { SocketRoom } from "common/socket";
-import { ApiAuth } from "common/docs/api-auth";
+import { ControllerMethod } from "common/validation";
+import { ApiEndpoint } from "common/docs";
 
 class OrganizerCreateEntity extends OrganizerEntity {}
 
@@ -51,9 +53,13 @@ export class OrganizerController {
 
   @Get("/")
   @Roles(Role.EXEC)
-  @ApiOperation({ summary: "Get All Organizers" })
-  @ApiOkResponse({ type: [OrganizerEntity] })
-  @ApiAuth(Role.EXEC)
+  @ApiEndpoint({
+    summary: "Get All Organizers",
+    response: {
+      ok: { type: OrganizerEntity },
+    },
+    auth: Role.EXEC,
+  })
   async getAll() {
     const organizers = await this.organizerRepo.findAll().exec();
 
@@ -62,11 +68,30 @@ export class OrganizerController {
 
   @Post("/")
   @Roles(Role.EXEC)
-  @ApiOperation({ summary: "Create an Organizer" })
-  @ApiBody({ type: OrganizerCreateEntity })
-  @ApiOkResponse({ type: OrganizerEntity })
-  @ApiAuth(Role.EXEC)
-  async createOne(@Body() data: OrganizerCreateEntity) {
+  @ApiEndpoint({
+    summary: "Create an Organizer",
+    request: {
+      body: { type: OrganizerCreateEntity },
+      validate: true,
+    },
+    response: {
+      ok: { type: OrganizerEntity },
+    },
+    auth: Role.EXEC,
+  })
+  async createOne(
+    @Body(
+      new ValidationPipe({
+        forbidNonWhitelisted: true,
+        whitelist: true,
+        transform: true,
+        transformOptions: {
+          groups: [ControllerMethod.POST],
+        },
+      }),
+    )
+    data: OrganizerCreateEntity,
+  ) {
     const userExists = await this.auth.validateUser(data.id);
 
     if (!userExists) {
@@ -89,10 +114,17 @@ export class OrganizerController {
     predicate: (req) => req.user && req.user.sub === req.params.id,
   })
   @Roles(Role.EXEC)
-  @ApiOperation({ summary: "Get an Organizer" })
-  @ApiParam({ name: "id", description: "ID must be set to an organizer's ID" })
-  @ApiOkResponse({ type: OrganizerEntity })
-  @ApiAuth(Role.TEAM)
+  @ApiEndpoint({
+    summary: "Get an Organizer",
+    auth: Role.TEAM,
+    restricted: true,
+    params: [
+      { name: "id", description: "ID must be set to an organizer's ID" },
+    ],
+    response: {
+      ok: { type: OrganizerEntity },
+    },
+  })
   async getOne(@Param("id") id: string) {
     const organizer = await this.organizerRepo.findOne(id).exec();
 
@@ -101,12 +133,37 @@ export class OrganizerController {
 
   @Patch(":id")
   @Roles(Role.EXEC)
-  @ApiOperation({ summary: "Patch an Organizer" })
-  @ApiParam({ name: "id", description: "ID must be set to an organizer's ID" })
-  @ApiBody({ type: OrganizerUpdateEntity })
-  @ApiOkResponse({ type: OrganizerEntity })
-  @ApiAuth(Role.EXEC)
-  async patchOne(@Param("id") id: string, @Body() data: OrganizerUpdateEntity) {
+  @ApiEndpoint({
+    summary: "Patch an Organizer",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to an organizer's ID",
+      },
+    ],
+    request: {
+      body: { type: OrganizerUpdateEntity },
+      validate: true,
+    },
+    response: {
+      ok: { type: OrganizerEntity },
+    },
+    auth: Role.EXEC,
+  })
+  async patchOne(
+    @Param("id") id: string,
+    @Body(
+      new ValidationPipe({
+        forbidNonWhitelisted: true,
+        whitelist: true,
+        transform: true,
+        transformOptions: {
+          exposeUnsetFields: false,
+        },
+      }),
+    )
+    data: OrganizerUpdateEntity,
+  ) {
     const { privilege, ...rest } = data;
     const organizer = await this.organizerRepo.patchOne(id, rest).exec();
 
@@ -121,14 +178,33 @@ export class OrganizerController {
 
   @Put(":id")
   @Roles(Role.EXEC)
-  @ApiOperation({ summary: "Replace an Organizer" })
-  @ApiParam({ name: "id", description: "ID must be set to an organizer's ID" })
-  @ApiBody({ type: OrganizerReplaceEntity })
-  @ApiOkResponse({ type: OrganizerEntity })
-  @ApiAuth(Role.EXEC)
+  @ApiEndpoint({
+    summary: "Replace an Organizer",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to an organizer's ID",
+      },
+    ],
+    request: {
+      body: { type: OrganizerReplaceEntity },
+      validate: true,
+    },
+    response: {
+      ok: { type: OrganizerEntity },
+    },
+    auth: Role.EXEC,
+  })
   async replaceOne(
     @Param("id") id: string,
-    @Body() data: OrganizerReplaceEntity,
+    @Body(
+      new ValidationPipe({
+        forbidNonWhitelisted: true,
+        whitelist: true,
+        transform: true,
+      }),
+    )
+    data: OrganizerReplaceEntity,
   ) {
     const { privilege, ...rest } = data;
     const organizer = await this.organizerRepo.replaceOne(id, rest).exec();
@@ -142,10 +218,19 @@ export class OrganizerController {
   @Delete(":id")
   @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(Role.EXEC)
-  @ApiOperation({ summary: "Delete an Organizer" })
-  @ApiParam({ name: "id", description: "ID must be set to an organizer's ID" })
-  @ApiNoContentResponse()
-  @ApiAuth(Role.EXEC)
+  @ApiEndpoint({
+    summary: "Delete an Organizer",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to an organizer's ID",
+      },
+    ],
+    response: {
+      noContent: true,
+    },
+    auth: Role.EXEC,
+  })
   async deleteOne(@Param("id") id: string) {
     const organizer = await this.organizerRepo.deleteOne(id).exec();
 

@@ -9,7 +9,7 @@ import {
   ApiProperty,
   ApiTags,
 } from "@nestjs/swagger";
-import { ApiAuth } from "common/docs/api-auth";
+import { ApiAuth } from "common/docs/api-auth.decorator";
 import { RestrictedRoles, Role, Roles } from "common/gcp";
 import { Event, EventEntity } from "entities/event.entity";
 import { Organizer } from "entities/organizer.entity";
