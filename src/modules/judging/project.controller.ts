@@ -22,7 +22,7 @@ import {
   OmitType,
   PartialType,
 } from "@nestjs/swagger";
-import { ApiAuth } from "common/docs/api-auth";
+import { ApiAuth } from "common/docs/api-auth.decorator";
 import { Role, Roles } from "common/gcp";
 
 class ProjectCreateEntity extends OmitType(ProjectEntity, ["id"] as const) {}

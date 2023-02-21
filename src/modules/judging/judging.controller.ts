@@ -11,7 +11,7 @@ import {
   ApiTags,
   OmitType,
 } from "@nestjs/swagger";
-import { ApiAuth } from "common/docs/api-auth";
+import { ApiAuth } from "common/docs/api-auth.decorator";
 import { Role, Roles } from "common/gcp";
 import { OrganizerEntity } from "entities/organizer.entity";
 

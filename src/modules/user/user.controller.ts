@@ -44,7 +44,7 @@ import {
   ExtraCreditAssignmentEntity,
 } from "entities/extra-credit-assignment.entity";
 import { Hackathon } from "entities/hackathon.entity";
-import { ApiAuth } from "common/docs/api-auth";
+import { ApiAuth } from "common/docs/api-auth.decorator";
 
 class UserCreateEntity extends OmitType(UserEntity, ["resume"] as const) {
   @ApiProperty({

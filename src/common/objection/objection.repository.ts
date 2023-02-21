@@ -20,6 +20,14 @@ export class Repository<TEntity extends Entity = Entity> {
     private readonly disableByHackathon: boolean = false,
   ) {}
 
+  protected get hackathonRelation() {
+    return Hackathon.relatedQuery(this.model.tableName);
+  }
+
+  protected get activeHackathon() {
+    return Hackathon.query().where("active", true);
+  }
+
   private _resolveWithHackathon(
     query: LazyQuery,
     byHackathon?: string,
@@ -29,19 +37,20 @@ export class Repository<TEntity extends Entity = Entity> {
       Reflect.getOwnMetadata(TableMetadataKey, this.model.prototype) || {};
 
     if (metadata?.disableByHackathon || this.disableByHackathon) {
-      return query(this.model.query());
+      return this._stageQuery(query).raw();
     }
 
-    const relatedQuery = Hackathon.relatedQuery(this.model.tableName);
+    // get methods can be overriden without rewriting logic
+    const relatedQuery = this.hackathonRelation;
 
     if (byHackathon) {
       return query(relatedQuery.for(byHackathon));
     } else {
-      return query(relatedQuery.for(Hackathon.query().where("active", true)));
+      return query(relatedQuery.for(this.activeHackathon));
     }
   }
 
-  private _stageQuery<TEntity>(query: LazyQuery): StagedQuery<TEntity> {
+  protected _stageQuery<TEntity>(query: LazyQuery): StagedQuery<TEntity> {
     return {
       raw: () => query(this.model.query()),
       exec: async () => await query(this.model.query()),
