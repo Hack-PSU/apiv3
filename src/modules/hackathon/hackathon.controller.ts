@@ -148,6 +148,7 @@ export class HackathonController {
     summary: "Create a Hackathon",
     request: {
       body: { type: HackathonCreateEntity },
+      validate: true,
     },
     response: {
       created: { type: HackathonResponse },
@@ -224,6 +225,10 @@ export class HackathonController {
         description: "ID must be set to a hackathon's ID",
       },
     ],
+    request: {
+      body: { type: HackathonPatchEntity },
+      validate: true,
+    },
     response: {
       ok: { type: HackathonEntity },
     },
@@ -256,6 +261,10 @@ export class HackathonController {
         description: "ID must be set to a hackathon's ID",
       },
     ],
+    request: {
+      body: { type: HackathonUpdateEntity },
+      validate: true,
+    },
     response: {
       ok: { type: HackathonEntity },
     },
