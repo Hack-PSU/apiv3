@@ -4,9 +4,12 @@ import {
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
   Put,
+  Query,
+  ValidationPipe,
 } from "@nestjs/common";
 import { Column, InjectRepository, Repository } from "common/objection";
 import { Score, ScoreEntity } from "entities/score.entity";
@@ -26,36 +29,66 @@ import { OrganizerEntity } from "entities/organizer.entity";
 import { ProjectEntity } from "entities/project.entity";
 import { ApiAuth } from "common/docs/api-auth.decorator";
 import { Role, Roles } from "common/gcp";
+import { ApiDoc } from "common/docs";
+import { IsBoolean, IsNumber, IsOptional } from "class-validator";
+import { ControllerMethod } from "common/validation";
 
 class ScoreCreateEntity extends OmitType(ScoreEntity, ["id"] as const) {
   @ApiProperty({ required: false, default: -1 })
+  @IsOptional()
+  @IsNumber()
   creativity: number;
 
   @ApiProperty({ required: false, default: -1 })
+  @IsOptional()
+  @IsNumber()
   technical: number;
 
   @ApiProperty({ required: false, default: -1 })
+  @IsOptional()
+  @IsNumber()
   implementation: number;
 
   @ApiProperty({ required: false, default: -1 })
+  @IsOptional()
+  @IsNumber()
   clarity: number;
 
   @ApiProperty({ required: false, default: -1 })
+  @IsOptional()
+  @IsNumber()
   growth: number;
 
   @ApiProperty({ required: false, default: -1 })
+  @IsOptional()
+  @IsNumber()
   energy: number;
 
   @ApiProperty({ required: false, default: -1 })
+  @IsOptional()
+  @IsNumber()
   supplyChain: number;
 
   @ApiProperty({ required: false, default: -1 })
+  @IsOptional()
+  @IsNumber()
   environmental: number;
+
+  @ApiProperty({ required: false, default: false })
+  @IsOptional()
+  @IsBoolean()
+  submitted: boolean;
 }
 
 class ScorePatchEntity extends PartialType(
-  OmitType(ScoreEntity, ["id"] as const),
+  OmitType(ScoreEntity, ["id", "projectId", "judgeId"] as const),
 ) {}
+
+class ScoreUpdateEntity extends OmitType(ScoreEntity, [
+  "id",
+  "projectId",
+  "judgeId",
+] as const) {}
 
 class ScoreJudgeEntity extends OmitType(OrganizerEntity, [
   "privilege",
@@ -90,33 +123,72 @@ export class ScoreController {
 
   @Get("/")
   @Roles(Role.TEAM)
-  @ApiOperation({ summary: "Get All Scores" })
-  @ApiOkResponse({ type: [ScoreResponseEntity] })
-  @ApiAuth(Role.TEAM)
-  async getAll(): Promise<Score[]> {
+  @ApiDoc({
+    summary: "Get All Scores",
+    query: [
+      {
+        name: "hackathonId",
+        description: "A valid hackathon ID",
+        required: false,
+      },
+    ],
+    response: {
+      ok: { type: [ScoreResponseEntity] },
+    },
+    auth: Role.TEAM,
+  })
+  async getAll(@Query("hackathonId") hackathonId?: string) {
     return this.scoreRepo
       .findAll()
-      .byHackathon()
+      .byHackathon(hackathonId)
       .withGraphFetched("[project, judge]");
   }
 
   @Post("/")
   @Roles(Role.TEAM)
-  @ApiOperation({ summary: "Create a Score" })
-  @ApiBody({ type: ScoreCreateEntity })
-  @ApiOkResponse({ type: ScoreDataEntity })
-  @ApiAuth(Role.TEAM)
-  async createOne(@Body() data: ScoreCreateEntity) {
-    return this.scoreRepo.createOne(data).byHackathon();
+  @ApiDoc({
+    summary: "Create a Score",
+    request: {
+      body: { type: ScoreCreateEntity },
+      validate: true,
+    },
+    response: {
+      created: { type: ScoreDataEntity },
+    },
+    auth: Role.TEAM,
+  })
+  async createOne(
+    @Body(
+      new ValidationPipe({
+        forbidNonWhitelisted: true,
+        whitelist: true,
+        transform: true,
+        transformOptions: {
+          groups: [ControllerMethod.POST],
+        },
+      }),
+    )
+    data: ScoreCreateEntity,
+  ) {
+    return this.scoreRepo.createOne(data).byHackathon(data.hackathonId);
   }
 
   @Get(":id")
   @Roles(Role.TEAM)
-  @ApiOperation({ summary: "Get a Score" })
-  @ApiParam({ name: "id", description: "ID must be set to a score's ID" })
-  @ApiOkResponse({ type: ScoreResponseEntity })
-  @ApiAuth(Role.TEAM)
-  async getOne(@Param("id") id: number) {
+  @ApiDoc({
+    summary: "Get a Score",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to a score's ID",
+      },
+    ],
+    response: {
+      ok: { type: ScoreResponseEntity },
+    },
+    auth: Role.TEAM,
+  })
+  async getOne(@Param("id", ParseIntPipe) id: number) {
     return this.scoreRepo
       .findOne(id)
       .raw()
@@ -125,34 +197,76 @@ export class ScoreController {
 
   @Patch(":id")
   @Roles(Role.TEAM)
-  @ApiOperation({ summary: "Patch a Score" })
-  @ApiParam({ name: "id", description: "ID must be set to a score's ID" })
-  @ApiBody({ type: ScorePatchEntity })
-  @ApiOkResponse({ type: ScoreResponseEntity })
-  @ApiAuth(Role.TEAM)
-  async patchOne(@Param("id") id: number, @Body() data: ScorePatchEntity) {
-    const { projectId, judgeId, ...rest } = data;
+  @ApiDoc({
+    summary: "Patch a Score",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to a score's ID",
+      },
+    ],
+    request: {
+      body: { type: ScorePatchEntity },
+      validate: true,
+    },
+    response: {
+      ok: { type: ScoreResponseEntity },
+    },
+    auth: Role.TEAM,
+  })
+  async patchOne(
+    @Param("id", ParseIntPipe) id: number,
+    @Body(
+      new ValidationPipe({
+        forbidNonWhitelisted: true,
+        whitelist: true,
+        transform: true,
+      }),
+    )
+    data: ScorePatchEntity,
+  ) {
+    // projectId and judgeId is removed using ValidationPipe
     return this.scoreRepo
-      .patchOne(id, rest)
+      .patchOne(id, data)
       .raw()
       .withGraphFetched("[project, judge]");
   }
 
   @Put(":id")
   @Roles(Role.TEAM)
-  @ApiOperation({ summary: "Replace a Score" })
-  @ApiParam({ name: "id", description: "ID must be set to a score's ID" })
-  @ApiBody({ type: ScoreCreateEntity })
-  @ApiOkResponse({ type: ScoreResponseEntity })
-  @ApiAuth(Role.TEAM)
-  async replaceOne(@Param("id") id: number, @Body() data: ScoreCreateEntity) {
-    const { judgeId, projectId, ...rest } = data;
-
+  @ApiDoc({
+    summary: "Replace a Score",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to a score's ID",
+      },
+    ],
+    request: {
+      body: { type: ScoreUpdateEntity },
+      validate: true,
+    },
+    response: {
+      ok: { type: ScoreResponseEntity },
+    },
+    auth: Role.TEAM,
+  })
+  async replaceOne(
+    @Param("id", ParseIntPipe) id: number,
+    @Body(
+      new ValidationPipe({
+        forbidNonWhitelisted: true,
+        whitelist: true,
+        transform: true,
+      }),
+    )
+    data: ScoreUpdateEntity,
+  ) {
     const currentScore = await this.scoreRepo.findOne(id).exec();
 
     return this.scoreRepo
       .replaceOne(id, {
-        ...rest,
+        ...data,
         judgeId: currentScore.judgeId,
         projectId: currentScore.projectId,
       })
@@ -162,11 +276,20 @@ export class ScoreController {
 
   @Delete(":id")
   @Roles(Role.TEAM)
-  @ApiOperation({ summary: "Delete a Score" })
-  @ApiParam({ name: "id", description: "ID must be set to a score's ID" })
-  @ApiNoContentResponse()
-  @ApiAuth(Role.TEAM)
-  async deleteOne(@Param("id") id: number) {
+  @ApiDoc({
+    summary: "Delete a Score",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to a score's ID",
+      },
+    ],
+    response: {
+      noContent: true,
+    },
+    auth: Role.TEAM,
+  })
+  async deleteOne(@Param("id", ParseIntPipe) id: number) {
     return this.scoreRepo.deleteOne(id).exec();
   }
 }

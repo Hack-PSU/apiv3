@@ -2,6 +2,7 @@ import { Column, ID, Table } from "common/objection";
 import { Entity } from "entities/base.entity";
 import { ApiProperty, PickType } from "@nestjs/swagger";
 import { raw } from "objection";
+import { IsOptional, IsString } from "class-validator";
 
 @Table({
   name: "projects",
@@ -24,14 +25,18 @@ import { raw } from "objection";
 })
 export class Project extends Entity {
   @ApiProperty()
+  @IsString()
   @ID({ type: "integer" })
   id: number;
 
   @ApiProperty()
+  @IsString()
   @Column({ type: "string" })
   name: string;
 
-  @ApiProperty()
+  @ApiProperty({ required: false, description: "Defaults to active hackathon" })
+  @IsOptional()
+  @IsString()
   @Column({ type: "string", required: false })
   hackathonId: string;
 }

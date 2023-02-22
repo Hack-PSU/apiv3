@@ -1,15 +1,17 @@
 import {
   Body,
-  ClassSerializerInterceptor,
   Controller,
   Delete,
   Get,
   HttpCode,
   HttpStatus,
   Param,
+  ParseArrayPipe,
+  ParseIntPipe,
   Patch,
   Post,
   Put,
+  Query,
   UseInterceptors,
   ValidationPipe,
 } from "@nestjs/common";
@@ -17,16 +19,14 @@ import { InjectRepository, Repository } from "common/objection";
 import { Sponsor, SponsorEntity } from "entities/sponsor.entity";
 import { SocketGateway } from "modules/socket/socket.gateway";
 import {
-  ApiBody,
-  ApiConsumes,
-  ApiNoContentResponse,
   ApiOkResponse,
   ApiOperation,
-  ApiParam,
   ApiProperty,
   ApiTags,
+  IntersectionType,
   OmitType,
   PartialType,
+  PickType,
 } from "@nestjs/swagger";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { UploadedLogo } from "modules/sponsor/uploaded-logo.decorator";
@@ -35,8 +35,8 @@ import { SponsorService } from "modules/sponsor/sponsor.service";
 import { SocketRoom } from "common/socket";
 import { ApiAuth } from "common/docs/api-auth.decorator";
 import { Role, Roles } from "common/gcp";
-import * as _ from "lodash";
-import { ParseBatchUpdatePipe } from "modules/sponsor/parse-batch-update.pipe";
+import { ApiDoc } from "common/docs";
+import { ControllerMethod } from "common/validation";
 
 class SponsorCreateEntity extends OmitType(SponsorEntity, [
   "id",
@@ -53,13 +53,10 @@ class SponsorCreateEntity extends OmitType(SponsorEntity, [
 
 class SponsorPatchEntity extends PartialType(SponsorCreateEntity) {}
 
-class SponsorPatchBatchEntity extends OmitType(SponsorPatchEntity, [
-  "name",
-  "logo",
-  "hackathonId",
-] as const) {
-  id: number;
-}
+class SponsorPatchBatchEntity extends IntersectionType(
+  OmitType(SponsorPatchEntity, ["name", "logo", "hackathonId"] as const),
+  PickType(SponsorEntity, ["id"] as const),
+) {}
 
 @ApiTags("Sponsorship")
 @Controller("sponsors")
@@ -73,27 +70,51 @@ export class SponsorController {
 
   @Get("/")
   @Roles(Role.TEAM)
-  @ApiOperation({ summary: "Get All Sponsors" })
-  @ApiOkResponse({ type: [SponsorEntity] })
-  @ApiAuth(Role.TEAM)
-  async getAll() {
-    return this.sponsorRepo.findAll().byHackathon();
+  @ApiDoc({
+    summary: "Get All Sponsors",
+    query: [
+      {
+        name: "hackathonId",
+        description: "The ID of a valid hackathon",
+      },
+    ],
+    response: {
+      ok: { type: [SponsorEntity] },
+    },
+    auth: Role.TEAM,
+  })
+  async getAll(@Query("hackathonId") hackathonId?: string) {
+    return this.sponsorRepo.findAll().byHackathon(hackathonId);
   }
 
   @Post("/")
   @Roles(Role.TEAM)
   @UseInterceptors(FileInterceptor("logo"))
-  @ApiOperation({ summary: "Create a Sponsor" })
-  @ApiConsumes("multipart/form-data")
-  @ApiBody({ type: SponsorCreateEntity })
-  @ApiOkResponse({ type: SponsorEntity })
-  @ApiAuth(Role.TEAM)
+  @ApiDoc({
+    summary: "Create a Sponsor",
+    request: {
+      mimeTypes: ["multipart/form-data"],
+      body: { type: SponsorCreateEntity },
+    },
+    response: {
+      created: { type: SponsorEntity },
+    },
+    auth: Role.TEAM,
+  })
   async createOne(
-    @Body(new ValidationPipe({ transform: true, forbidUnknownValues: false }))
+    @Body(
+      new ValidationPipe({
+        transform: true,
+        whitelist: true,
+        forbidNonWhitelisted: true,
+      }),
+    )
     data: SponsorCreateEntity,
     @UploadedLogo() logo?: Express.Multer.File,
   ) {
-    let sponsor = await this.sponsorRepo.createOne(data).byHackathon();
+    let sponsor = await this.sponsorRepo
+      .createOne(data)
+      .byHackathon(data.hackathonId);
 
     if (logo) {
       const logoUrl = await this.sponsorService.uploadLogo(
@@ -116,26 +137,52 @@ export class SponsorController {
 
   @Get(":id")
   @Roles(Role.TEAM)
-  @ApiOperation({ summary: "Get a Sponsor" })
-  @ApiParam({ name: "id", description: "ID must be set to a sponsor's ID" })
-  @ApiOkResponse({ type: SponsorEntity })
-  @ApiAuth(Role.TEAM)
-  async getOne(@Param("id") id: number) {
+  @ApiDoc({
+    summary: "Get a Sponsor",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to a sponsor's ID",
+      },
+    ],
+    response: {
+      ok: { type: SponsorEntity },
+    },
+    auth: Role.TEAM,
+  })
+  async getOne(@Param("id", ParseIntPipe) id: number) {
     return this.sponsorRepo.findOne(id).exec();
   }
 
   @Patch(":id")
   @Roles(Role.TEAM)
   @UseInterceptors(FileInterceptor("logo"))
-  @ApiOperation({ summary: "Patch a Sponsor" })
-  @ApiConsumes("multipart/form-data")
-  @ApiParam({ name: "id", description: "ID must be set to a sponsor's ID" })
-  @ApiBody({ type: SponsorPatchEntity })
-  @ApiOkResponse({ type: SponsorEntity })
-  @ApiAuth(Role.TEAM)
+  @ApiDoc({
+    summary: "Patch a Sponsor",
+    request: {
+      mimeTypes: ["multipart/form-data"],
+      body: { type: SponsorPatchEntity },
+    },
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to a sponsor's ID",
+      },
+    ],
+    response: {
+      ok: { type: SponsorEntity },
+    },
+    auth: Role.TEAM,
+  })
   async patchOne(
-    @Param("id") id: number,
-    @Body(new ValidationPipe({ transform: true, forbidUnknownValues: false }))
+    @Param("id", ParseIntPipe) id: number,
+    @Body(
+      new ValidationPipe({
+        forbidNonWhitelisted: true,
+        whitelist: true,
+        transform: true,
+      }),
+    )
     data: SponsorPatchEntity,
     @UploadedLogo() logo?: Express.Multer.File,
   ) {
@@ -172,15 +219,33 @@ export class SponsorController {
   @Put(":id")
   @Roles(Role.TEAM)
   @UseInterceptors(FileInterceptor("logo"))
-  @ApiOperation({ summary: "Replace a Sponsor" })
-  @ApiConsumes("multipart/form-data")
-  @ApiParam({ name: "id", description: "ID must be set to a sponsor's ID" })
-  @ApiBody({ type: SponsorCreateEntity })
-  @ApiOkResponse({ type: SponsorEntity })
-  @ApiAuth(Role.TEAM)
+  @ApiDoc({
+    summary: "Replace a Sponsor",
+    request: {
+      mimeTypes: ["multipart/form-data"],
+      body: { type: SponsorCreateEntity },
+      validate: true,
+    },
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to a sponsor's ID",
+      },
+    ],
+    response: {
+      ok: { type: SponsorEntity },
+    },
+    auth: Role.TEAM,
+  })
   async replaceOne(
-    @Param("id") id: number,
-    @Body(new ValidationPipe({ transform: true, forbidUnknownValues: false }))
+    @Param("id", ParseIntPipe) id: number,
+    @Body(
+      new ValidationPipe({
+        forbidNonWhitelisted: true,
+        whitelist: true,
+        transform: true,
+      }),
+    )
     data: SponsorCreateEntity,
     @UploadedLogo() logo?: Express.Multer.File,
   ) {
@@ -216,11 +281,20 @@ export class SponsorController {
   @Delete(":id")
   @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(Role.TEAM)
-  @ApiOperation({ summary: "Delete a Sponsor" })
-  @ApiParam({ name: "id", description: "ID must be set to a sponsor's ID" })
-  @ApiNoContentResponse()
-  @ApiAuth(Role.TEAM)
-  async deleteOne(@Param("id") id: number) {
+  @ApiDoc({
+    summary: "Delete a Sponsor",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to a sponsor's ID",
+      },
+    ],
+    response: {
+      noContent: true,
+    },
+    auth: Role.TEAM,
+  })
+  async deleteOne(@Param("id", ParseIntPipe) id: number) {
     const currentSponsor = await this.sponsorRepo.findOne(id).exec();
 
     await this.sponsorService.deleteLogo({
@@ -237,12 +311,28 @@ export class SponsorController {
 
   @Patch("/batch/update")
   @Roles(Role.TEAM)
-  @ApiOperation({ summary: "Batch Update Sponsors" })
-  @ApiBody({ type: [SponsorPatchBatchEntity] })
-  @ApiOkResponse({ type: [SponsorEntity] })
-  @ApiAuth(Role.TEAM)
+  @ApiDoc({
+    summary: "Batch Update Sponsors",
+    request: {
+      body: { type: [SponsorPatchBatchEntity] },
+    },
+    response: {
+      ok: { type: [SponsorEntity] },
+    },
+    auth: Role.TEAM,
+  })
   async patchBatch(
-    @Body(new ParseBatchUpdatePipe(["name", "logo", "hackathonId"]))
+    @Body(
+      new ParseArrayPipe({
+        items: SponsorPatchBatchEntity,
+        forbidNonWhitelisted: true,
+        whitelist: true,
+        transformOptions: {
+          groups: [ControllerMethod.BATCH],
+          exposeUnsetFields: false,
+        },
+      }),
+    )
     data: SponsorPatchBatchEntity[],
   ) {
     const sponsors = await Promise.all(

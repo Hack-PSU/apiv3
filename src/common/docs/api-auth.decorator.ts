@@ -11,7 +11,7 @@ import { ExceptionResponse } from "./exception-response.entity";
 export const ApiAuth = (privilege: Role, restricted = false) => {
   return applyDecorators(
     ApiBearerAuth(),
-    ApiOAuth2([privilege.toString()]),
+    ApiOAuth2([Role[privilege]]),
     ApiUnauthorizedResponse({
       description: "Unauthorized",
       type: ExceptionResponse,

@@ -11,6 +11,7 @@ import {
   Patch,
   Post,
   Put,
+  Query,
   UseInterceptors,
   ValidationPipe,
 } from "@nestjs/common";
@@ -45,6 +46,7 @@ import {
 } from "entities/extra-credit-assignment.entity";
 import { Hackathon } from "entities/hackathon.entity";
 import { ApiAuth } from "common/docs/api-auth.decorator";
+import { ApiDoc } from "common/docs";
 
 class UserCreateEntity extends OmitType(UserEntity, ["resume"] as const) {
   @ApiProperty({
@@ -62,12 +64,9 @@ class UserPatchEntity extends PartialType(UserUpdateEntity) {}
 
 class CreateUserScanEntity extends OmitType(ScanEntity, [
   "id",
-  "hackathonId",
   "userId",
   "eventId",
-] as const) {
-  hackathonId?: string;
-}
+] as const) {}
 
 @ApiTags("Users")
 @Controller("users")
@@ -88,22 +87,47 @@ export class UserController {
 
   @Get("/")
   @Roles(Role.TEAM)
-  @ApiOperation({ summary: "Get All Users" })
-  @ApiOkResponse({ type: [UserEntity] })
-  @ApiAuth(Role.TEAM)
-  async getAll() {
-    return this.userRepo.findAll().byHackathon();
+  @ApiDoc({
+    summary: "Get All Users",
+    query: [
+      {
+        name: "hackathonId",
+        required: false,
+        description: "A valid hackathon ID",
+      },
+    ],
+    response: {
+      ok: { type: [UserEntity] },
+    },
+    auth: Role.TEAM,
+  })
+  async getAll(@Query("hackathonId") hackathonId?: string) {
+    return this.userRepo.findAll().byHackathon(hackathonId);
   }
 
   @Post("/")
   @Roles(Role.NONE)
   @UseInterceptors(FileInterceptor("resume"))
-  @ApiOperation({ summary: "Create a User" })
-  @ApiBody({ type: UserCreateEntity })
-  @ApiOkResponse({ type: UserEntity })
-  @ApiAuth(Role.NONE)
+  @ApiDoc({
+    summary: "Create a User",
+    request: {
+      mimeTypes: ["multipart/form-data"],
+      body: { type: UserCreateEntity },
+      validate: true,
+    },
+    response: {
+      created: { type: UserEntity },
+    },
+    auth: Role.TEAM,
+  })
   async createOne(
-    @Body(new ValidationPipe({ transform: true, forbidUnknownValues: false }))
+    @Body(
+      new ValidationPipe({
+        forbidNonWhitelisted: true,
+        whitelist: true,
+        transform: true,
+      }),
+    )
     data: UserCreateEntity,
     @UploadedResume() resume?: Express.Multer.File,
   ) {
@@ -139,11 +163,22 @@ export class UserController {
     predicate: (req) => req.user && req.user?.sub === req.params.id,
   })
   @Roles(Role.TEAM)
-  @ApiOperation({ summary: "Get a User" })
-  @ApiOkResponse({ type: UserEntity })
-  @ApiAuth(Role.NONE)
+  @ApiDoc({
+    summary: "Get a User",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to a user's ID",
+      },
+    ],
+    response: {
+      ok: { type: UserEntity },
+    },
+    auth: Role.NONE,
+    restricted: true,
+  })
   async getOne(@Param("id") id: string) {
-    return this.userRepo.findOne(id).byHackathon();
+    return this.userRepo.findOne(id).exec();
   }
 
   @Patch(":id")
@@ -151,16 +186,36 @@ export class UserController {
     roles: [Role.NONE, Role.VOLUNTEER],
     predicate: (req) => req.user && req.user.sub === req.params.id,
   })
-  @Roles(Role.NONE)
+  @Roles(Role.TEAM)
   @UseInterceptors(FileInterceptor("resume"))
-  @ApiOperation({ summary: "Patch a User" })
-  @ApiParam({ name: "id", description: "ID must be set to a user's ID" })
-  @ApiBody({ type: UserPatchEntity })
-  @ApiOkResponse({ type: UserEntity })
-  @ApiAuth(Role.NONE)
+  @ApiDoc({
+    summary: "Patch a User",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to a user's ID",
+      },
+    ],
+    request: {
+      mimeTypes: ["multipart/form-data"],
+      body: { type: UserPatchEntity },
+      validate: true,
+    },
+    response: {
+      ok: { type: UserEntity },
+    },
+    auth: Role.NONE,
+    restricted: true,
+  })
   async patchOne(
     @Param("id") id: string,
-    @Body(new ValidationPipe({ transform: true, forbidUnknownValues: false }))
+    @Body(
+      new ValidationPipe({
+        forbidNonWhitelisted: true,
+        whitelist: true,
+        transform: true,
+      }),
+    )
     data: UserPatchEntity,
     @UploadedResume() resume?: Express.Multer.File,
   ) {
@@ -195,16 +250,36 @@ export class UserController {
     roles: [Role.NONE, Role.VOLUNTEER],
     predicate: (req) => req.user && req.user.sub === req.params.id,
   })
-  @Roles(Role.NONE)
+  @Roles(Role.TEAM)
   @UseInterceptors(FileInterceptor("resume"))
-  @ApiOperation({ summary: "Replace a User" })
-  @ApiParam({ name: "id", description: "ID must be set to a user's ID" })
-  @ApiBody({ type: UserUpdateEntity })
-  @ApiOkResponse({ type: UserEntity })
-  @ApiAuth(Role.NONE)
+  @ApiDoc({
+    summary: "Replace a User",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to a user's IID ",
+      },
+    ],
+    request: {
+      mimeTypes: ["multipart/form-data"],
+      body: { type: UserUpdateEntity },
+      validate: true,
+    },
+    response: {
+      ok: { type: UserEntity },
+    },
+    auth: Role.NONE,
+    restricted: true,
+  })
   async replaceOne(
     @Param("id") id: string,
-    @Body(new ValidationPipe({ transform: true, forbidUnknownValues: false }))
+    @Body(
+      new ValidationPipe({
+        forbidNonWhitelisted: true,
+        whitelist: true,
+        transform: true,
+      }),
+    )
     data: UserUpdateEntity,
     @UploadedResume() resume?: Express.Multer.File,
   ) {
@@ -238,11 +313,21 @@ export class UserController {
     roles: [Role.NONE, Role.VOLUNTEER],
     predicate: (req) => req.user && req.user.sub === req.params.id,
   })
-  @Roles(Role.NONE)
-  @ApiOperation({ summary: "Delete a User" })
-  @ApiParam({ name: "id", description: "ID must be set to a user's ID" })
-  @ApiNoContentResponse()
-  @ApiAuth(Role.NONE)
+  @Roles(Role.EXEC)
+  @ApiDoc({
+    summary: "Delete a User",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to a user's ID",
+      },
+    ],
+    response: {
+      noContent: true,
+    },
+    auth: Role.NONE,
+    restricted: true,
+  })
   async deleteOne(@Param("id") id: string) {
     const user = await this.userRepo.findOne(id).exec();
 
@@ -257,16 +342,38 @@ export class UserController {
   @Post(":id/check-in/event/:eventId")
   @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(Role.TEAM)
-  @ApiOperation({ summary: "Check User Into Event" })
-  @ApiParam({ name: "id", description: "ID must be set to a user's ID" })
-  @ApiParam({ name: "eventId", description: "ID must be set to an event's ID" })
-  @ApiBody({ type: CreateUserScanEntity })
-  @ApiNoContentResponse()
-  @ApiAuth(Role.TEAM)
+  @ApiDoc({
+    summary: "Check User Into Event",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to a user's ID",
+      },
+      {
+        name: "eventId",
+        description: "ID must be set to an event's ID",
+      },
+    ],
+    request: {
+      body: { type: CreateUserScanEntity },
+      validate: true,
+    },
+    response: {
+      noContent: true,
+    },
+    auth: Role.TEAM,
+  })
   async checkIn(
     @Param("id") id: string,
     @Param("eventId") eventId: string,
-    @Body() data: CreateUserScanEntity,
+    @Body(
+      new ValidationPipe({
+        forbidNonWhitelisted: true,
+        whitelist: true,
+        transform: true,
+      }),
+    )
+    data: CreateUserScanEntity,
   ) {
     const hasUser = await this.userRepo.findOne(id).exec();
 
@@ -291,10 +398,20 @@ export class UserController {
     predicate: (req) => req.user && req.user.sub === req.params.id,
   })
   @Roles(Role.TEAM)
-  @ApiOperation({ summary: "Get All Extra Credit Classes By User" })
-  @ApiParam({ name: "id", description: "ID must be set to a user's ID" })
-  @ApiOkResponse({ type: [ExtraCreditClassEntity] })
-  @ApiAuth(Role.NONE)
+  @ApiDoc({
+    summary: "Get All Extra Credit Classes By User",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to a user's ID",
+      },
+    ],
+    response: {
+      ok: { type: [ExtraCreditClassEntity] },
+    },
+    auth: Role.NONE,
+    restricted: true,
+  })
   async classesByUser(@Param("id") id: string) {
     return User.relatedQuery("extraCreditClasses").for(id);
   }
@@ -305,11 +422,24 @@ export class UserController {
     predicate: (req) => req.user && req.user.sub === req.params.id,
   })
   @Roles(Role.TEAM)
-  @ApiOperation({ summary: "Assign Extra Credit Class to User" })
-  @ApiParam({ name: "id", description: "ID must be set to a user's ID" })
-  @ApiParam({ name: "classId", description: "ID must be set to an event's ID" })
-  @ApiOkResponse({ type: ExtraCreditAssignmentEntity })
-  @ApiAuth(Role.NONE)
+  @ApiDoc({
+    summary: "Assign Extra Credit Class to User",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to a user's ID",
+      },
+      {
+        name: "classId",
+        description: "ID must be set to a class's ID",
+      },
+    ],
+    response: {
+      ok: { type: ExtraCreditAssignmentEntity },
+    },
+    auth: Role.NONE,
+    restricted: true,
+  })
   async assignClassToUser(
     @Param("id") id: string,
     @Param("classId", ParseIntPipe) classId: number,

@@ -14,20 +14,10 @@ import {
 } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
 import { Location, LocationEntity } from "entities/location.entity";
-import {
-  ApiBody,
-  ApiNoContentResponse,
-  ApiOkResponse,
-  ApiOperation,
-  ApiParam,
-  ApiProperty,
-  ApiTags,
-  OmitType,
-  PartialType,
-} from "@nestjs/swagger";
+import { ApiTags, OmitType, PartialType } from "@nestjs/swagger";
 import { SocketGateway } from "modules/socket/socket.gateway";
-import { ApiAuth } from "common/docs/api-auth.decorator";
 import { Role, Roles } from "common/gcp";
+import { ApiDoc } from "common/docs";
 
 class LocationCreateEntity extends OmitType(LocationEntity, ["id"] as const) {}
 
@@ -44,19 +34,30 @@ export class LocationController {
 
   @Get("/")
   @Roles(Role.TEAM)
-  @ApiOperation({ summary: "Find All Locations" })
-  @ApiOkResponse({ type: [LocationEntity] })
-  @ApiAuth(Role.TEAM)
+  @ApiDoc({
+    summary: "Find All Locations",
+    response: {
+      ok: { type: [LocationEntity] },
+    },
+    auth: Role.TEAM,
+  })
   async getAll() {
     return this.locationRepo.findAll().exec();
   }
 
   @Post("/")
   @Roles(Role.TEAM)
-  @ApiOperation({ summary: "Create a Location" })
-  @ApiBody({ type: LocationCreateEntity })
-  @ApiOkResponse({ type: LocationEntity })
-  @ApiAuth(Role.TEAM)
+  @ApiDoc({
+    summary: "Create a Location",
+    request: {
+      body: { type: LocationCreateEntity },
+      validate: true,
+    },
+    response: {
+      created: { type: LocationEntity },
+    },
+    auth: Role.TEAM,
+  })
   async createOne(
     @Body(
       new ValidationPipe({
@@ -75,21 +76,42 @@ export class LocationController {
 
   @Get(":id")
   @Roles(Role.TEAM)
-  @ApiOperation({ summary: "Get a Location" })
-  @ApiParam({ name: "id", description: "ID must be set to location's ID" })
-  @ApiOkResponse({ type: LocationEntity })
-  @ApiAuth(Role.TEAM)
+  @ApiDoc({
+    summary: "Get a Location",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to a location's ID",
+      },
+    ],
+    response: {
+      ok: { type: LocationEntity },
+    },
+    auth: Role.TEAM,
+  })
   async getOne(@Param("id", ParseIntPipe) id: number) {
     return this.locationRepo.findOne(id).exec();
   }
 
   @Patch(":id")
   @Roles(Role.TEAM)
-  @ApiOperation({ summary: "Patch a Location" })
-  @ApiParam({ name: "id", description: "ID must set to location's ID" })
-  @ApiBody({ type: LocationPatchEntity })
-  @ApiOkResponse({ type: LocationEntity })
-  @ApiAuth(Role.TEAM)
+  @ApiDoc({
+    summary: "Patch a Location",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to a location's ID",
+      },
+    ],
+    request: {
+      body: { type: LocationPatchEntity },
+      validate: true,
+    },
+    response: {
+      ok: { type: LocationEntity },
+    },
+    auth: Role.TEAM,
+  })
   async patchOne(
     @Param("id", ParseIntPipe) id: number,
     @Body(
@@ -109,11 +131,23 @@ export class LocationController {
 
   @Put(":id")
   @Roles(Role.TEAM)
-  @ApiOperation({ summary: "Replace a Location" })
-  @ApiParam({ name: "id", description: "ID must be set to location's ID" })
-  @ApiBody({ type: LocationCreateEntity })
-  @ApiOkResponse({ type: LocationEntity })
-  @ApiAuth(Role.TEAM)
+  @ApiDoc({
+    summary: "Replace a Location",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to a location's ID",
+      },
+    ],
+    request: {
+      body: { type: LocationCreateEntity },
+      validate: true,
+    },
+    response: {
+      ok: { type: LocationEntity },
+    },
+    auth: Role.TEAM,
+  })
   async replaceOne(
     @Param("id", ParseIntPipe) id: number,
     @Body(
@@ -134,10 +168,19 @@ export class LocationController {
   @Delete(":id")
   @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(Role.TEAM)
-  @ApiOperation({ summary: "Delete a Location" })
-  @ApiParam({ name: "id", description: "ID must be set to location's ID" })
-  @ApiNoContentResponse()
-  @ApiAuth(Role.TEAM)
+  @ApiDoc({
+    summary: "Delete a Location",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to a location's ID",
+      },
+    ],
+    response: {
+      noContent: true,
+    },
+    auth: Role.TEAM,
+  })
   async deleteOne(@Param("id", ParseIntPipe) id: number) {
     const location = await this.locationRepo.deleteOne(id).exec();
     this.socket.emit("delete:location", location);

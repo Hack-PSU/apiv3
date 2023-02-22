@@ -2,6 +2,21 @@ import { ApiProperty, PickType } from "@nestjs/swagger";
 import { Column, ID, Table } from "common/objection";
 import { Entity } from "entities/base.entity";
 import { Type } from "class-transformer";
+import {
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  IsString,
+  ValidateBy,
+  ValidateIf,
+} from "class-validator";
+
+enum EventType {
+  activity = "activity",
+  food = "food",
+  workshop = "workshop",
+  checkIn = "checkIn",
+}
 
 @Table({
   name: "events",
@@ -29,23 +44,30 @@ import { Type } from "class-transformer";
 })
 export class Event extends Entity {
   @ApiProperty()
+  @IsString()
   @ID({ type: "string" })
   id: string;
 
   @ApiProperty()
+  @IsString()
   @Column({ type: "string" })
   name: string;
 
   @ApiProperty()
+  @IsEnum(EventType)
   @Column({ type: "string" })
   type: "activity" | "food" | "workshop" | "checkIn";
 
   @ApiProperty()
+  @IsOptional()
+  @IsString()
   @Column({ type: "string", required: false, nullable: true })
   description: string;
 
-  @Type(() => Number)
   @ApiProperty()
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
   @Column({ type: "integer", required: false, nullable: true })
   locationId: number;
 
@@ -53,33 +75,45 @@ export class Event extends Entity {
   @Column({ type: "string", required: false, nullable: true })
   icon?: string;
 
-  @Type(() => Number)
   @ApiProperty()
+  @IsNumber()
+  @Type(() => Number)
   @Column({ type: "integer" })
   startTime: number;
 
-  @Type(() => Number)
   @ApiProperty()
+  @IsNumber()
+  @Type(() => Number)
   @Column({ type: "integer" })
   endTime: number;
 
   @ApiProperty({ required: false })
+  @ValidateIf((o) => o.type === EventType.workshop)
+  @IsString()
   @Column({ type: "string", required: false, nullable: true })
   wsPresenterNames?: string;
 
   @ApiProperty({ required: false })
+  @ValidateIf((o) => o.type === EventType.workshop)
+  @IsString()
   @Column({ type: "string", required: false, nullable: true })
   wsRelevantSkills?: string;
 
   @ApiProperty({ required: false })
+  @ValidateIf((o) => o.type === EventType.workshop)
+  @IsString()
   @Column({ type: "string", required: false, nullable: true })
   wsSkillLevel?: string;
 
   @ApiProperty({ required: false })
+  @ValidateIf((o) => o.type === EventType.workshop)
+  @IsString()
   @Column({ type: "string", required: false, nullable: true })
   wsUrls?: string;
 
   @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
   @Column({ type: "string", nullable: true, required: false })
   hackathonId?: string;
 }

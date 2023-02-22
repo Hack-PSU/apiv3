@@ -2,6 +2,7 @@ import { Column, ID, Table } from "common/objection";
 import { Entity } from "entities/base.entity";
 import Objection from "objection";
 import { ApiProperty, OmitType, PickType } from "@nestjs/swagger";
+import { IsBoolean, IsNumber, IsString } from "class-validator";
 
 @Table({
   name: "hackathons",
@@ -66,22 +67,27 @@ import { ApiProperty, OmitType, PickType } from "@nestjs/swagger";
 })
 export class Hackathon extends Entity {
   @ApiProperty()
+  @IsString()
   @ID({ type: "string" })
   id: string;
 
   @ApiProperty()
+  @IsString()
   @Column({ type: "string" })
   name: string;
 
   @ApiProperty()
+  @IsNumber()
   @Column({ type: "integer" })
   startTime: number;
 
   @ApiProperty()
+  @IsNumber()
   @Column({ type: "integer" })
   endTime: number;
 
   @ApiProperty()
+  @IsBoolean()
   @Column({ type: "boolean" })
   active: boolean;
 

@@ -4,6 +4,7 @@ import {
   ApiBody,
   ApiBodyOptions,
   ApiConsumes,
+  ApiCreatedResponse,
   ApiNoContentResponse,
   ApiOkResponse,
   ApiOperation,
@@ -29,8 +30,9 @@ type EndpointOptions = {
   response: {
     noContent?: boolean;
     ok?: ApiResponseOptions;
+    created?: ApiResponseOptions;
   };
-  auth: Role;
+  auth?: Role;
   restricted?: boolean;
 };
 
@@ -68,6 +70,10 @@ function resolveApiResponse(options: EndpointOptions["response"]) {
     responseDecorators.push(ApiOkResponse(options.ok));
   }
 
+  if (options.created) {
+    responseDecorators.push(ApiCreatedResponse(options.created));
+  }
+
   return responseDecorators;
 }
 
@@ -79,7 +85,7 @@ function resolveApiQuery(query?: EndpointOptions["query"]) {
   return query ? query.map((q) => ApiQuery(q)) : [];
 }
 
-export function ApiEndpoint(options: EndpointOptions) {
+export function ApiDoc(options: EndpointOptions) {
   const requestDecorators = resolveApiRequest(options.request ?? {});
   const responseDecorators = resolveApiResponse(options.response ?? {});
   const paramsDecorators = resolveApiParams(options.params);
@@ -91,6 +97,8 @@ export function ApiEndpoint(options: EndpointOptions) {
     ...responseDecorators,
     ...paramsDecorators,
     ...queryDecorators,
-    ApiAuth(options.auth, options.restricted ?? false),
+    ...(options.auth !== undefined
+      ? [ApiAuth(options.auth, options.restricted ?? false)]
+      : []),
   );
 }

@@ -1,19 +1,12 @@
-import { Controller, Get, Param } from "@nestjs/common";
+import { Controller, Get, Param, Query } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
 import { Scan, ScanEntity } from "entities/scan.entity";
-import {
-  ApiExtraModels,
-  ApiOkResponse,
-  ApiOperation,
-  ApiParam,
-  ApiProperty,
-  ApiTags,
-} from "@nestjs/swagger";
-import { ApiAuth } from "common/docs/api-auth.decorator";
+import { ApiExtraModels, ApiProperty, ApiTags } from "@nestjs/swagger";
 import { RestrictedRoles, Role, Roles } from "common/gcp";
 import { Event, EventEntity } from "entities/event.entity";
 import { Organizer } from "entities/organizer.entity";
 import { Hackathon } from "entities/hackathon.entity";
+import { ApiDoc } from "common/docs";
 
 class AnalyticsEventsScansEntity extends EventEntity {
   @ApiProperty({ type: [ScanEntity] })
@@ -37,19 +30,39 @@ export class ScanController {
 
   @Get("/")
   @Roles(Role.TEAM)
-  @ApiOperation({ summary: "Get All Scans" })
-  @ApiOkResponse({ type: [ScanEntity] })
-  @ApiAuth(Role.TEAM)
-  async getAll() {
-    return this.scanRepo.findAll().byHackathon();
+  @ApiDoc({
+    summary: "Get All Scans",
+    query: [
+      {
+        name: "hackathonId",
+        required: false,
+        description: "A valid hackathon ID",
+      },
+    ],
+    response: {
+      ok: { type: [ScanEntity] },
+    },
+    auth: Role.TEAM,
+  })
+  async getAll(@Query("hackathonId") hackathonId?: string) {
+    return this.scanRepo.findAll().byHackathon(hackathonId);
   }
 
   @Get(":id")
   @Roles(Role.TEAM)
-  @ApiOperation({ summary: "Get One Scan" })
-  @ApiParam({ name: "id", description: "ID must be set to a scan's ID" })
-  @ApiOkResponse({ type: ScanEntity })
-  @ApiAuth(Role.TEAM)
+  @ApiDoc({
+    summary: "Get One Scan",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to a scan's ID",
+      },
+    ],
+    response: {
+      ok: { type: ScanEntity },
+    },
+    auth: Role.TEAM,
+  })
   async getOne(@Param("id") id: number) {
     return this.scanRepo.findOne(id).exec();
   }
@@ -79,19 +92,32 @@ export class ScanController {
 
   @Get("analytics/events")
   @Roles(Role.TEAM)
-  @ApiOperation({ summary: "Get All Scans For All Events" })
-  @ApiOkResponse({ type: AnalyticsEventsScansEntity })
-  @ApiAuth(Role.TEAM)
+  @ApiDoc({
+    summary: "Get All Scans For All Events",
+    response: {
+      ok: { type: AnalyticsEventsScansEntity },
+    },
+    auth: Role.TEAM,
+  })
   async getAllByEvent() {
     return this.eventRepo.findAll().byHackathon().withGraphFetched("scans");
   }
 
   @Get("analytics/events/:id")
   @Roles(Role.TEAM)
-  @ApiOperation({ summary: "Get All Scans for an Event" })
-  @ApiParam({ name: "id", description: "ID must be set to an event's ID" })
-  @ApiOkResponse({ type: [ScanEntity] })
-  @ApiAuth(Role.TEAM)
+  @ApiDoc({
+    summary: "Get All Scans for an Event",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to an event's ID",
+      },
+    ],
+    response: {
+      ok: { type: [ScanEntity] },
+    },
+    auth: Role.TEAM,
+  })
   async getByEvent(@Param("id") id: string) {
     return this.scanRepo.findAll().byHackathon().where("eventId", id);
   }

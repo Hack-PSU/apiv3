@@ -30,7 +30,7 @@ import { take, toArray } from "rxjs";
 import { OrganizerService } from "modules/organizer/organizer.service";
 import { SocketRoom } from "common/socket";
 import { ControllerMethod } from "common/validation";
-import { ApiEndpoint } from "common/docs";
+import { ApiDoc } from "common/docs";
 
 class OrganizerCreateEntity extends OrganizerEntity {}
 
@@ -53,7 +53,7 @@ export class OrganizerController {
 
   @Get("/")
   @Roles(Role.EXEC)
-  @ApiEndpoint({
+  @ApiDoc({
     summary: "Get All Organizers",
     response: {
       ok: { type: OrganizerEntity },
@@ -68,14 +68,14 @@ export class OrganizerController {
 
   @Post("/")
   @Roles(Role.EXEC)
-  @ApiEndpoint({
+  @ApiDoc({
     summary: "Create an Organizer",
     request: {
       body: { type: OrganizerCreateEntity },
       validate: true,
     },
     response: {
-      ok: { type: OrganizerEntity },
+      created: { type: OrganizerEntity },
     },
     auth: Role.EXEC,
   })
@@ -114,7 +114,7 @@ export class OrganizerController {
     predicate: (req) => req.user && req.user.sub === req.params.id,
   })
   @Roles(Role.EXEC)
-  @ApiEndpoint({
+  @ApiDoc({
     summary: "Get an Organizer",
     auth: Role.TEAM,
     restricted: true,
@@ -133,7 +133,7 @@ export class OrganizerController {
 
   @Patch(":id")
   @Roles(Role.EXEC)
-  @ApiEndpoint({
+  @ApiDoc({
     summary: "Patch an Organizer",
     params: [
       {
@@ -178,7 +178,7 @@ export class OrganizerController {
 
   @Put(":id")
   @Roles(Role.EXEC)
-  @ApiEndpoint({
+  @ApiDoc({
     summary: "Replace an Organizer",
     params: [
       {
@@ -218,7 +218,7 @@ export class OrganizerController {
   @Delete(":id")
   @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(Role.EXEC)
-  @ApiEndpoint({
+  @ApiDoc({
     summary: "Delete an Organizer",
     params: [
       {

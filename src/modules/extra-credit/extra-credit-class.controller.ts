@@ -6,9 +6,11 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
   Put,
+  ValidationPipe,
 } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
 import {
@@ -16,19 +18,14 @@ import {
   ExtraCreditClassEntity,
 } from "entities/extra-credit-class.entity";
 import {
-  ApiBody,
   ApiExtraModels,
-  ApiNoContentResponse,
-  ApiOkResponse,
-  ApiOperation,
-  ApiParam,
   ApiProperty,
   ApiTags,
   OmitType,
   PartialType,
 } from "@nestjs/swagger";
-import { ApiAuth } from "common/docs/api-auth.decorator";
 import { Role, Roles } from "common/gcp";
+import { ApiDoc } from "common/docs";
 
 class ECClassCreateEntity extends OmitType(ExtraCreditClass, ["id"] as const) {}
 
@@ -55,62 +52,144 @@ export class ExtraCreditClassController {
 
   @Get("/")
   @Roles(Role.NONE)
-  @ApiOperation({ summary: "Get All Extra Credit Classes" })
-  @ApiOkResponse({ type: [ExtraCreditClassEntity] })
-  @ApiAuth(Role.NONE)
+  @ApiDoc({
+    summary: "Get All Extra Credit Classes",
+    response: {
+      ok: { type: [ExtraCreditClassEntity] },
+    },
+    auth: Role.NONE,
+  })
   async getAll() {
     return this.ecClassRepo.findAll().exec();
   }
 
   @Post("/")
   @Roles(Role.TEAM)
-  @ApiOperation({ summary: "Create an Extra Credit Class" })
-  @ApiBody({ type: ECClassCreateEntity })
-  @ApiOkResponse({ type: ExtraCreditClassEntity })
-  @ApiAuth(Role.TEAM)
-  async createOne(@Body() data: ECClassCreateEntity) {
+  @ApiDoc({
+    summary: "Create an Extra Credit Class",
+    request: {
+      body: { type: ECClassCreateEntity },
+      validate: true,
+    },
+    response: {
+      created: { type: ExtraCreditClassEntity },
+    },
+    auth: Role.TEAM,
+  })
+  async createOne(
+    @Body(
+      new ValidationPipe({
+        forbidNonWhitelisted: true,
+        whitelist: true,
+        transform: true,
+      }),
+    )
+    data: ECClassCreateEntity,
+  ) {
     return this.ecClassRepo.createOne(data).exec();
   }
 
   @Get(":id")
   @Roles(Role.TEAM)
-  @ApiOperation({ summary: "Get an Extra Credit Class" })
-  @ApiParam({ name: "id", description: "ID must be set to a class's ID" })
-  @ApiOkResponse({ type: ECClassResponse })
-  @ApiAuth(Role.TEAM)
+  @ApiDoc({
+    summary: "Get an Extra Credit class",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to a class's ID",
+      },
+    ],
+    response: {
+      ok: { type: ECClassResponse },
+    },
+    auth: Role.TEAM,
+  })
   async getOne(@Param("id") id: number) {
     return this.ecClassRepo.findOne(id).raw().withGraphFetched("users");
   }
 
   @Put(":id")
   @Roles(Role.TEAM)
-  @ApiOperation({ summary: "Replace an Extra Credit Class" })
-  @ApiParam({ name: "id", description: "ID must be set to a class's ID" })
-  @ApiBody({ type: ECClassCreateEntity })
-  @ApiOkResponse({ type: ExtraCreditClassEntity })
-  @ApiAuth(Role.TEAM)
-  async replaceOne(@Param("id") id: number, @Body() data: ECClassCreateEntity) {
+  @ApiDoc({
+    summary: "Replace an Extra Credit Class",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to a class's ID",
+      },
+    ],
+    request: {
+      body: { type: ECClassCreateEntity },
+      validate: true,
+    },
+    response: {
+      ok: { type: ExtraCreditClassEntity },
+    },
+    auth: Role.TEAM,
+  })
+  async replaceOne(
+    @Param("id", ParseIntPipe) id: number,
+    @Body(
+      new ValidationPipe({
+        forbidNonWhitelisted: true,
+        whitelist: true,
+        transform: true,
+      }),
+    )
+    data: ECClassCreateEntity,
+  ) {
     return this.ecClassRepo.replaceOne(id, data).exec();
   }
 
   @Patch(":id")
   @Roles(Role.TEAM)
-  @ApiOperation({ summary: "Patch an Extra Credit Class" })
-  @ApiParam({ name: "id", description: "ID must be set to a class's ID" })
-  @ApiBody({ type: ECClassPatchEntity })
-  @ApiOkResponse({ type: ExtraCreditClassEntity })
-  @ApiAuth(Role.TEAM)
-  async patchOne(@Param("id") id: number, @Body() data: ECClassPatchEntity) {
+  @ApiDoc({
+    summary: "Patch an Extra Credit Class",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to a class's ID",
+      },
+    ],
+    request: {
+      body: { type: ECClassPatchEntity },
+      validate: true,
+    },
+    response: {
+      ok: { type: ExtraCreditClassEntity },
+    },
+    auth: Role.TEAM,
+  })
+  async patchOne(
+    @Param("id", ParseIntPipe) id: number,
+    @Body(
+      new ValidationPipe({
+        forbidNonWhitelisted: true,
+        whitelist: true,
+        transform: true,
+      }),
+    )
+    data: ECClassPatchEntity,
+  ) {
     return this.ecClassRepo.patchOne(id, data).exec();
   }
 
   @Delete(":id")
   @Roles(Role.TEAM)
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: "Delete an Extra Credit Class" })
-  @ApiParam({ name: "id", description: "ID must be set to a class's ID" })
-  @ApiNoContentResponse()
-  @ApiAuth(Role.TEAM)
+  @ApiDoc({
+    summary: "Delete an Extra Credit Class",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to a class's ID",
+      },
+    ],
+    response: {
+      noContent: true,
+    },
+    auth: Role.TEAM,
+  })
   async deleteOne(@Param("id") id: number) {
     return this.ecClassRepo.deleteOne(id).exec();
   }
