@@ -3,6 +3,7 @@ import * as admin from "firebase-admin";
 import { CloudStorageEmail } from "common/email/email.constants";
 import Handlebars from "handlebars";
 import * as mjml2html from "mjml";
+import { Express } from "express";
 
 @Injectable()
 export class EmailService {
@@ -14,14 +15,18 @@ export class EmailService {
     return this.file("/template.mjml").download();
   }
 
-  async createTemplate(template: File, previewText?: string) {
+  async createTemplate(template: Express.Multer.File, previewText?: string) {
     const base = await this.getBaseTemplate();
     const emailTemplate = Handlebars.compile(base.toString());
 
     return emailTemplate({
-      previewText: previewText ?? "",
-      body: template,
+      previewText: previewText ?? "{{ previewText }}",
+      body: template.buffer.toString(),
     });
+  }
+
+  async fetchTemplate(template: string) {
+    return this.file(`/templates/${template}.mjml`).download();
   }
 
   async uploadTemplate(template: string, filename: string) {
@@ -35,5 +40,16 @@ export class EmailService {
     const emailTemplate = template(data);
 
     return mjml2html(emailTemplate).html;
+  }
+
+  extractContext(template: string) {
+    const contextExp = new RegExp(
+      /{{{? *(?:#[a-z]+ )?(?<var>[a-zA-Z]+\.?[a-zA-Z]*) *}?}}/g,
+    );
+
+    return Array.from(
+      template.matchAll(contextExp),
+      (match) => match.groups.var,
+    );
   }
 }

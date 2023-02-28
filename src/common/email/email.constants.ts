@@ -1,1 +1,5 @@
-export const CloudStorageEmail = "email-templates";
+export const CloudStorageEmail = "email-template";
+export const EmailModuleOptionsProvider = "EmailModuleRootOptionsProvider";
+
+export const EmailModuleConnectionProvider =
+  "EmailModuleRootConnectionProvider";

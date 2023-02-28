@@ -2,7 +2,12 @@ import { Module } from "@nestjs/common";
 import { ObjectionModule } from "common/objection";
 import { HackathonModule } from "modules/hackathon/hackathon.module";
 import { ConfigModule, ConfigService } from "@nestjs/config";
-import { ConfigToken, dbConfig, firebaseConfig } from "common/config";
+import {
+  ConfigToken,
+  dbConfig,
+  firebaseConfig,
+  sendGridConfig,
+} from "common/config";
 import { LocationModule } from "modules/location/location.module";
 import { EventModule } from "modules/event/event.module";
 import { UserModule } from "modules/user/user.module";
@@ -14,12 +19,13 @@ import { JudgingModule } from "modules/judging/judging.module";
 import { SponsorModule } from "modules/sponsor/sponsor.module";
 import { ScanModule } from "modules/scan/scan.module";
 import { ExtraCreditModule } from "modules/extra-credit/extra-credit.module";
+import { EmailModule } from "common/email";
 
 @Module({
   imports: [
     // Configs
     ConfigModule.forRoot({
-      load: [dbConfig, firebaseConfig],
+      load: [dbConfig, firebaseConfig, sendGridConfig],
     }),
 
     // Database
@@ -35,6 +41,14 @@ import { ExtraCreditModule } from "modules/extra-credit/extra-credit.module";
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) =>
         configService.get(ConfigToken.GCP),
+      inject: [ConfigService],
+    }),
+
+    // Email and SendGrid
+    EmailModule.forRoot({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) =>
+        configService.get(ConfigToken.SENDGRID),
       inject: [ConfigService],
     }),
 

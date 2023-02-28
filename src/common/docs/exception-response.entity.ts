@@ -9,7 +9,7 @@ export class ExceptionResponse {
 }
 
 export class BadRequestExceptionResponse {
-  @ApiProperty()
+  @ApiProperty({ example: 400 })
   statusCode: number;
 
   @ApiProperty()
