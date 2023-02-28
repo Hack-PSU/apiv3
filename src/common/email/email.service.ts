@@ -4,15 +4,29 @@ import { CloudStorageEmail } from "common/email/email.constants";
 import Handlebars from "handlebars";
 import * as mjml2html from "mjml";
 import { Express } from "express";
+import { InjectSendGrid } from "common/email/sendgrid-mail.decorator";
+import { MailService } from "@sendgrid/mail";
 
 @Injectable()
 export class EmailService {
+  constructor(@InjectSendGrid() private readonly sendGrid: MailService) {}
+
   private file(filepath: string) {
     return admin.storage().bucket().file(`${CloudStorageEmail}${filepath}`);
   }
 
   private async getBaseTemplate() {
     return this.file("/template.mjml").download();
+  }
+
+  async send(from: string, to: string, subject: string, message: string) {
+    return this.sendGrid.send({
+      from,
+      to,
+      subject,
+      replyTo: from,
+      html: message,
+    });
   }
 
   async createTemplate(template: Express.Multer.File, previewText?: string) {
@@ -33,7 +47,7 @@ export class EmailService {
     await this.file(`/templates/${filename}.mjml`).save(template);
   }
 
-  async populateTemplate(filename: string, data: any) {
+  async populateTemplate(filename: string, data: any): Promise<string> {
     const file = await this.file(`/templates/${filename}.mjml`).download();
 
     const template = Handlebars.compile(file.toString());

@@ -3,13 +3,7 @@ import { User } from "entities/user.entity";
 import { Scan } from "entities/scan.entity";
 import { ExtraCreditClass } from "entities/extra-credit-class.entity";
 import { ExtraCreditAssignment } from "entities/extra-credit-assignment.entity";
-import { UserService } from "modules/user/user.service";
-import {
-  FirebaseAuthModule,
-  FirebaseConfig,
-  GoogleCloudModule,
-  Role,
-} from "common/gcp";
+import { FirebaseAuthModule, FirebaseConfig, Role } from "common/gcp";
 import { initializeApp } from "@firebase/app";
 import { User as FirebaseUser } from "@firebase/auth";
 import {

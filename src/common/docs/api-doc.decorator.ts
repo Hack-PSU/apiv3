@@ -12,6 +12,7 @@ import {
   ApiParamOptions,
   ApiQuery,
   ApiQueryOptions,
+  ApiResponse,
   ApiResponseOptions,
 } from "@nestjs/swagger";
 import { Role } from "common/gcp";
@@ -31,6 +32,7 @@ type EndpointOptions = {
     noContent?: boolean;
     ok?: ApiResponseOptions;
     created?: ApiResponseOptions;
+    custom?: ApiResponseOptions[];
   };
   auth?: Role;
   restricted?: boolean;
@@ -72,6 +74,12 @@ function resolveApiResponse(options: EndpointOptions["response"]) {
 
   if (options.created) {
     responseDecorators.push(ApiCreatedResponse(options.created));
+  }
+
+  if (options.custom) {
+    options.custom.forEach((option) =>
+      responseDecorators.push(ApiResponse(option)),
+    );
   }
 
   return responseDecorators;

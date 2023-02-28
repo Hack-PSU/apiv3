@@ -6,18 +6,20 @@ import {
   HttpStatus,
   Param,
   Post,
+  Res,
   UploadedFile,
   UseInterceptors,
   ValidationPipe,
 } from "@nestjs/common";
 import { EmailService } from "common/email/email.service";
 import {
+  SendBatchMailBody,
   SendMailBody,
   TemplateMetadata,
   UploadTemplateBody,
 } from "modules/mail/mail.interface";
 import { FileInterceptor } from "@nestjs/platform-express";
-import { Express } from "express";
+import { Express, Response } from "express";
 import { ApiExtraModels, ApiTags } from "@nestjs/swagger";
 import { ApiDoc } from "common/docs";
 import { Role, Roles } from "common/gcp";
@@ -40,8 +42,83 @@ export class MailController {
       noContent: true,
     },
   })
-  async sendMail(@Body() body: SendMailBody) {
-    return this.emailService.populateTemplate(body.template, body.data);
+  async sendMail(
+    @Body(
+      new ValidationPipe({
+        forbidNonWhitelisted: true,
+        whitelist: true,
+        transform: true,
+      }),
+    )
+    body: SendMailBody,
+  ) {
+    const { to, template, subject, data, from } = body;
+
+    const message = await this.emailService.populateTemplate(template, data);
+
+    return Promise.all(
+      to.map((email) => this.emailService.send(from, email, subject, message)),
+    );
+  }
+
+  @Post("send/batch")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiDoc({
+    summary: "Send Personalized Email to Multiple Receivers",
+    request: {
+      body: { type: SendBatchMailBody },
+      validate: true,
+    },
+    auth: Role.TEAM,
+    response: {
+      noContent: true,
+      custom: [
+        {
+          type: [String],
+          status: 207,
+          description: "Partial Success -- Returns Failed Receivers",
+        },
+      ],
+    },
+  })
+  async sendBatchMail(
+    @Body(
+      new ValidationPipe({
+        forbidNonWhitelisted: true,
+        whitelist: true,
+        transform: true,
+      }),
+    )
+    body: SendBatchMailBody,
+    @Res({ passthrough: true })
+    res: Response,
+  ) {
+    const { from, to, template, subject } = body;
+
+    const batch = await Promise.allSettled(
+      to.map(async ({ data, email }) => {
+        const message = await this.emailService.populateTemplate(
+          template,
+          data,
+        );
+
+        try {
+          return await this.emailService.send(from, email, subject, message);
+        } catch (e) {
+          throw email;
+        }
+      }),
+    );
+
+    const failedBatch = batch.filter(({ status }) => status === "rejected");
+
+    if (failedBatch.length > 0) {
+      const failedEmails = failedBatch
+        .map((b) => (b.status === "rejected" ? b.reason : undefined))
+        .filter(Boolean);
+
+      return res.status(207).send(failedEmails);
+    }
   }
 
   @Post("template")
