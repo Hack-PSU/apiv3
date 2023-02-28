@@ -11,7 +11,7 @@ import {
   UseInterceptors,
   ValidationPipe,
 } from "@nestjs/common";
-import { EmailService } from "common/email/email.service";
+import { SendGridService } from "common/sendgrid";
 import {
   SendBatchMailBody,
   SendMailBody,
@@ -28,7 +28,12 @@ import { Role, Roles } from "common/gcp";
 @Controller("mail")
 @ApiExtraModels(TemplateMetadata)
 export class MailController {
-  constructor(private readonly emailService: EmailService) {}
+  constructor(private readonly sendGridService: SendGridService) {}
+
+  @Post("show")
+  async getTemplate(@Body() body) {
+    return this.sendGridService.populateTemplate(body.template, body.data);
+  }
 
   @Post("send")
   @Roles(Role.TEAM)
@@ -41,6 +46,7 @@ export class MailController {
     response: {
       noContent: true,
     },
+    dbException: false,
   })
   async sendMail(
     @Body(
@@ -54,10 +60,12 @@ export class MailController {
   ) {
     const { to, template, subject, data, from } = body;
 
-    const message = await this.emailService.populateTemplate(template, data);
+    const message = await this.sendGridService.populateTemplate(template, data);
 
     return Promise.all(
-      to.map((email) => this.emailService.send(from, email, subject, message)),
+      to.map((email) =>
+        this.sendGridService.send(from, email, subject, message),
+      ),
     );
   }
 
@@ -80,6 +88,7 @@ export class MailController {
         },
       ],
     },
+    dbException: false,
   })
   async sendBatchMail(
     @Body(
@@ -97,13 +106,13 @@ export class MailController {
 
     const batch = await Promise.allSettled(
       to.map(async ({ data, email }) => {
-        const message = await this.emailService.populateTemplate(
+        const message = await this.sendGridService.populateTemplate(
           template,
           data,
         );
 
         try {
-          return await this.emailService.send(from, email, subject, message);
+          return await this.sendGridService.send(from, email, subject, message);
         } catch (e) {
           throw email;
         }
@@ -136,6 +145,7 @@ export class MailController {
       noContent: true,
     },
     auth: Role.TEAM,
+    dbException: false,
   })
   async uploadTemplate(
     @Body(
@@ -148,12 +158,12 @@ export class MailController {
     body: UploadTemplateBody,
     @UploadedFile() template: Express.Multer.File,
   ) {
-    const newTemplate = await this.emailService.createTemplate(
+    const newTemplate = await this.sendGridService.createTemplate(
       template,
       body.previewText,
     );
 
-    await this.emailService.uploadTemplate(newTemplate, body.name);
+    await this.sendGridService.uploadTemplate(newTemplate, body.name);
   }
 
   @Get("template/:templateId/metadata")
@@ -170,10 +180,11 @@ export class MailController {
       ok: { type: TemplateMetadata },
     },
     auth: Role.TEAM,
+    dbException: false,
   })
   async getTemplateMetadata(@Param("templateId") templateId: string) {
-    const template = await this.emailService.fetchTemplate(templateId);
-    const context = this.emailService.extractContext(template.toString());
+    const template = await this.sendGridService.fetchTemplate(templateId);
+    const context = this.sendGridService.extractContext(template.toString());
 
     return {
       name: templateId,

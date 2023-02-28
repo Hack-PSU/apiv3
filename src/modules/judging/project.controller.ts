@@ -10,23 +10,15 @@ import {
   Patch,
   Post,
   Put,
+  UseFilters,
   ValidationPipe,
 } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
 import { Project, ProjectEntity } from "entities/project.entity";
-import {
-  ApiBody,
-  ApiNoContentResponse,
-  ApiOkResponse,
-  ApiOperation,
-  ApiParam,
-  ApiTags,
-  OmitType,
-  PartialType,
-} from "@nestjs/swagger";
-import { ApiAuth } from "common/docs/api-auth.decorator";
+import { ApiTags, OmitType, PartialType } from "@nestjs/swagger";
 import { Role, Roles } from "common/gcp";
 import { ApiDoc } from "common/docs";
+import { DBExceptionFilter } from "common/filters";
 
 class ProjectCreateEntity extends OmitType(ProjectEntity, ["id"] as const) {}
 
@@ -34,6 +26,7 @@ class ProjectPatchEntity extends PartialType(ProjectCreateEntity) {}
 
 @ApiTags("Judging")
 @Controller("judging/projects")
+@UseFilters(DBExceptionFilter)
 export class ProjectController {
   constructor(
     @InjectRepository(Project)

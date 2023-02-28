@@ -1,16 +1,17 @@
-import { Controller, Get, Param } from "@nestjs/common";
+import { Controller, Get, Param, UseFilters } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
 import {
   ExtraCreditAssignment,
   ExtraCreditAssignmentEntity,
 } from "entities/extra-credit-assignment.entity";
-import { ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
-import { ApiAuth } from "common/docs/api-auth.decorator";
+import { ApiTags } from "@nestjs/swagger";
 import { Role, Roles } from "common/gcp";
 import { ApiDoc } from "common/docs";
+import { DBExceptionFilter } from "common/filters";
 
 @ApiTags("Extra Credit")
 @Controller("extra-credit/assignments")
+@UseFilters(DBExceptionFilter)
 export class ExtraCreditAssignmentController {
   constructor(
     @InjectRepository(ExtraCreditAssignment)

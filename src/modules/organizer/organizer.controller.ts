@@ -10,27 +10,20 @@ import {
   Patch,
   Post,
   Put,
+  UseFilters,
   ValidationPipe,
 } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
 import { Organizer, OrganizerEntity } from "entities/organizer.entity";
 import { SocketGateway } from "modules/socket/socket.gateway";
-import {
-  ApiBody,
-  ApiNoContentResponse,
-  ApiOkResponse,
-  ApiOperation,
-  ApiParam,
-  ApiTags,
-  OmitType,
-  PartialType,
-} from "@nestjs/swagger";
+import { ApiTags, OmitType, PartialType } from "@nestjs/swagger";
 import { FirebaseAuthService, RestrictedRoles, Role, Roles } from "common/gcp";
 import { take, toArray } from "rxjs";
 import { OrganizerService } from "modules/organizer/organizer.service";
 import { SocketRoom } from "common/socket";
 import { ControllerMethod } from "common/validation";
 import { ApiDoc } from "common/docs";
+import { DBExceptionFilter } from "common/filters";
 
 class OrganizerCreateEntity extends OrganizerEntity {}
 
@@ -42,6 +35,7 @@ class OrganizerUpdateEntity extends PartialType(OrganizerReplaceEntity) {}
 
 @ApiTags("Organizers")
 @Controller("organizers")
+@UseFilters(DBExceptionFilter)
 export class OrganizerController {
   constructor(
     @InjectRepository(Organizer)

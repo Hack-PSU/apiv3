@@ -10,6 +10,7 @@ import {
   Post,
   Put,
   Query,
+  UseFilters,
   ValidationPipe,
 } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
@@ -30,6 +31,7 @@ import { IsOptional } from "class-validator";
 import { Transform } from "class-transformer";
 import { SponsorEntity } from "entities/sponsor.entity";
 import { ApiDoc } from "common/docs";
+import { DBExceptionFilter } from "common/filters";
 
 class HackathonUpdateEntity extends OmitType(HackathonEntity, [
   "id",
@@ -87,6 +89,7 @@ class ActiveHackathonParams {
 
 @ApiTags("Hackathons")
 @Controller("hackathons")
+@UseFilters(DBExceptionFilter)
 @ApiExtraModels(StaticActiveHackathonEntity)
 export class HackathonController {
   constructor(

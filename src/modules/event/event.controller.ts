@@ -11,6 +11,7 @@ import {
   Post,
   Put,
   Query,
+  UseFilters,
   UseInterceptors,
   ValidationPipe,
 } from "@nestjs/common";
@@ -27,6 +28,7 @@ import { EventService } from "modules/event/event.service";
 import { Scan, ScanEntity } from "entities/scan.entity";
 import { Role, Roles } from "common/gcp";
 import { ApiDoc } from "common/docs";
+import { DBExceptionFilter } from "common/filters";
 
 class EventCreateEntity extends OmitType(EventEntity, ["id", "icon"] as const) {
   @ApiProperty({ type: "string", format: "binary", required: false })
@@ -43,6 +45,7 @@ class CreateScanEntity extends OmitType(ScanEntity, [
 
 @ApiTags("Events")
 @Controller("events")
+@UseFilters(DBExceptionFilter)
 export class EventController {
   constructor(
     @InjectRepository(Event)

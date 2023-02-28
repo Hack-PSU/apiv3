@@ -1,14 +1,14 @@
 import { Injectable } from "@nestjs/common";
 import * as admin from "firebase-admin";
-import { CloudStorageEmail } from "common/email/email.constants";
+import { CloudStorageEmail } from "common/sendgrid/sendgrid.constants";
 import Handlebars from "handlebars";
 import * as mjml2html from "mjml";
 import { Express } from "express";
-import { InjectSendGrid } from "common/email/sendgrid-mail.decorator";
+import { InjectSendGrid } from "common/sendgrid/sendgrid-mail.decorator";
 import { MailService } from "@sendgrid/mail";
 
 @Injectable()
-export class EmailService {
+export class SendGridService {
   constructor(@InjectSendGrid() private readonly sendGrid: MailService) {}
 
   private file(filepath: string) {

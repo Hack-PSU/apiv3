@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query } from "@nestjs/common";
+import { Controller, Get, Param, Query, UseFilters } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
 import { Scan, ScanEntity } from "entities/scan.entity";
 import { ApiExtraModels, ApiProperty, ApiTags } from "@nestjs/swagger";
@@ -7,6 +7,7 @@ import { Event, EventEntity } from "entities/event.entity";
 import { Organizer } from "entities/organizer.entity";
 import { Hackathon } from "entities/hackathon.entity";
 import { ApiDoc } from "common/docs";
+import { DBExceptionFilter } from "common/filters";
 
 class AnalyticsEventsScansEntity extends EventEntity {
   @ApiProperty({ type: [ScanEntity] })
@@ -17,6 +18,7 @@ class AnalyticsEventsScansEntity extends EventEntity {
 // Creating a scan must be created from either an event or a user
 @ApiTags("Scans")
 @Controller("scans")
+@UseFilters(DBExceptionFilter)
 @ApiExtraModels(AnalyticsEventsScansEntity)
 export class ScanController {
   constructor(

@@ -3,8 +3,10 @@ import {
   ApiBadRequestResponse,
   ApiBody,
   ApiBodyOptions,
+  ApiConflictResponse,
   ApiConsumes,
   ApiCreatedResponse,
+  ApiExtraModels,
   ApiNoContentResponse,
   ApiOkResponse,
   ApiOperation,
@@ -14,10 +16,15 @@ import {
   ApiQueryOptions,
   ApiResponse,
   ApiResponseOptions,
+  getSchemaPath,
 } from "@nestjs/swagger";
 import { Role } from "common/gcp";
 import { ApiAuth } from "common/docs/api-auth.decorator";
-import { BadRequestExceptionResponse } from "common/docs/exception-response.entity";
+import {
+  BadRequestExceptionResponse,
+  DBExceptionProductionResponse,
+  DBExceptionStagingResponse,
+} from "common/docs/exception-response.entity";
 
 type EndpointOptions = {
   summary: string;
@@ -36,6 +43,7 @@ type EndpointOptions = {
   };
   auth?: Role;
   restricted?: boolean;
+  dbException?: boolean;
 };
 
 function resolveApiRequest(options: EndpointOptions["request"]) {
@@ -93,18 +101,43 @@ function resolveApiQuery(query?: EndpointOptions["query"]) {
   return query ? query.map((q) => ApiQuery(q)) : [];
 }
 
+function resolveDBException(dbException: EndpointOptions["dbException"]) {
+  return dbException
+    ? [
+        ApiConflictResponse({
+          description: "DB Exception",
+          schema: {
+            oneOf: [
+              {
+                $ref: getSchemaPath(DBExceptionProductionResponse),
+                description: "Production DB Exception",
+              },
+              {
+                $ref: getSchemaPath(DBExceptionStagingResponse),
+                description: "Staging DB Exception",
+              },
+            ],
+          },
+        }),
+      ]
+    : [];
+}
+
 export function ApiDoc(options: EndpointOptions) {
   const requestDecorators = resolveApiRequest(options.request ?? {});
   const responseDecorators = resolveApiResponse(options.response ?? {});
   const paramsDecorators = resolveApiParams(options.params);
   const queryDecorators = resolveApiQuery(options.query);
+  const dbExceptionDecorators = resolveDBException(options.dbException ?? true);
 
   return applyDecorators(
+    ApiExtraModels(DBExceptionProductionResponse, DBExceptionStagingResponse),
     ApiOperation({ summary: options.summary }),
     ...requestDecorators,
     ...responseDecorators,
     ...paramsDecorators,
     ...queryDecorators,
+    ...dbExceptionDecorators,
     ...(options.auth !== undefined
       ? [ApiAuth(options.auth, options.restricted ?? false)]
       : []),

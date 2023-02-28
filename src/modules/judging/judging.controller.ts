@@ -1,4 +1,4 @@
-import { Controller, Get } from "@nestjs/common";
+import { Controller, Get, UseFilters } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
 import { Project, ProjectEntity } from "entities/project.entity";
 import { Score, ScoreEntity } from "entities/score.entity";
@@ -14,6 +14,7 @@ import { ApiAuth } from "common/docs/api-auth.decorator";
 import { Role, Roles } from "common/gcp";
 import { OrganizerEntity } from "entities/organizer.entity";
 import { ApiDoc } from "common/docs";
+import { DBExceptionFilter } from "common/filters";
 
 class ScoreBreakdownJudgeEntity extends OmitType(OrganizerEntity, [
   "privilege",
@@ -46,6 +47,7 @@ class ProjectBreakdownEntity extends OmitType(ProjectEntity, [
 
 @ApiTags("Judging")
 @Controller("judging")
+@UseFilters(DBExceptionFilter)
 @ApiExtraModels(ProjectBreakdownEntity)
 export class JudgingController {
   constructor(

@@ -9,17 +9,13 @@ import {
   Post,
   Put,
   Query,
+  UseFilters,
   ValidationPipe,
 } from "@nestjs/common";
-import { Column, InjectRepository, Repository } from "common/objection";
+import { InjectRepository, Repository } from "common/objection";
 import { Score, ScoreEntity } from "entities/score.entity";
 import {
-  ApiBody,
   ApiExtraModels,
-  ApiNoContentResponse,
-  ApiOkResponse,
-  ApiOperation,
-  ApiParam,
   ApiProperty,
   ApiTags,
   OmitType,
@@ -27,11 +23,11 @@ import {
 } from "@nestjs/swagger";
 import { OrganizerEntity } from "entities/organizer.entity";
 import { ProjectEntity } from "entities/project.entity";
-import { ApiAuth } from "common/docs/api-auth.decorator";
 import { Role, Roles } from "common/gcp";
 import { ApiDoc } from "common/docs";
 import { IsBoolean, IsNumber, IsOptional } from "class-validator";
 import { ControllerMethod } from "common/validation";
+import { DBExceptionFilter } from "common/filters";
 
 class ScoreCreateEntity extends OmitType(ScoreEntity, ["id"] as const) {
   @ApiProperty({ required: false, default: -1 })
@@ -114,6 +110,7 @@ class ScoreResponseEntity extends ScoreDataEntity {
 
 @ApiTags("Judging")
 @Controller("judging/scores")
+@UseFilters(DBExceptionFilter)
 @ApiExtraModels(ScoreResponseEntity)
 export class ScoreController {
   constructor(

@@ -12,18 +12,14 @@ import {
   Post,
   Put,
   Query,
+  UseFilters,
   UseInterceptors,
   ValidationPipe,
 } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
 import { User, UserEntity } from "entities/user.entity";
 import {
-  ApiBody,
   ApiExtraModels,
-  ApiNoContentResponse,
-  ApiOkResponse,
-  ApiOperation,
-  ApiParam,
   ApiProperty,
   ApiTags,
   OmitType,
@@ -45,8 +41,8 @@ import {
   ExtraCreditAssignmentEntity,
 } from "entities/extra-credit-assignment.entity";
 import { Hackathon } from "entities/hackathon.entity";
-import { ApiAuth } from "common/docs/api-auth.decorator";
 import { ApiDoc } from "common/docs";
+import { DBExceptionFilter } from "common/filters";
 
 class UserCreateEntity extends OmitType(UserEntity, ["resume"] as const) {
   @ApiProperty({
@@ -70,6 +66,7 @@ class CreateUserScanEntity extends OmitType(ScanEntity, [
 
 @ApiTags("Users")
 @Controller("users")
+@UseFilters(DBExceptionFilter)
 @ApiExtraModels(CreateUserScanEntity)
 export class UserController {
   constructor(

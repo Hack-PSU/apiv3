@@ -12,6 +12,7 @@ import {
   Post,
   Put,
   Query,
+  UseFilters,
   UseInterceptors,
   ValidationPipe,
 } from "@nestjs/common";
@@ -19,8 +20,6 @@ import { InjectRepository, Repository } from "common/objection";
 import { Sponsor, SponsorEntity } from "entities/sponsor.entity";
 import { SocketGateway } from "modules/socket/socket.gateway";
 import {
-  ApiOkResponse,
-  ApiOperation,
   ApiProperty,
   ApiTags,
   IntersectionType,
@@ -33,10 +32,11 @@ import { UploadedLogo } from "modules/sponsor/uploaded-logo.decorator";
 import { Express } from "express";
 import { SponsorService } from "modules/sponsor/sponsor.service";
 import { SocketRoom } from "common/socket";
-import { ApiAuth } from "common/docs/api-auth.decorator";
 import { Role, Roles } from "common/gcp";
 import { ApiDoc } from "common/docs";
 import { ControllerMethod } from "common/validation";
+import { UniqueViolationError } from "objection";
+import { DBExceptionFilter } from "common/filters";
 
 class SponsorCreateEntity extends OmitType(SponsorEntity, [
   "id",
@@ -60,6 +60,7 @@ class SponsorPatchBatchEntity extends IntersectionType(
 
 @ApiTags("Sponsorship")
 @Controller("sponsors")
+@UseFilters(DBExceptionFilter)
 export class SponsorController {
   constructor(
     @InjectRepository(Sponsor)
@@ -342,5 +343,17 @@ export class SponsorController {
     this.socket.emit("batch_update:sponsor", sponsors, SocketRoom.MOBILE);
 
     return sponsors;
+  }
+
+  @Post("/test/uniqueness/1")
+  async testUniqueness() {
+    return this.sponsorRepo
+      .createOne({
+        id: 1,
+        name: "Sponsor1",
+        level: "Gold",
+        order: 1,
+      })
+      .byHackathon();
   }
 }

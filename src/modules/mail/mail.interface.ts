@@ -8,7 +8,7 @@ import {
 } from "class-validator";
 import { ApiProperty, OmitType } from "@nestjs/swagger";
 import { Transform, Type } from "class-transformer";
-import { DefaultFromEmail } from "common/email/email.constants";
+import { DefaultFromEmail } from "common/sendgrid/sendgrid.constants";
 
 export class SendMailBody {
   @ApiProperty({ required: true, example: "user@email.com" })

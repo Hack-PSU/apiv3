@@ -10,6 +10,7 @@ import {
   Patch,
   Post,
   Put,
+  UseFilters,
   ValidationPipe,
 } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
@@ -18,6 +19,7 @@ import { ApiTags, OmitType, PartialType } from "@nestjs/swagger";
 import { SocketGateway } from "modules/socket/socket.gateway";
 import { Role, Roles } from "common/gcp";
 import { ApiDoc } from "common/docs";
+import { DBExceptionFilter } from "common/filters";
 
 class LocationCreateEntity extends OmitType(LocationEntity, ["id"] as const) {}
 
@@ -25,6 +27,7 @@ class LocationPatchEntity extends PartialType(LocationCreateEntity) {}
 
 @ApiTags("Locations")
 @Controller("locations")
+@UseFilters(DBExceptionFilter)
 export class LocationController {
   constructor(
     @InjectRepository(Location)

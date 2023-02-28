@@ -1,38 +1,41 @@
 import { DynamicModule, Global, Module, Provider } from "@nestjs/common";
-import { EmailService } from "common/email/email.service";
-import { EmailModuleOptions, SendGridOptions } from "common/email/email.types";
 import {
-  EmailModuleConnectionProvider,
-  EmailModuleOptionsProvider,
-} from "common/email/email.constants";
+  EmailModuleOptions,
+  SendGridOptions,
+} from "common/sendgrid/sendgrid.types";
+import {
+  SendGridModuleConnectionProvider,
+  SendGridModuleOptionsProvider,
+} from "common/sendgrid/sendgrid.constants";
 import * as sgMail from "@sendgrid/mail";
-import MailService from "@sendgrid/mail";
+import { MailService } from "@sendgrid/mail";
+import { SendGridService } from "common/sendgrid/sendgrid.service";
 
 @Global()
 @Module({
   imports: [],
-  providers: [EmailService],
-  exports: [EmailService],
+  providers: [SendGridService],
+  exports: [SendGridService],
 })
-export class EmailModule {
+export class SendGridModule {
   static forRoot(options: EmailModuleOptions): DynamicModule {
     const optionsProvider: Provider<SendGridOptions> = {
-      provide: EmailModuleOptionsProvider,
+      provide: SendGridModuleOptionsProvider,
       useFactory: options.useFactory,
       inject: options.inject,
     };
 
-    const connectionProvider: Provider<typeof MailService> = {
-      provide: EmailModuleConnectionProvider,
+    const connectionProvider: Provider<MailService> = {
+      provide: SendGridModuleConnectionProvider,
       useFactory: (options: SendGridOptions) => {
         sgMail.setApiKey(options.apiKey);
         return sgMail;
       },
-      inject: [EmailModuleOptionsProvider],
+      inject: [SendGridModuleOptionsProvider],
     };
 
     return {
-      module: EmailModule,
+      module: SendGridModule,
       imports: options.imports,
       providers: [optionsProvider, connectionProvider],
       exports: [connectionProvider],

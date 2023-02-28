@@ -10,6 +10,7 @@ import {
   Patch,
   Post,
   Put,
+  UseFilters,
   ValidationPipe,
 } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
@@ -26,6 +27,7 @@ import {
 } from "@nestjs/swagger";
 import { Role, Roles } from "common/gcp";
 import { ApiDoc } from "common/docs";
+import { DBExceptionFilter } from "common/filters";
 
 class ECClassCreateEntity extends OmitType(ExtraCreditClass, ["id"] as const) {}
 
@@ -43,6 +45,7 @@ class ECClassResponse extends ExtraCreditClassEntity {
 
 @ApiTags("Extra Credit")
 @Controller("extra-credit/classes")
+@UseFilters(DBExceptionFilter)
 @ApiExtraModels(ECClassResponse)
 export class ExtraCreditClassController {
   constructor(

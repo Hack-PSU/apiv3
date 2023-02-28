@@ -19,7 +19,7 @@
       </mj-column>
     </mj-section>
     {{{ body }}}
-    <mj-section>
+    <mj-section padding-top="0">
       <mj-column>
         <mj-divider border-color="#E37051" border-width="1px" />
       </mj-column>

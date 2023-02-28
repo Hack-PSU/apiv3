@@ -19,7 +19,7 @@ import { JudgingModule } from "modules/judging/judging.module";
 import { SponsorModule } from "modules/sponsor/sponsor.module";
 import { ScanModule } from "modules/scan/scan.module";
 import { ExtraCreditModule } from "modules/extra-credit/extra-credit.module";
-import { EmailModule } from "common/email";
+import { SendGridModule } from "common/sendgrid";
 
 @Module({
   imports: [
@@ -45,7 +45,7 @@ import { EmailModule } from "common/email";
     }),
 
     // Email and SendGrid
-    EmailModule.forRoot({
+    SendGridModule.forRoot({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) =>
         configService.get(ConfigToken.SENDGRID),
