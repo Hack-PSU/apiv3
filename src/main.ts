@@ -2,6 +2,7 @@ import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { DocsModule } from "common/docs/docs.module";
+import { ConfigService } from "@nestjs/config";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -17,7 +18,9 @@ async function bootstrap() {
 
   await DocsModule.setup("/docs", app, document);
 
-  await app.listen(3000);
+  const configService = await app.get<ConfigService>(ConfigService);
+
+  await app.listen(parseInt(configService.get("PORT")) || 3000);
 }
 
 bootstrap();

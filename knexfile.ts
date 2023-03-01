@@ -23,9 +23,10 @@ const config: { [key: string]: Knex.Config } = {
   staging: {
     client: "mysql",
     connection: {
-      database: "hackpsu-staging",
-      user: "root",
-      password: "password",
+      database: "staging",
+      user: "apiv3_staging",
+      host: "",
+      password: process.env.STAGING_MYSQL_PASSWORD,
     },
     pool: {
       min: 2,
