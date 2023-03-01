@@ -35,6 +35,8 @@ COPY --from=dev /app/node_modules ./node_modules
 
 COPY . .
 
+RUN yarn build
+
 # Set NODE_ENV to production
 ENV NODE_ENV production
 
