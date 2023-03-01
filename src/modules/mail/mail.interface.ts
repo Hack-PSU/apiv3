@@ -35,6 +35,18 @@ export class SendMailBody {
   from: string;
 }
 
+export class PreviewMailBody extends OmitType(SendMailBody, [
+  "from",
+  "to",
+  "subject",
+  "template",
+] as const) {}
+
+export class PreviewMailResponse {
+  @ApiProperty()
+  html: string;
+}
+
 class SendBatchReceiver {
   @ApiProperty()
   @IsEmail()

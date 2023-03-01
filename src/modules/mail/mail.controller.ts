@@ -13,6 +13,8 @@ import {
 } from "@nestjs/common";
 import { SendGridService } from "common/sendgrid";
 import {
+  PreviewMailBody,
+  PreviewMailResponse,
   SendBatchMailBody,
   SendMailBody,
   TemplateMetadata,
@@ -26,14 +28,9 @@ import { Role, Roles } from "common/gcp";
 
 @ApiTags("Mail")
 @Controller("mail")
-@ApiExtraModels(TemplateMetadata)
+@ApiExtraModels(TemplateMetadata, PreviewMailResponse)
 export class MailController {
   constructor(private readonly sendGridService: SendGridService) {}
-
-  @Post("show")
-  async getTemplate(@Body() body) {
-    return this.sendGridService.populateTemplate(body.template, body.data);
-  }
 
   @Post("send")
   @Roles(Role.TEAM)
@@ -189,6 +186,47 @@ export class MailController {
     return {
       name: templateId,
       context,
+    };
+  }
+
+  @Post("template/:templateId/preview")
+  @Roles(Role.TEAM)
+  @ApiDoc({
+    summary: "Generate a Template Preview",
+    auth: Role.TEAM,
+    dbException: false,
+    params: [
+      {
+        name: "templateId",
+        description: "ID must be set to a template's name or ID",
+      },
+    ],
+    request: {
+      body: { type: PreviewMailBody },
+      validate: true,
+    },
+    response: {
+      created: { type: PreviewMailResponse },
+    },
+  })
+  async getTemplatePreview(
+    @Param("templateId") templateId: string,
+    @Body(
+      new ValidationPipe({
+        forbidNonWhitelisted: true,
+        whitelist: true,
+        transform: true,
+      }),
+    )
+    data: PreviewMailBody,
+  ) {
+    const html = await this.sendGridService.populateTemplate(
+      templateId,
+      data.data,
+    );
+
+    return {
+      html,
     };
   }
 }
