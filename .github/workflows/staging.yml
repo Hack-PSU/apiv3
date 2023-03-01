@@ -29,15 +29,12 @@ jobs:
 
     - name: Authorize Docker Push
       run: gcloud auth configure-docker --quiet
-     
-    - name: Checkout Repository
-      uses: actions/checkout@v2
       
     - name: Build and Push Docker Image
       uses: docker/build-push-action@v4.0.0
       with:
         push: true
-        tags: $IMAGE_NAME
+        tags: ${{ env.IMAGE_NAME }}
         
     - name: Deploy Cloud Run Service
       run: |-
