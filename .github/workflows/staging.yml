@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-      SERVICE: ${{ secrets.GCP_STAGING_APP_NAME }}
+      SERVICE: ${{ secrets.GCP_STAGING_SERVICE_NAME }}
       IMAGE_NAME: gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_STAGING_APP_NAME }}:${{ github.sha }}
     steps:
     - name: Checkout
