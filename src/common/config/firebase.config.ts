@@ -15,19 +15,20 @@ export const firebaseConfig = registerAs<FirebaseConfig>(
             privateKey: cert.private_key,
             clientEmail: cert.client_email,
           }),
-          storageBucket: `${process.env.STAGING_STORAGE}.appspot.com`,
+          storageBucket: `${process.env.STORAGE_BUCKET}.appspot.com`,
         };
       } else {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         const serviceAccount = require(process.env.GOOGLE_CERT);
         return {
           credential: admin.credential.cert(serviceAccount),
-          storageBucket: `${process.env.STAGING_STORAGE}.appspot.com`,
+          storageBucket: `${process.env.STORAGE_BUCKET}.appspot.com`,
         };
       }
     } else {
       return {
         credential: admin.credential.applicationDefault(),
+        storageBucket: `${process.env.STORAGE_BUCKET}.appspot.com`,
       };
     }
   },
