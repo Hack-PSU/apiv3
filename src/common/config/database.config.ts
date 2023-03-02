@@ -5,6 +5,11 @@ import { Knex } from "knex";
 export const dbConfig = registerAs<Knex.StaticConnectionConfig>(
   ConfigToken.DB,
   () => {
+    console.log(
+      "ENVIRONMENT ",
+      process.env.NODE_ENV,
+      process.env.MYSQL_SOCKET_PATH,
+    );
     if (process.env.NODE_ENV === "production") {
       return {
         user: process.env.MYSQL_USER,
