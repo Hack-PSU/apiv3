@@ -8,7 +8,13 @@ type IDOptions = {
 
 export function ID(options?: IDOptions): PropertyDecorator {
   return (target, propertyKey) => {
-    Reflect.defineMetadata(TableIDKey, propertyKey, target);
+    const idProperty = Reflect.getOwnMetadata(TableIDKey, target);
+
+    if (idProperty) {
+      Reflect.defineMetadata(TableIDKey, [...idProperty, propertyKey], target);
+    } else {
+      Reflect.defineMetadata(TableIDKey, [propertyKey], target);
+    }
 
     // required = false to avoid schema validation from requiring during update
     // and insert

@@ -40,30 +40,24 @@ export function Table<T extends Model>(
     // @ts-ignore
     constructor.tableName = options.name;
 
-    // @ts-ignore
-    constructor.idColumn =
-      Reflect.getOwnMetadata(TableIDKey, constructor.prototype) ?? "id";
+    const ids = Reflect.getOwnMetadata(TableIDKey, constructor.prototype);
+
+    if (!ids) {
+      throw new Error(
+        `${options.name} requires a primary key or a composite key`,
+      );
+    }
+
+    if (ids.length > 1) {
+      // @ts-ignore
+      constructor.idColumn = ids;
+    } else {
+      // @ts-ignore
+      constructor.idColumn = ids[0];
+    }
 
     // @ts-ignore
     constructor.relationMappings = options.relationMappings;
-
-    // if (!options.disableByHackathon && options.hackathonId) {
-    //   // @ts-ignore
-    //   // constructor.relationMappings = {
-    //   //   hackathon: {
-    //   //     relation: Model.BelongsToOneRelation,
-    //   //     modelClass: "hackathon.entity.ts",
-    //   //     join: {
-    //   //       from: `${options.name}.${options.hackathonId}`,
-    //   //       to: "hackathons.id",
-    //   //     },
-    //   //   },
-    //   //   ...options.relationMappings,
-    //   // } as RelationMappings;
-    // } else {
-    //   // @ts-ignore
-    //   constructor.relationMappings = options.relationMappings;
-    // }
 
     // @ts-ignore
     constructor.modifiers = options.modifiers;

@@ -9,7 +9,6 @@ import {
   IsNumber,
   IsOptional,
   IsString,
-  IsUrl,
 } from "class-validator";
 
 @Table({
@@ -120,7 +119,7 @@ export class User extends Entity {
   @ApiProperty()
   @IsString()
   @Column({ type: "string" })
-  address: string;
+  country: string;
 
   @ApiProperty({ type: "string", required: false, nullable: true })
   @IsOptional()
@@ -250,7 +249,7 @@ export class UserEntity extends PickType(User, [
   "educationalInstitutionType",
   "major",
   "phone",
-  "address",
+  "country",
   "race",
   "resume",
   "codingExperience",

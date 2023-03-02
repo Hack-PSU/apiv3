@@ -30,23 +30,4 @@ export class ExtraCreditAssignmentController {
   async getAll() {
     return this.ecAssignmentRepo.findAll().exec();
   }
-
-  @Get(":id")
-  @Roles(Role.TEAM)
-  @ApiDoc({
-    summary: "Get an Extra Credit Assignment",
-    params: [
-      {
-        name: "id",
-        description: "ID must be set to an assignment's ID",
-      },
-    ],
-    response: {
-      ok: { type: ExtraCreditAssignmentEntity },
-    },
-    auth: Role.TEAM,
-  })
-  async getOne(@Param("id") id: number) {
-    return this.ecAssignmentRepo.findOne(id).exec();
-  }
 }

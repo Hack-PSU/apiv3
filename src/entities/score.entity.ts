@@ -40,9 +40,9 @@ import { Expose } from "class-transformer";
   },
 })
 export class Score extends Entity {
+  @ID()
   @ApiProperty()
-  @IsString()
-  @ID({ type: "integer" })
+  @IsNumber()
   id: number;
 
   @ApiProperty()

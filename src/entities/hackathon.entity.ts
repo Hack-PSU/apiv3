@@ -55,12 +55,25 @@ import { IsBoolean, IsNumber, IsString } from "class-validator";
         to: "scans.hackathonId",
       },
     },
+    extraCreditClasses: {
+      relation: Entity.HasManyRelation,
+      modelClass: "extra-credit-class.entity.js",
+      join: {
+        from: "hackathon.id",
+        to: "extraCreditClasses.hackathonId",
+      },
+    },
     extraCreditAssignments: {
       relation: Entity.HasManyRelation,
       modelClass: "extra-credit-assignment.entity.js",
       join: {
         from: "hackathons.id",
-        to: "extraCreditAssignments.hackathonId",
+        through: {
+          modelClass: "extra-credit-class.entity.js",
+          from: "extraCreditClasses.hackathonId",
+          to: "extraCreditClasses.id",
+        },
+        to: "extraCreditAssignments.classId",
       },
     },
   },

@@ -40,6 +40,11 @@ export class ExtraCreditClass extends Entity {
   @IsString()
   @Column({ type: "string" })
   name: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @Column({ type: "string", nullable: true, required: false })
+  hackathonId: string;
 }
 
 export class ExtraCreditClassEntity extends PickType(ExtraCreditClass, [

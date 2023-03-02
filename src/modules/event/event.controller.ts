@@ -38,7 +38,6 @@ class EventCreateEntity extends OmitType(EventEntity, ["id", "icon"] as const) {
 class EventPatchEntity extends PartialType(EventCreateEntity) {}
 
 class CreateScanEntity extends OmitType(ScanEntity, [
-  "id",
   "eventId",
   "userId",
 ] as const) {}

@@ -7,7 +7,7 @@ import {
 import { Request, Response } from "express";
 import { DBError, UniqueViolationError } from "db-errors";
 
-@Catch()
+@Catch(DBError)
 export class DBExceptionFilter implements ExceptionFilter {
   catch(exception: DBError, host: ArgumentsHost) {
     const ctx = host.switchToHttp();

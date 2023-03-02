@@ -6,24 +6,18 @@ import { ApiProperty, PickType } from "@nestjs/swagger";
   name: "extraCreditAssignments",
 })
 export class ExtraCreditAssignment extends Entity {
-  @ApiProperty()
-  @ID({ type: "integer" })
-  id: number;
-
+  @ID({ type: "string" })
   @ApiProperty()
   @Column({ type: "string" })
   userId: string;
 
+  @ID({ type: "string" })
   @ApiProperty()
   @Column({ type: "integer" })
   classId: number;
-
-  @ApiProperty()
-  @Column({ type: "string", required: false })
-  hackathonId: string;
 }
 
 export class ExtraCreditAssignmentEntity extends PickType(
   ExtraCreditAssignment,
-  ["id", "userId", "classId"] as const,
+  ["userId", "classId"] as const,
 ) {}

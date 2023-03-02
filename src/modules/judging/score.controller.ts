@@ -29,7 +29,7 @@ import { IsBoolean, IsNumber, IsOptional } from "class-validator";
 import { ControllerMethod } from "common/validation";
 import { DBExceptionFilter } from "common/filters";
 
-class ScoreCreateEntity extends OmitType(ScoreEntity, ["id"] as const) {
+class ScoreCreateEntity extends ScoreEntity {
   @ApiProperty({ required: false, default: -1 })
   @IsOptional()
   @IsNumber()
@@ -77,11 +77,10 @@ class ScoreCreateEntity extends OmitType(ScoreEntity, ["id"] as const) {
 }
 
 class ScorePatchEntity extends PartialType(
-  OmitType(ScoreEntity, ["id", "projectId", "judgeId"] as const),
+  OmitType(ScoreEntity, ["projectId", "judgeId"] as const),
 ) {}
 
 class ScoreUpdateEntity extends OmitType(ScoreEntity, [
-  "id",
   "projectId",
   "judgeId",
 ] as const) {}

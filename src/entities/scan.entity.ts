@@ -34,16 +34,13 @@ import { IsNumber, IsOptional, IsString } from "class-validator";
   },
 })
 export class Scan extends Entity {
-  @ApiProperty()
-  @IsNumber()
-  @ID({ type: "number" })
-  id: number;
-
+  @ID({ type: "string" })
   @ApiProperty()
   @IsString()
   @Column({ type: "string" })
   eventId: string;
 
+  @ID({ type: "string" })
   @ApiProperty()
   @IsString()
   @Column({ type: "string" })
@@ -61,7 +58,6 @@ export class Scan extends Entity {
 }
 
 export class ScanEntity extends PickType(Scan, [
-  "id",
   "eventId",
   "userId",
   "organizerId",

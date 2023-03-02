@@ -59,7 +59,6 @@ class UserUpdateEntity extends OmitType(UserCreateEntity, ["id"] as const) {}
 class UserPatchEntity extends PartialType(UserUpdateEntity) {}
 
 class CreateUserScanEntity extends OmitType(ScanEntity, [
-  "id",
   "userId",
   "eventId",
 ] as const) {}
