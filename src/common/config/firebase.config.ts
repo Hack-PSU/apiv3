@@ -11,10 +11,7 @@ export const firebaseConfig = registerAs<FirebaseConfig>(
         return {
           credential: admin.credential.cert({
             projectId: process.env.GOOGLE_CERT_PROJECT_ID,
-            privateKey: String(process.env.GOOGLE_CERT_PRIVATE_KEY).replace(
-              /\\n/gm,
-              "\n",
-            ),
+            privateKey: process.env.GOOGLE_CERT_PRIVATE_KEY,
             clientEmail: process.env.GOOGLE_CERT_CLIENT_EMAIL,
           }),
           storageBucket: `${process.env.STAGING_STORAGE}.appspot.com`,
