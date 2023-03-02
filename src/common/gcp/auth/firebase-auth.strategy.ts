@@ -4,14 +4,19 @@ import { ExtractJwt, Strategy } from "passport-jwt";
 import { FirebaseAuthService } from "./firebase-auth.service";
 import jwtDecode, { JwtHeader } from "jwt-decode";
 import { map } from "rxjs";
+import { ConfigService } from "@nestjs/config";
 
 type FirebaseJwtHeader = JwtHeader & { kid: string };
 
 @Injectable()
 export class FirebaseAuthStrategy extends PassportStrategy(Strategy) {
-  constructor(private readonly authService: FirebaseAuthService) {
+  constructor(
+    private readonly authService: FirebaseAuthService,
+    private readonly configService: ConfigService,
+  ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      audience: configService.get("JWT_AUTH_AUDIENCE"),
       ignoreExpiration: false,
       secretOrKeyProvider: (request, rawJwtToken, done) => {
         const jwtHeader = jwtDecode(rawJwtToken, {

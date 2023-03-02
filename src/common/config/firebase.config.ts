@@ -9,7 +9,6 @@ export const firebaseConfig = registerAs<FirebaseConfig>(
     if (process.env.GOOGLE_CERT) {
       if (process.env.NODE_ENV && process.env.NODE_ENV === "production") {
         const cert = JSON.parse(process.env.GOOGLE_CERT);
-
         return {
           credential: admin.credential.cert({
             projectId: cert.project_id,
