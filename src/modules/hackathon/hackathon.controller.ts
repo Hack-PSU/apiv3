@@ -60,9 +60,22 @@ class HackathonResponse extends IntersectionType(
   HackathonCheckInResponse,
 ) {}
 
+class StaticEventLocationEntity {
+  @ApiProperty()
+  id: number;
+
+  @ApiProperty()
+  name: string;
+}
+
+class StaticEventEntity extends EventEntity {
+  @ApiProperty({ type: StaticEventLocationEntity })
+  location: StaticEventLocationEntity;
+}
+
 class StaticActiveHackathonEntity extends HackathonEntity {
   @ApiProperty({ type: [EventEntity] })
-  events: EventEntity[];
+  events: StaticEventEntity[];
 
   @ApiProperty({ type: [SponsorEntity] })
   sponsors: SponsorEntity[];
@@ -352,6 +365,6 @@ export class HackathonController {
   async getForStatic() {
     return Hackathon.query()
       .findOne({ active: true })
-      .withGraphFetched("[events, sponsors]");
+      .withGraphFetched("[events.location, sponsors]");
   }
 }
