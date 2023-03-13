@@ -4,17 +4,18 @@ import {
   DefaultTopic,
   Payload,
 } from "common/gcp/messaging/firebase-messaging.types";
-import { FirestoreModel, InjectFirestoreModel } from "common/gcp/firestore";
+import { FirestoreModel } from "common/gcp/firestore";
 import { catchError, from, map, Observable } from "rxjs";
 import { FirestoreUser } from "entities/firestore-user.entity";
 import { DateTime } from "luxon";
 
 @Injectable()
 export class FirebaseMessagingService {
-  constructor(
-    @InjectFirestoreModel(FirestoreUser)
-    private readonly users: FirestoreModel<FirestoreUser>,
-  ) {}
+  private get users(): FirestoreModel<FirestoreUser> {
+    return admin
+      .firestore()
+      .collection("users") as FirestoreModel<FirestoreUser>;
+  }
 
   private static _clickableNotification = {
     android: {

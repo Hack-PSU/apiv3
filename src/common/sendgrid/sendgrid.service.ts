@@ -1,11 +1,16 @@
 import { Injectable } from "@nestjs/common";
 import * as admin from "firebase-admin";
-import { CloudStorageEmail } from "common/sendgrid/sendgrid.constants";
+import {
+  CloudStorageEmail,
+  DefaultFromEmail,
+  DefaultFromName,
+} from "common/sendgrid/sendgrid.constants";
 import Handlebars from "handlebars";
 import * as mjml2html from "mjml";
 import { Express } from "express";
 import { InjectSendGrid } from "common/sendgrid/sendgrid-mail.decorator";
 import { MailService } from "@sendgrid/mail";
+import { SendEmailOptions } from "common/sendgrid/sendgrid.types";
 
 @Injectable()
 export class SendGridService {
@@ -19,12 +24,17 @@ export class SendGridService {
     return this.file("/template.mjml").download();
   }
 
-  async send(from: string, to: string, subject: string, message: string) {
+  async send(options: SendEmailOptions) {
+    const { from, fromName, to, subject, reply, message } = options;
+
     return this.sendGrid.send({
-      from,
+      from: {
+        email: from ?? DefaultFromEmail,
+        name: fromName ?? DefaultFromName,
+      },
       to,
       subject,
-      replyTo: from,
+      replyTo: reply ?? from,
       html: message,
     });
   }

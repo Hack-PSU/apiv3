@@ -61,7 +61,7 @@ export class MailController {
 
     return Promise.all(
       to.map((email) =>
-        this.sendGridService.send(from, email, subject, message),
+        this.sendGridService.send({ from, to: email, subject, message }),
       ),
     );
   }
@@ -109,7 +109,12 @@ export class MailController {
         );
 
         try {
-          return await this.sendGridService.send(from, email, subject, message);
+          return await this.sendGridService.send({
+            from,
+            to: email,
+            subject,
+            message,
+          });
         } catch (e) {
           throw email;
         }

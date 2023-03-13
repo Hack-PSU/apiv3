@@ -7,3 +7,12 @@ export type EmailModuleOptions = {
   useFactory: (...args: any[]) => SendGridOptions;
   inject?: any[];
 };
+
+export type SendEmailOptions = {
+  from?: string;
+  fromName?: string;
+  to: string;
+  subject: string;
+  message: string;
+  reply?: string;
+};

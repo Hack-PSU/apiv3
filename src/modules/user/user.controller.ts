@@ -43,6 +43,11 @@ import {
 import { Hackathon } from "entities/hackathon.entity";
 import { ApiDoc } from "common/docs";
 import { DBExceptionFilter } from "common/filters";
+import {
+  DefaultFromEmail,
+  DefaultTemplate,
+  SendGridService,
+} from "common/sendgrid";
 
 class UserCreateEntity extends OmitType(UserEntity, ["resume"] as const) {
   @ApiProperty({
@@ -79,6 +84,7 @@ export class UserController {
     private readonly ecAssignmentRepo: Repository<ExtraCreditAssignment>,
     private readonly socket: SocketGateway,
     private readonly userService: UserService,
+    private readonly sendGridService: SendGridService,
   ) {}
 
   @Get("/")
@@ -147,6 +153,23 @@ export class UserController {
         resume: resumeUrl,
       })
       .byHackathon();
+
+    const message = await this.sendGridService.populateTemplate(
+      DefaultTemplate.registration,
+      {
+        previewText: "HackPSU Spring 2023 Registration",
+        date: "April 1st-2nd",
+        address: "Business Building, University Park PA",
+        firstName: data.firstName,
+      },
+    );
+
+    await this.sendGridService.send({
+      from: DefaultFromEmail,
+      to: data.email,
+      subject: "Thank you for your Registration",
+      message,
+    });
 
     this.socket.emit("create:user", user);
 
@@ -333,6 +356,11 @@ export class UserController {
     this.socket.emit("update:user", user.id);
 
     return deletedUser;
+  }
+
+  @Get(":id/info/me")
+  async getMyInfo(@Param("id") id: string) {
+    this.userRepo.findAll();
   }
 
   @Post(":id/check-in/event/:eventId")
