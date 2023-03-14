@@ -59,7 +59,7 @@ import { IsBoolean, IsNumber, IsString } from "class-validator";
       relation: Entity.HasManyRelation,
       modelClass: "extra-credit-class.entity.js",
       join: {
-        from: "hackathon.id",
+        from: "hackathons.id",
         to: "extraCreditClasses.hackathonId",
       },
     },
@@ -82,14 +82,6 @@ import { IsBoolean, IsNumber, IsString } from "class-validator";
       join: {
         from: "hackathons.id",
         to: "registrations.hackathonId",
-      },
-    },
-    extraCreditClasses: {
-      relation: Entity.HasManyRelation,
-      modelClass: "extra-credit-class.entity.js",
-      join: {
-        from: "hackathons.id",
-        to: "extraCreditClass.hackathonId",
       },
     },
   },
