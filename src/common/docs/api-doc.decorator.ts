@@ -128,7 +128,9 @@ export function ApiDoc(options: EndpointOptions) {
   const responseDecorators = resolveApiResponse(options.response ?? {});
   const paramsDecorators = resolveApiParams(options.params);
   const queryDecorators = resolveApiQuery(options.query);
-  const dbExceptionDecorators = resolveDBException(options.dbException ?? true);
+  const dbExceptionDecorators = resolveDBException(
+    options.dbException ?? false,
+  );
 
   return applyDecorators(
     ApiExtraModels(DBExceptionProductionResponse, DBExceptionStagingResponse),

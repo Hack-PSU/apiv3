@@ -25,16 +25,12 @@ export class UserService {
     }
   }
 
-  private getFile(hackathonId: string, userId: string) {
-    return `${this.prefix}${hackathonId}-${userId}.pdf`;
+  private getFile(userId: string) {
+    return `${this.prefix}${userId}.pdf`;
   }
 
-  async uploadResume(
-    hackathonId: string,
-    userId: string,
-    file: Express.Multer.File,
-  ) {
-    const blob = this.resumeBucket.file(this.getFile(hackathonId, userId));
+  async uploadResume(userId: string, file: Express.Multer.File) {
+    const blob = this.resumeBucket.file(this.getFile(userId));
 
     await blob.save(file.buffer);
 
@@ -43,9 +39,9 @@ export class UserService {
     return blob.publicUrl();
   }
 
-  deleteResume(hackathonId: string, userId: string) {
+  deleteResume(userId: string) {
     return this.resumeBucket
-      .file(this.getFile(hackathonId, userId))
+      .file(this.getFile(userId))
       .delete({ ignoreNotFound: true });
   }
 }

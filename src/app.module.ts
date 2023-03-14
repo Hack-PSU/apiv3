@@ -20,6 +20,7 @@ import { SponsorModule } from "modules/sponsor/sponsor.module";
 import { ScanModule } from "modules/scan/scan.module";
 import { ExtraCreditModule } from "modules/extra-credit/extra-credit.module";
 import { SendGridModule } from "common/sendgrid";
+import { RegistrationModule } from "modules/registration/registration.module";
 
 @Module({
   imports: [
@@ -62,6 +63,7 @@ import { SendGridModule } from "common/sendgrid";
     SponsorModule,
     ScanModule,
     ExtraCreditModule,
+    RegistrationModule,
 
     // WebSocket
     SocketModule,

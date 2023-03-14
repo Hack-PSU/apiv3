@@ -76,6 +76,14 @@ import { IsBoolean, IsNumber, IsString } from "class-validator";
         to: "extraCreditAssignments.classId",
       },
     },
+    registrations: {
+      relation: Entity.HasManyRelation,
+      modelClass: "registration.entity.js",
+      join: {
+        from: "hackathons.id",
+        to: "registrations.hackathonId",
+      },
+    },
   },
 })
 export class Hackathon extends Entity {

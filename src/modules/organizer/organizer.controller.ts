@@ -161,8 +161,8 @@ export class OrganizerController {
     const { privilege, ...rest } = data;
     const organizer = await this.organizerRepo.patchOne(id, rest).exec();
 
-    if (data.privilege) {
-      await this.auth.updateUserClaims(id, data.privilege);
+    if (privilege) {
+      await this.auth.updateUserClaims(id, privilege);
     }
 
     this.socket.emit("update:organizer", organizer, SocketRoom.ADMIN);

@@ -12,6 +12,8 @@ import {
   Post,
   Put,
   Query,
+  Req,
+  UnauthorizedException,
   UseFilters,
   UseInterceptors,
   ValidationPipe,
@@ -30,7 +32,7 @@ import { RestrictedRoles, Role, Roles } from "common/gcp";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { UserService } from "modules/user/user.service";
 import { UploadedResume } from "modules/user/uploaded-resume.decorator";
-import { Express } from "express";
+import { Express, Request } from "express";
 import { Scan, ScanEntity } from "entities/scan.entity";
 import {
   ExtraCreditClass,
@@ -40,7 +42,6 @@ import {
   ExtraCreditAssignment,
   ExtraCreditAssignmentEntity,
 } from "entities/extra-credit-assignment.entity";
-import { Hackathon } from "entities/hackathon.entity";
 import { ApiDoc } from "common/docs";
 import { DBExceptionFilter } from "common/filters";
 import {
@@ -48,6 +49,7 @@ import {
   DefaultTemplate,
   SendGridService,
 } from "common/sendgrid";
+import { Registration, RegistrationEntity } from "entities/registration.entity";
 
 class UserCreateEntity extends OmitType(UserEntity, ["resume"] as const) {
   @ApiProperty({
@@ -68,10 +70,25 @@ class CreateUserScanEntity extends OmitType(ScanEntity, [
   "eventId",
 ] as const) {}
 
+class CreateUserRegistrationEntity extends OmitType(RegistrationEntity, [
+  "id",
+  "userId",
+  "hackathonId",
+] as const) {}
+
+class UserProfileResponse extends UserEntity {
+  @ApiProperty({
+    type: RegistrationEntity,
+    description: "Current hackathon's registration",
+    nullable: true,
+  })
+  registration: RegistrationEntity;
+}
+
 @ApiTags("Users")
 @Controller("users")
 @UseFilters(DBExceptionFilter)
-@ApiExtraModels(CreateUserScanEntity)
+@ApiExtraModels(CreateUserScanEntity, UserProfileResponse)
 export class UserController {
   constructor(
     @InjectRepository(User)
@@ -82,6 +99,8 @@ export class UserController {
     private readonly ecClassRepo: Repository<ExtraCreditClass>,
     @InjectRepository(ExtraCreditAssignment)
     private readonly ecAssignmentRepo: Repository<ExtraCreditAssignment>,
+    @InjectRepository(Registration)
+    private readonly registrationRepo: Repository<Registration>,
     private readonly socket: SocketGateway,
     private readonly userService: UserService,
     private readonly sendGridService: SendGridService,
@@ -91,20 +110,13 @@ export class UserController {
   @Roles(Role.TEAM)
   @ApiDoc({
     summary: "Get All Users",
-    query: [
-      {
-        name: "hackathonId",
-        required: false,
-        description: "A valid hackathon ID",
-      },
-    ],
     response: {
       ok: { type: [UserEntity] },
     },
     auth: Role.TEAM,
   })
-  async getAll(@Query("hackathonId") hackathonId?: string) {
-    return this.userRepo.findAll().byHackathon(hackathonId);
+  async getAll() {
+    return this.userRepo.findAll().exec();
   }
 
   @Post("/")
@@ -136,15 +148,7 @@ export class UserController {
     let resumeUrl = null;
 
     if (resume) {
-      const currentHackathon = await Hackathon.query().findOne({
-        active: true,
-      });
-
-      resumeUrl = await this.userService.uploadResume(
-        data.hackathonId ?? currentHackathon.id,
-        data.id,
-        resume,
-      );
+      resumeUrl = await this.userService.uploadResume(data.id, resume);
     }
 
     const user = await this.userRepo
@@ -152,7 +156,7 @@ export class UserController {
         ...data,
         resume: resumeUrl,
       })
-      .byHackathon();
+      .exec();
 
     const message = await this.sendGridService.populateTemplate(
       DefaultTemplate.registration,
@@ -238,18 +242,13 @@ export class UserController {
     data: UserPatchEntity,
     @UploadedResume() resume?: Express.Multer.File,
   ) {
-    const currentUser = await this.userRepo.findOne(id).exec();
     let resumeUrl = null;
 
     if (resume) {
       // remove current resume
-      await this.userService.deleteResume(currentUser.hackathonId, id);
+      await this.userService.deleteResume(id);
 
-      resumeUrl = await this.userService.uploadResume(
-        currentUser.hackathonId,
-        id,
-        resume,
-      );
+      resumeUrl = await this.userService.uploadResume(id, resume);
     }
 
     const user = await this.userRepo
@@ -276,7 +275,7 @@ export class UserController {
     params: [
       {
         name: "id",
-        description: "ID must be set to a user's IID ",
+        description: "ID must be set to a user's ID ",
       },
     ],
     request: {
@@ -302,17 +301,12 @@ export class UserController {
     data: UserUpdateEntity,
     @UploadedResume() resume?: Express.Multer.File,
   ) {
-    const currentUser = await this.userRepo.findOne(id).exec();
     let resumeUrl = null;
 
-    await this.userService.deleteResume(currentUser.hackathonId, id);
+    await this.userService.deleteResume(id);
 
     if (resume) {
-      resumeUrl = await this.userService.uploadResume(
-        currentUser.hackathonId,
-        id,
-        resume,
-      );
+      resumeUrl = await this.userService.uploadResume(id, resume);
     }
 
     const user = await this.userRepo
@@ -348,19 +342,101 @@ export class UserController {
     restricted: true,
   })
   async deleteOne(@Param("id") id: string) {
-    const user = await this.userRepo.findOne(id).exec();
-
     const deletedUser = await this.userRepo.deleteOne(id).exec();
-    await this.userService.deleteResume(user.hackathonId, user.id);
+    await this.userService.deleteResume(id);
 
-    this.socket.emit("update:user", user.id);
+    this.socket.emit("update:user", id);
 
     return deletedUser;
   }
 
-  @Get(":id/info/me")
-  async getMyInfo(@Param("id") id: string) {
-    this.userRepo.findAll();
+  @Post(":id/register")
+  @Roles(Role.NONE)
+  @RestrictedRoles({
+    roles: [Role.NONE],
+    predicate: (req) => req.user && req.user.sub === req.params.id,
+  })
+  @ApiDoc({
+    summary: "Register User for Hackathon",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to a user's ID",
+      },
+    ],
+    request: {
+      body: { type: CreateUserRegistrationEntity },
+      validate: true,
+    },
+    response: {
+      created: { type: RegistrationEntity },
+    },
+    auth: Role.NONE,
+    restricted: true,
+    dbException: true,
+  })
+  async registerUser(
+    @Param("id") id: string,
+    @Body(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+      }),
+    )
+    data: CreateUserRegistrationEntity,
+  ) {
+    const user = await this.userRepo.findOne(id).exec();
+
+    if (!user) {
+      throw new HttpException("No user found", HttpStatus.BAD_REQUEST);
+    }
+
+    const hasRegistration = await this.registrationRepo
+      .findAll()
+      .byHackathon()
+      .where("userId", id)
+      .first();
+
+    if (hasRegistration) {
+      throw new HttpException("Duplicate registration", HttpStatus.CONFLICT);
+    }
+
+    return this.registrationRepo
+      .createOne({
+        userId: id,
+        ...data,
+      })
+      .byHackathon();
+  }
+
+  @Get("info/me")
+  @Roles(Role.NONE)
+  @ApiDoc({
+    summary: "Get User Profile",
+    auth: Role.NONE,
+    response: {
+      ok: { type: UserProfileResponse },
+    },
+  })
+  async getMyInfo(@Req() req: Request) {
+    if (!req.user || !("sub" in req.user)) {
+      throw new UnauthorizedException();
+    }
+
+    const userId = String(req.user.sub);
+
+    const user = await this.userRepo
+      .findOne(userId)
+      .raw()
+      .withGraphFetched("registrations(active)");
+
+    const { registrations, ...data } = user;
+
+    return {
+      ...data,
+      registration: registrations[0] ?? null,
+    };
   }
 
   @Post(":id/check-in/event/:eventId")
@@ -385,6 +461,7 @@ export class UserController {
     response: {
       noContent: true,
     },
+    dbException: true,
     auth: Role.TEAM,
   })
   async checkIn(
@@ -463,6 +540,7 @@ export class UserController {
     },
     auth: Role.NONE,
     restricted: true,
+    dbException: true,
   })
   async assignClassToUser(
     @Param("id") id: string,

@@ -4,6 +4,8 @@ export async function up(knex: Knex): Promise<void> {
   return knex.schema.createTable("registrations", (t) => {
     t.increments("id").primary().unsigned().notNullable();
 
+    t.uuid("user_id").notNullable();
+
     t.boolean("travel_reimbursement").notNullable();
     t.boolean("driving").notNullable();
     t.boolean("first_hackathon").notNullable();
@@ -54,7 +56,15 @@ export async function up(knex: Knex): Promise<void> {
     t.enum("veteran", ["true", "false", "no-disclose"]).notNullable();
 
     t.bigInteger("time").unsigned().notNullable();
+
+    t.uuid("hackathon_id").notNullable();
+    t.foreign("hackathon_id")
+      .references("id")
+      .inTable("hackathons")
+      .onUpdate("CASCADE");
   });
 }
 
-export async function down(knex: Knex): Promise<void> {}
+export async function down(knex: Knex): Promise<void> {
+  return knex.schema.dropTableIfExists("registrations");
+}

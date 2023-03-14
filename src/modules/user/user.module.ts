@@ -7,6 +7,7 @@ import { Scan } from "entities/scan.entity";
 import { ExtraCreditAssignment } from "entities/extra-credit-assignment.entity";
 import { ExtraCreditClass } from "entities/extra-credit-class.entity";
 import { ConfigModule } from "@nestjs/config";
+import { Registration } from "entities/registration.entity";
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { ConfigModule } from "@nestjs/config";
       Scan,
       ExtraCreditClass,
       ExtraCreditAssignment,
+      Registration,
     ]),
     ConfigModule,
   ],

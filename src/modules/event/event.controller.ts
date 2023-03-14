@@ -293,6 +293,7 @@ export class EventController {
       noContent: true,
     },
     auth: Role.TEAM,
+    dbException: true,
   })
   async checkInEvent(
     @Param("id") id: string,
