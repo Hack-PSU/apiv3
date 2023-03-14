@@ -50,4 +50,5 @@ export class ExtraCreditClass extends Entity {
 export class ExtraCreditClassEntity extends PickType(ExtraCreditClass, [
   "id",
   "name",
+  "hackathonId",
 ] as const) {}
