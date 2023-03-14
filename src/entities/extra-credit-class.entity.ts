@@ -1,6 +1,7 @@
 import { Column, ID, Table } from "common/objection";
 import { Entity } from "entities/base.entity";
 import { ApiProperty, PickType } from "@nestjs/swagger";
+import { IsNumber, IsString } from "class-validator";
 
 @Table({
   name: "extraCreditClasses",
@@ -31,15 +32,18 @@ import { ApiProperty, PickType } from "@nestjs/swagger";
 })
 export class ExtraCreditClass extends Entity {
   @ApiProperty()
+  @IsNumber()
   @ID({ type: "integer" })
   id: number;
 
   @ApiProperty()
+  @IsString()
   @Column({ type: "string" })
   name: string;
 
-  @ApiProperty()
-  @Column({ type : "string", required: false })
+  @ApiProperty({ required: false })
+  @IsString()
+  @Column({ type: "string", nullable: true, required: false })
   hackathonId: string;
 }
 

@@ -11,18 +11,17 @@ import {
   Patch,
   Post,
   Put,
+  Query,
+  Req,
+  UnauthorizedException,
+  UseFilters,
   UseInterceptors,
   ValidationPipe,
 } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
 import { User, UserEntity } from "entities/user.entity";
 import {
-  ApiBody,
   ApiExtraModels,
-  ApiNoContentResponse,
-  ApiOkResponse,
-  ApiOperation,
-  ApiParam,
   ApiProperty,
   ApiTags,
   OmitType,
@@ -33,7 +32,7 @@ import { RestrictedRoles, Role, Roles } from "common/gcp";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { UserService } from "modules/user/user.service";
 import { UploadedResume } from "modules/user/uploaded-resume.decorator";
-import { Express } from "express";
+import { Express, Request } from "express";
 import { Scan, ScanEntity } from "entities/scan.entity";
 import {
   ExtraCreditClass,
@@ -43,8 +42,14 @@ import {
   ExtraCreditAssignment,
   ExtraCreditAssignmentEntity,
 } from "entities/extra-credit-assignment.entity";
-import { Hackathon } from "entities/hackathon.entity";
-import { ApiAuth } from "common/docs/api-auth.decorator";
+import { ApiDoc } from "common/docs";
+import { DBExceptionFilter } from "common/filters";
+import {
+  DefaultFromEmail,
+  DefaultTemplate,
+  SendGridService,
+} from "common/sendgrid";
+import { Registration, RegistrationEntity } from "entities/registration.entity";
 
 class UserCreateEntity extends OmitType(UserEntity, ["resume"] as const) {
   @ApiProperty({
@@ -61,17 +66,29 @@ class UserUpdateEntity extends OmitType(UserCreateEntity, ["id"] as const) {}
 class UserPatchEntity extends PartialType(UserUpdateEntity) {}
 
 class CreateUserScanEntity extends OmitType(ScanEntity, [
-  "id",
-  "hackathonId",
   "userId",
   "eventId",
-] as const) {
-  hackathonId?: string;
+] as const) {}
+
+class CreateUserRegistrationEntity extends OmitType(RegistrationEntity, [
+  "id",
+  "userId",
+  "hackathonId",
+] as const) {}
+
+class UserProfileResponse extends UserEntity {
+  @ApiProperty({
+    type: RegistrationEntity,
+    description: "Current hackathon's registration",
+    nullable: true,
+  })
+  registration: RegistrationEntity;
 }
 
 @ApiTags("Users")
 @Controller("users")
-@ApiExtraModels(CreateUserScanEntity)
+@UseFilters(DBExceptionFilter)
+@ApiExtraModels(CreateUserScanEntity, UserProfileResponse)
 export class UserController {
   constructor(
     @InjectRepository(User)
@@ -82,43 +99,56 @@ export class UserController {
     private readonly ecClassRepo: Repository<ExtraCreditClass>,
     @InjectRepository(ExtraCreditAssignment)
     private readonly ecAssignmentRepo: Repository<ExtraCreditAssignment>,
+    @InjectRepository(Registration)
+    private readonly registrationRepo: Repository<Registration>,
     private readonly socket: SocketGateway,
     private readonly userService: UserService,
+    private readonly sendGridService: SendGridService,
   ) {}
 
   @Get("/")
   @Roles(Role.TEAM)
-  @ApiOperation({ summary: "Get All Users" })
-  @ApiOkResponse({ type: [UserEntity] })
-  @ApiAuth(Role.TEAM)
+  @ApiDoc({
+    summary: "Get All Users",
+    response: {
+      ok: { type: [UserEntity] },
+    },
+    auth: Role.TEAM,
+  })
   async getAll() {
-    return this.userRepo.findAll().byHackathon();
+    return this.userRepo.findAll().exec();
   }
 
   @Post("/")
   @Roles(Role.NONE)
   @UseInterceptors(FileInterceptor("resume"))
-  @ApiOperation({ summary: "Create a User" })
-  @ApiBody({ type: UserCreateEntity })
-  @ApiOkResponse({ type: UserEntity })
-  @ApiAuth(Role.NONE)
+  @ApiDoc({
+    summary: "Create a User",
+    request: {
+      mimeTypes: ["multipart/form-data"],
+      body: { type: UserCreateEntity },
+      validate: true,
+    },
+    response: {
+      created: { type: UserEntity },
+    },
+    auth: Role.TEAM,
+  })
   async createOne(
-    @Body(new ValidationPipe({ transform: true, forbidUnknownValues: false }))
+    @Body(
+      new ValidationPipe({
+        forbidNonWhitelisted: true,
+        whitelist: true,
+        transform: true,
+      }),
+    )
     data: UserCreateEntity,
     @UploadedResume() resume?: Express.Multer.File,
   ) {
     let resumeUrl = null;
 
     if (resume) {
-      const currentHackathon = await Hackathon.query().findOne({
-        active: true,
-      });
-
-      resumeUrl = await this.userService.uploadResume(
-        data.hackathonId ?? currentHackathon.id,
-        data.id,
-        resume,
-      );
+      resumeUrl = await this.userService.uploadResume(data.id, resume);
     }
 
     const user = await this.userRepo
@@ -126,7 +156,24 @@ export class UserController {
         ...data,
         resume: resumeUrl,
       })
-      .byHackathon();
+      .exec();
+
+    const message = await this.sendGridService.populateTemplate(
+      DefaultTemplate.registration,
+      {
+        previewText: "HackPSU Spring 2023 Registration",
+        date: "April 1st-2nd",
+        address: "Business Building, University Park PA",
+        firstName: data.firstName,
+      },
+    );
+
+    await this.sendGridService.send({
+      from: DefaultFromEmail,
+      to: data.email,
+      subject: "Thank you for your Registration",
+      message,
+    });
 
     this.socket.emit("create:user", user);
 
@@ -139,11 +186,22 @@ export class UserController {
     predicate: (req) => req.user && req.user?.sub === req.params.id,
   })
   @Roles(Role.TEAM)
-  @ApiOperation({ summary: "Get a User" })
-  @ApiOkResponse({ type: UserEntity })
-  @ApiAuth(Role.NONE)
+  @ApiDoc({
+    summary: "Get a User",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to a user's ID",
+      },
+    ],
+    response: {
+      ok: { type: UserEntity },
+    },
+    auth: Role.NONE,
+    restricted: true,
+  })
   async getOne(@Param("id") id: string) {
-    return this.userRepo.findOne(id).byHackathon();
+    return this.userRepo.findOne(id).exec();
   }
 
   @Patch(":id")
@@ -151,31 +209,46 @@ export class UserController {
     roles: [Role.NONE, Role.VOLUNTEER],
     predicate: (req) => req.user && req.user.sub === req.params.id,
   })
-  @Roles(Role.NONE)
+  @Roles(Role.TEAM)
   @UseInterceptors(FileInterceptor("resume"))
-  @ApiOperation({ summary: "Patch a User" })
-  @ApiParam({ name: "id", description: "ID must be set to a user's ID" })
-  @ApiBody({ type: UserPatchEntity })
-  @ApiOkResponse({ type: UserEntity })
-  @ApiAuth(Role.NONE)
+  @ApiDoc({
+    summary: "Patch a User",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to a user's ID",
+      },
+    ],
+    request: {
+      mimeTypes: ["multipart/form-data"],
+      body: { type: UserPatchEntity },
+      validate: true,
+    },
+    response: {
+      ok: { type: UserEntity },
+    },
+    auth: Role.NONE,
+    restricted: true,
+  })
   async patchOne(
     @Param("id") id: string,
-    @Body(new ValidationPipe({ transform: true, forbidUnknownValues: false }))
+    @Body(
+      new ValidationPipe({
+        forbidNonWhitelisted: true,
+        whitelist: true,
+        transform: true,
+      }),
+    )
     data: UserPatchEntity,
     @UploadedResume() resume?: Express.Multer.File,
   ) {
-    const currentUser = await this.userRepo.findOne(id).exec();
     let resumeUrl = null;
 
     if (resume) {
       // remove current resume
-      await this.userService.deleteResume(currentUser.hackathonId, id);
+      await this.userService.deleteResume(id);
 
-      resumeUrl = await this.userService.uploadResume(
-        currentUser.hackathonId,
-        id,
-        resume,
-      );
+      resumeUrl = await this.userService.uploadResume(id, resume);
     }
 
     const user = await this.userRepo
@@ -195,30 +268,45 @@ export class UserController {
     roles: [Role.NONE, Role.VOLUNTEER],
     predicate: (req) => req.user && req.user.sub === req.params.id,
   })
-  @Roles(Role.NONE)
+  @Roles(Role.TEAM)
   @UseInterceptors(FileInterceptor("resume"))
-  @ApiOperation({ summary: "Replace a User" })
-  @ApiParam({ name: "id", description: "ID must be set to a user's ID" })
-  @ApiBody({ type: UserUpdateEntity })
-  @ApiOkResponse({ type: UserEntity })
-  @ApiAuth(Role.NONE)
+  @ApiDoc({
+    summary: "Replace a User",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to a user's ID ",
+      },
+    ],
+    request: {
+      mimeTypes: ["multipart/form-data"],
+      body: { type: UserUpdateEntity },
+      validate: true,
+    },
+    response: {
+      ok: { type: UserEntity },
+    },
+    auth: Role.NONE,
+    restricted: true,
+  })
   async replaceOne(
     @Param("id") id: string,
-    @Body(new ValidationPipe({ transform: true, forbidUnknownValues: false }))
+    @Body(
+      new ValidationPipe({
+        forbidNonWhitelisted: true,
+        whitelist: true,
+        transform: true,
+      }),
+    )
     data: UserUpdateEntity,
     @UploadedResume() resume?: Express.Multer.File,
   ) {
-    const currentUser = await this.userRepo.findOne(id).exec();
     let resumeUrl = null;
 
-    await this.userService.deleteResume(currentUser.hackathonId, id);
+    await this.userService.deleteResume(id);
 
     if (resume) {
-      resumeUrl = await this.userService.uploadResume(
-        currentUser.hackathonId,
-        id,
-        resume,
-      );
+      resumeUrl = await this.userService.uploadResume(id, resume);
     }
 
     const user = await this.userRepo
@@ -238,35 +326,155 @@ export class UserController {
     roles: [Role.NONE, Role.VOLUNTEER],
     predicate: (req) => req.user && req.user.sub === req.params.id,
   })
-  @Roles(Role.NONE)
-  @ApiOperation({ summary: "Delete a User" })
-  @ApiParam({ name: "id", description: "ID must be set to a user's ID" })
-  @ApiNoContentResponse()
-  @ApiAuth(Role.NONE)
+  @Roles(Role.EXEC)
+  @ApiDoc({
+    summary: "Delete a User",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to a user's ID",
+      },
+    ],
+    response: {
+      noContent: true,
+    },
+    auth: Role.NONE,
+    restricted: true,
+  })
   async deleteOne(@Param("id") id: string) {
-    const user = await this.userRepo.findOne(id).exec();
-
     const deletedUser = await this.userRepo.deleteOne(id).exec();
-    await this.userService.deleteResume(user.hackathonId, user.id);
+    await this.userService.deleteResume(id);
 
-    this.socket.emit("update:user", user.id);
+    this.socket.emit("update:user", id);
 
     return deletedUser;
+  }
+
+  @Post(":id/register")
+  @Roles(Role.NONE)
+  @RestrictedRoles({
+    roles: [Role.NONE],
+    predicate: (req) => req.user && req.user.sub === req.params.id,
+  })
+  @ApiDoc({
+    summary: "Register User for Hackathon",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to a user's ID",
+      },
+    ],
+    request: {
+      body: { type: CreateUserRegistrationEntity },
+      validate: true,
+    },
+    response: {
+      created: { type: RegistrationEntity },
+    },
+    auth: Role.NONE,
+    restricted: true,
+    dbException: true,
+  })
+  async registerUser(
+    @Param("id") id: string,
+    @Body(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+      }),
+    )
+    data: CreateUserRegistrationEntity,
+  ) {
+    const user = await this.userRepo.findOne(id).exec();
+
+    if (!user) {
+      throw new HttpException("No user found", HttpStatus.BAD_REQUEST);
+    }
+
+    const hasRegistration = await this.registrationRepo
+      .findAll()
+      .byHackathon()
+      .where("userId", id)
+      .first();
+
+    if (hasRegistration) {
+      throw new HttpException("Duplicate registration", HttpStatus.CONFLICT);
+    }
+
+    return this.registrationRepo
+      .createOne({
+        userId: id,
+        ...data,
+      })
+      .byHackathon();
+  }
+
+  @Get("info/me")
+  @Roles(Role.NONE)
+  @ApiDoc({
+    summary: "Get User Profile",
+    auth: Role.NONE,
+    response: {
+      ok: { type: UserProfileResponse },
+    },
+  })
+  async getMyInfo(@Req() req: Request) {
+    if (!req.user || !("sub" in req.user)) {
+      throw new UnauthorizedException();
+    }
+
+    const userId = String(req.user.sub);
+
+    const user = await this.userRepo
+      .findOne(userId)
+      .raw()
+      .withGraphFetched("registrations(active)");
+
+    const { registrations, ...data } = user;
+
+    return {
+      ...data,
+      registration: registrations[0] ?? null,
+    };
   }
 
   @Post(":id/check-in/event/:eventId")
   @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(Role.TEAM)
-  @ApiOperation({ summary: "Check User Into Event" })
-  @ApiParam({ name: "id", description: "ID must be set to a user's ID" })
-  @ApiParam({ name: "eventId", description: "ID must be set to an event's ID" })
-  @ApiBody({ type: CreateUserScanEntity })
-  @ApiNoContentResponse()
-  @ApiAuth(Role.TEAM)
+  @ApiDoc({
+    summary: "Check User Into Event",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to a user's ID",
+      },
+      {
+        name: "eventId",
+        description: "ID must be set to an event's ID",
+      },
+    ],
+    request: {
+      body: { type: CreateUserScanEntity },
+      validate: true,
+    },
+    response: {
+      noContent: true,
+    },
+    dbException: true,
+    auth: Role.TEAM,
+  })
   async checkIn(
     @Param("id") id: string,
     @Param("eventId") eventId: string,
-    @Body() data: CreateUserScanEntity,
+    @Body(
+      new ValidationPipe({
+        forbidNonWhitelisted: true,
+        whitelist: true,
+        transform: true,
+      }),
+    )
+    data: CreateUserScanEntity,
   ) {
     const hasUser = await this.userRepo.findOne(id).exec();
 
@@ -291,10 +499,20 @@ export class UserController {
     predicate: (req) => req.user && req.user.sub === req.params.id,
   })
   @Roles(Role.TEAM)
-  @ApiOperation({ summary: "Get All Extra Credit Classes By User" })
-  @ApiParam({ name: "id", description: "ID must be set to a user's ID" })
-  @ApiOkResponse({ type: [ExtraCreditClassEntity] })
-  @ApiAuth(Role.NONE)
+  @ApiDoc({
+    summary: "Get All Extra Credit Classes By User",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to a user's ID",
+      },
+    ],
+    response: {
+      ok: { type: [ExtraCreditClassEntity] },
+    },
+    auth: Role.NONE,
+    restricted: true,
+  })
   async classesByUser(@Param("id") id: string) {
     return User.relatedQuery("extraCreditClasses").for(id);
   }
@@ -305,11 +523,25 @@ export class UserController {
     predicate: (req) => req.user && req.user.sub === req.params.id,
   })
   @Roles(Role.TEAM)
-  @ApiOperation({ summary: "Assign Extra Credit Class to User" })
-  @ApiParam({ name: "id", description: "ID must be set to a user's ID" })
-  @ApiParam({ name: "classId", description: "ID must be set to an event's ID" })
-  @ApiOkResponse({ type: ExtraCreditAssignmentEntity })
-  @ApiAuth(Role.NONE)
+  @ApiDoc({
+    summary: "Assign Extra Credit Class to User",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to a user's ID",
+      },
+      {
+        name: "classId",
+        description: "ID must be set to a class's ID",
+      },
+    ],
+    response: {
+      ok: { type: ExtraCreditAssignmentEntity },
+    },
+    auth: Role.NONE,
+    restricted: true,
+    dbException: true,
+  })
   async assignClassToUser(
     @Param("id") id: string,
     @Param("classId", ParseIntPipe) classId: number,

@@ -1,4 +1,8 @@
-import { ExecutionContext, Injectable } from "@nestjs/common";
+import {
+  ExecutionContext,
+  Injectable,
+  UnauthorizedException,
+} from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { FirebaseAuthService } from "./firebase-auth.service";
 import { Reflector } from "@nestjs/core";
@@ -39,14 +43,6 @@ export class RolesGuard extends AuthGuard("jwt") {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     // canActivate is called last and will check user against permissions
 
-    // Must call super.canActivate first to inject user into request and run
-    // passport auth logic
-    const passportAccess = await super.canActivate(context);
-
-    if (!passportAccess) {
-      return false;
-    }
-
     // rolesList is an array of Role values from the @Roles decorator
     const rolesList = this.reflector.get(
       FirebaseAuthRoles,
@@ -82,7 +78,15 @@ export class RolesGuard extends AuthGuard("jwt") {
 
     // if no authorization required default to passportAccess
     if (!restrictedRoles && !predicate && !rolesList) {
-      return !!passportAccess;
+      return true;
+    }
+
+    // Must call super.canActivate to inject user into request and run
+    // passport auth logic
+    const passportAccess = await super.canActivate(context);
+
+    if (!passportAccess) {
+      return false;
     }
 
     if (context.getType() === "ws") {

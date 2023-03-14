@@ -10,24 +10,14 @@ import {
   Patch,
   Post,
   Put,
+  Query,
+  UseFilters,
   UseInterceptors,
   ValidationPipe,
 } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
 import { Event, EventEntity } from "entities/event.entity";
-import {
-  ApiBody,
-  ApiConsumes,
-  ApiCreatedResponse,
-  ApiNoContentResponse,
-  ApiOkResponse,
-  ApiOperation,
-  ApiParam,
-  ApiProperty,
-  ApiTags,
-  OmitType,
-  PartialType,
-} from "@nestjs/swagger";
+import { ApiProperty, ApiTags, OmitType, PartialType } from "@nestjs/swagger";
 import { SanitizeFieldsPipe } from "common/pipes";
 import { SocketGateway } from "modules/socket/socket.gateway";
 import { nanoid } from "nanoid";
@@ -36,8 +26,9 @@ import { UploadedIcon } from "modules/event/uploaded-icon.decorator";
 import { Express } from "express";
 import { EventService } from "modules/event/event.service";
 import { Scan, ScanEntity } from "entities/scan.entity";
-import { ApiAuth } from "common/docs/api-auth.decorator";
 import { Role, Roles } from "common/gcp";
+import { ApiDoc } from "common/docs";
+import { DBExceptionFilter } from "common/filters";
 
 class EventCreateEntity extends OmitType(EventEntity, ["id", "icon"] as const) {
   @ApiProperty({ type: "string", format: "binary", required: false })
@@ -47,16 +38,13 @@ class EventCreateEntity extends OmitType(EventEntity, ["id", "icon"] as const) {
 class EventPatchEntity extends PartialType(EventCreateEntity) {}
 
 class CreateScanEntity extends OmitType(ScanEntity, [
-  "id",
-  "hackathonId",
   "eventId",
   "userId",
-] as const) {
-  hackathonId?: string;
-}
+] as const) {}
 
 @ApiTags("Events")
 @Controller("events")
+@UseFilters(DBExceptionFilter)
 export class EventController {
   constructor(
     @InjectRepository(Event)
@@ -69,25 +57,47 @@ export class EventController {
 
   @Get("/")
   @Roles(Role.NONE)
-  @ApiOperation({ summary: "Get All Events" })
-  @ApiOkResponse({ type: [EventEntity] })
-  @ApiAuth(Role.NONE)
-  async getAll() {
-    return this.eventRepo.findAll().byHackathon();
+  @ApiDoc({
+    summary: "Get All Events",
+    query: [
+      {
+        name: "hackathonId",
+        required: false,
+        description: "A valid hackathon ID",
+      },
+    ],
+    response: {
+      ok: { type: [EventEntity] },
+    },
+    auth: Role.NONE,
+  })
+  async getAll(@Query("hackathonId") hackathonId?: string) {
+    return this.eventRepo.findAll().byHackathon(hackathonId);
   }
 
   @Post("/")
   @Roles(Role.TEAM)
   @UseInterceptors(FileInterceptor("icon"))
-  @ApiOperation({ summary: "Create an Event" })
-  @ApiConsumes("multipart/form-data")
-  @ApiCreatedResponse({ type: EventEntity })
-  @ApiAuth(Role.TEAM)
-  @ApiBody({ type: EventCreateEntity })
+  @ApiDoc({
+    summary: "Create an Event",
+    request: {
+      mimeTypes: ["multipart/form-data"],
+      body: { type: EventCreateEntity },
+      validate: true,
+    },
+    response: {
+      created: { type: EventEntity },
+    },
+    auth: Role.TEAM,
+  })
   async createOne(
     @Body(
       new SanitizeFieldsPipe(["description"]),
-      new ValidationPipe({ transform: true, forbidUnknownValues: false }),
+      new ValidationPipe({
+        forbidNonWhitelisted: true,
+        whitelist: true,
+        transform: true,
+      }),
     )
     data: EventCreateEntity,
     @UploadedIcon() icon?: Express.Multer.File,
@@ -105,7 +115,7 @@ export class EventController {
         icon: iconUrl,
         ...data,
       })
-      .byHackathon();
+      .byHackathon(data.hackathonId);
 
     this.socket.emit("create:event", event);
 
@@ -114,10 +124,19 @@ export class EventController {
 
   @Get(":id")
   @Roles(Role.NONE)
-  @ApiOperation({ summary: "Get an Event" })
-  @ApiOkResponse({ type: EventEntity })
-  @ApiParam({ name: "id", description: "ID must be set to the event's ID" })
-  @ApiAuth(Role.NONE)
+  @ApiDoc({
+    summary: "Get an Event",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to an event's ID",
+      },
+    ],
+    response: {
+      ok: { type: EventEntity },
+    },
+    auth: Role.NONE,
+  })
   async getOne(@Param("id") id: string) {
     return this.eventRepo.findOne(id).exec();
   }
@@ -125,17 +144,33 @@ export class EventController {
   @Patch(":id")
   @Roles(Role.TEAM)
   @UseInterceptors(FileInterceptor("icon"))
-  @ApiOperation({ summary: "Patch an Event" })
-  @ApiBody({ type: EventPatchEntity })
-  @ApiConsumes("multipart/form-data")
-  @ApiParam({ name: "id", description: "ID must be set to the event's ID" })
-  @ApiOkResponse({ type: EventEntity })
-  @ApiAuth(Role.TEAM)
+  @ApiDoc({
+    summary: "Patch an Event",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to an event's iD",
+      },
+    ],
+    request: {
+      mimeTypes: ["multipart/form-data"],
+      body: { type: EventPatchEntity },
+      validate: true,
+    },
+    response: {
+      ok: { type: EventEntity },
+    },
+    auth: Role.TEAM,
+  })
   async patchOne(
     @Param("id") id: string,
     @Body(
       new SanitizeFieldsPipe(["description"]),
-      new ValidationPipe({ transform: true, forbidUnknownValues: false }),
+      new ValidationPipe({
+        forbidNonWhitelisted: true,
+        whitelist: true,
+        transform: true,
+      }),
     )
     data: EventPatchEntity,
     @UploadedIcon() icon?: Express.Multer.File,
@@ -160,17 +195,33 @@ export class EventController {
   @Put(":id")
   @Roles(Role.TEAM)
   @UseInterceptors(FileInterceptor("icon"))
-  @ApiOperation({ summary: "Replace an Event" })
-  @ApiConsumes("multipart/form-data")
-  @ApiBody({ type: EventCreateEntity })
-  @ApiParam({ name: "id", description: "ID must be set to the event's ID" })
-  @ApiOkResponse({ type: EventEntity })
-  @ApiAuth(Role.TEAM)
+  @ApiDoc({
+    summary: "Replace an Event",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to an event's ID",
+      },
+    ],
+    request: {
+      mimeTypes: ["multipart/form-data"],
+      body: { type: EventCreateEntity },
+      validate: true,
+    },
+    response: {
+      ok: { type: EventEntity },
+    },
+    auth: Role.TEAM,
+  })
   async replaceOne(
     @Param("id") id: string,
     @Body(
       new SanitizeFieldsPipe(["description"]),
-      new ValidationPipe({ transform: true, forbidUnknownValues: false }),
+      new ValidationPipe({
+        forbidNonWhitelisted: true,
+        whitelist: true,
+        transform: true,
+      }),
     )
     data: EventCreateEntity,
     @UploadedIcon() icon?: Express.Multer.File,
@@ -196,10 +247,19 @@ export class EventController {
   @Delete(":id")
   @Roles(Role.TEAM)
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: "Delete an Event" })
-  @ApiNoContentResponse()
-  @ApiParam({ name: "id", description: "ID must be set to the event's ID" })
-  @ApiAuth(Role.TEAM)
+  @ApiDoc({
+    summary: "Delete an Event",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to an event's ID",
+      },
+    ],
+    response: {
+      noContent: true,
+    },
+    auth: Role.TEAM,
+  })
   async deleteOne(@Param("id") id: string) {
     const event = await this.eventRepo.deleteOne(id).exec();
 
@@ -213,16 +273,39 @@ export class EventController {
   @Post(":id/check-in/user/:userId")
   @Roles(Role.TEAM)
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: "Check-In by Event" })
-  @ApiBody({ type: CreateScanEntity })
-  @ApiParam({ name: "id", description: "ID must be set to the event's ID" })
-  @ApiParam({ name: "userId", description: "ID must be set to a user's ID" })
-  @ApiNoContentResponse()
-  @ApiAuth(Role.TEAM)
+  @ApiDoc({
+    summary: "Check-In by Event",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to an event's ID",
+      },
+      {
+        name: "userId",
+        description: "ID must be set to a user's ID",
+      },
+    ],
+    request: {
+      body: { type: CreateScanEntity },
+      validate: true,
+    },
+    response: {
+      noContent: true,
+    },
+    auth: Role.TEAM,
+    dbException: true,
+  })
   async checkInEvent(
     @Param("id") id: string,
     @Param("userId") userId: string,
-    @Body() data: CreateScanEntity,
+    @Body(
+      new ValidationPipe({
+        forbidNonWhitelisted: true,
+        whitelist: true,
+        transform: true,
+      }),
+    )
+    data: CreateScanEntity,
   ) {
     const hasEvent = await this.eventRepo.findOne(id).exec();
 
@@ -230,14 +313,12 @@ export class EventController {
       throw new HttpException("event not found", HttpStatus.BAD_REQUEST);
     }
 
-    const { hackathonId, ...rest } = data;
-
     await this.scanRepo
       .createOne({
-        ...rest,
+        ...data,
         userId,
         eventId: id,
       })
-      .byHackathon(hackathonId);
+      .byHackathon(data.hackathonId);
   }
 }

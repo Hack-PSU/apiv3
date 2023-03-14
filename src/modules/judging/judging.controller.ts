@@ -1,8 +1,7 @@
-import { Controller, Get } from "@nestjs/common";
+import { Controller, Get, UseFilters } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
 import { Project, ProjectEntity } from "entities/project.entity";
 import { Score, ScoreEntity } from "entities/score.entity";
-import * as _ from "lodash";
 import {
   ApiExtraModels,
   ApiOkResponse,
@@ -14,6 +13,8 @@ import {
 import { ApiAuth } from "common/docs/api-auth.decorator";
 import { Role, Roles } from "common/gcp";
 import { OrganizerEntity } from "entities/organizer.entity";
+import { ApiDoc } from "common/docs";
+import { DBExceptionFilter } from "common/filters";
 
 class ScoreBreakdownJudgeEntity extends OmitType(OrganizerEntity, [
   "privilege",
@@ -46,6 +47,7 @@ class ProjectBreakdownEntity extends OmitType(ProjectEntity, [
 
 @ApiTags("Judging")
 @Controller("judging")
+@UseFilters(DBExceptionFilter)
 @ApiExtraModels(ProjectBreakdownEntity)
 export class JudgingController {
   constructor(
@@ -57,9 +59,13 @@ export class JudgingController {
 
   @Get("/breakdown")
   @Roles(Role.TEAM)
-  @ApiOperation({ summary: "Get Score Breakdowns By Project" })
-  @ApiOkResponse({ type: [ProjectBreakdownEntity] })
-  @ApiAuth(Role.TEAM)
+  @ApiDoc({
+    summary: "Get Score Breakdowns By Project",
+    response: {
+      ok: { type: [ProjectBreakdownEntity] },
+    },
+    auth: Role.TEAM,
+  })
   async getBreakdown() {
     // withGraphJoined creates a single join query allowing for modifiers
     // to be applied unlike withGraphFetched, which generates more than 1 query

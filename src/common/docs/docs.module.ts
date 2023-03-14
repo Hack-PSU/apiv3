@@ -1,4 +1,4 @@
-import { INestApplication, Module } from "@nestjs/common";
+import { INestApplication } from "@nestjs/common";
 import { OpenAPIObject } from "@nestjs/swagger";
 import { resolve } from "url";
 import * as handlebars from "handlebars";

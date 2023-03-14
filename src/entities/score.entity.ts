@@ -2,6 +2,9 @@ import { Column, ID, Table } from "common/objection";
 import { Entity } from "entities/base.entity";
 import Objection, { raw } from "objection";
 import { ApiProperty, PickType } from "@nestjs/swagger";
+import { IsBoolean, IsNumber, IsOptional, IsString } from "class-validator";
+import { ControllerMethod } from "common/validation";
+import { Expose } from "class-transformer";
 
 @Table({
   name: "scores",
@@ -37,55 +40,71 @@ import { ApiProperty, PickType } from "@nestjs/swagger";
   },
 })
 export class Score extends Entity {
+  @ID()
   @ApiProperty()
-  @ID({ type: "integer" })
+  @IsNumber()
   id: number;
 
   @ApiProperty()
+  @IsNumber()
   @Column({ type: "integer", required: false })
   creativity: number;
 
   @ApiProperty()
+  @IsNumber()
   @Column({ type: "integer", required: false })
   technical: number;
 
   @ApiProperty()
+  @IsNumber()
   @Column({ type: "integer", required: false })
   implementation: number;
 
   @ApiProperty()
+  @IsNumber()
   @Column({ type: "integer", required: false })
   clarity: number;
 
   @ApiProperty()
+  @IsNumber()
   @Column({ type: "integer", required: false })
   growth: number;
 
   @ApiProperty()
+  @IsNumber()
   @Column({ type: "integer", required: false })
   energy: number;
 
   @ApiProperty()
+  @IsNumber()
   @Column({ type: "integer", required: false })
   supplyChain: number;
 
   @ApiProperty()
+  @IsNumber()
   @Column({ type: "integer", required: false })
   environmental: number;
 
   @ApiProperty({ required: false, default: "Current Hackathon" })
+  @IsOptional()
+  @IsString()
   @Column({ type: "string", required: false })
   hackathonId: string;
 
   @ApiProperty()
+  @IsString()
+  @Expose({ groups: [ControllerMethod.POST] })
   @Column({ type: "string" })
   judgeId: string;
 
   @ApiProperty()
+  @IsNumber()
+  @Expose({ groups: [ControllerMethod.POST] })
   @Column({ type: "integer" })
   projectId: number;
 
   @ApiProperty()
+  @IsBoolean()
   @Column({ type: "boolean", required: false })
   submitted: boolean;
 

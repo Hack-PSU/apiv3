@@ -10,27 +10,20 @@ import {
   Patch,
   Post,
   Put,
+  UseFilters,
   ValidationPipe,
 } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
 import { Organizer, OrganizerEntity } from "entities/organizer.entity";
 import { SocketGateway } from "modules/socket/socket.gateway";
-import {
-  ApiBody,
-  ApiNoContentResponse,
-  ApiOkResponse,
-  ApiOperation,
-  ApiParam,
-  ApiTags,
-  OmitType,
-  PartialType,
-} from "@nestjs/swagger";
+import { ApiTags, OmitType, PartialType } from "@nestjs/swagger";
 import { FirebaseAuthService, RestrictedRoles, Role, Roles } from "common/gcp";
 import { take, toArray } from "rxjs";
 import { OrganizerService } from "modules/organizer/organizer.service";
 import { SocketRoom } from "common/socket";
 import { ControllerMethod } from "common/validation";
-import { ApiEndpoint } from "common/docs";
+import { ApiDoc } from "common/docs";
+import { DBExceptionFilter } from "common/filters";
 
 class OrganizerCreateEntity extends OrganizerEntity {}
 
@@ -42,6 +35,7 @@ class OrganizerUpdateEntity extends PartialType(OrganizerReplaceEntity) {}
 
 @ApiTags("Organizers")
 @Controller("organizers")
+@UseFilters(DBExceptionFilter)
 export class OrganizerController {
   constructor(
     @InjectRepository(Organizer)
@@ -53,7 +47,7 @@ export class OrganizerController {
 
   @Get("/")
   @Roles(Role.EXEC)
-  @ApiEndpoint({
+  @ApiDoc({
     summary: "Get All Organizers",
     response: {
       ok: { type: OrganizerEntity },
@@ -68,14 +62,14 @@ export class OrganizerController {
 
   @Post("/")
   @Roles(Role.EXEC)
-  @ApiEndpoint({
+  @ApiDoc({
     summary: "Create an Organizer",
     request: {
       body: { type: OrganizerCreateEntity },
       validate: true,
     },
     response: {
-      ok: { type: OrganizerEntity },
+      created: { type: OrganizerEntity },
     },
     auth: Role.EXEC,
   })
@@ -114,7 +108,7 @@ export class OrganizerController {
     predicate: (req) => req.user && req.user.sub === req.params.id,
   })
   @Roles(Role.EXEC)
-  @ApiEndpoint({
+  @ApiDoc({
     summary: "Get an Organizer",
     auth: Role.TEAM,
     restricted: true,
@@ -133,7 +127,7 @@ export class OrganizerController {
 
   @Patch(":id")
   @Roles(Role.EXEC)
-  @ApiEndpoint({
+  @ApiDoc({
     summary: "Patch an Organizer",
     params: [
       {
@@ -167,8 +161,8 @@ export class OrganizerController {
     const { privilege, ...rest } = data;
     const organizer = await this.organizerRepo.patchOne(id, rest).exec();
 
-    if (data.privilege) {
-      await this.auth.updateUserClaims(id, data.privilege);
+    if (privilege) {
+      await this.auth.updateUserClaims(id, privilege);
     }
 
     this.socket.emit("update:organizer", organizer, SocketRoom.ADMIN);
@@ -178,7 +172,7 @@ export class OrganizerController {
 
   @Put(":id")
   @Roles(Role.EXEC)
-  @ApiEndpoint({
+  @ApiDoc({
     summary: "Replace an Organizer",
     params: [
       {
@@ -218,7 +212,7 @@ export class OrganizerController {
   @Delete(":id")
   @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(Role.EXEC)
-  @ApiEndpoint({
+  @ApiDoc({
     summary: "Delete an Organizer",
     params: [
       {

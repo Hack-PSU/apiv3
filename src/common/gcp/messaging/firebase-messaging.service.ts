@@ -4,16 +4,18 @@ import {
   DefaultTopic,
   Payload,
 } from "common/gcp/messaging/firebase-messaging.types";
-import { FirestoreModel, InjectFirestoreModel } from "common/gcp/firestore";
+import { FirestoreModel } from "common/gcp/firestore";
 import { catchError, from, map, Observable } from "rxjs";
 import { FirestoreUser } from "entities/firestore-user.entity";
+import { DateTime } from "luxon";
 
 @Injectable()
 export class FirebaseMessagingService {
-  constructor(
-    @InjectFirestoreModel(FirestoreUser)
-    private readonly users: FirestoreModel<FirestoreUser>,
-  ) {}
+  private get users(): FirestoreModel<FirestoreUser> {
+    return admin
+      .firestore()
+      .collection("users") as FirestoreModel<FirestoreUser>;
+  }
 
   private static _clickableNotification = {
     android: {
@@ -30,14 +32,14 @@ export class FirebaseMessagingService {
     },
   };
 
-  private getFcmToken(pin: string): Observable<string | null> {
-    return from(this.users.doc(pin).get()).pipe(
+  private getFcmToken(userId: string): Observable<string | null> {
+    return from(this.users.doc(userId).get()).pipe(
       map((user) => user.get("token")),
       catchError(() => null),
     );
   }
 
-  private static _createDataPayload(
+  private createDataPayload(
     data?: Record<string, string>,
     scheduleTime?: number,
   ) {
@@ -52,15 +54,12 @@ export class FirebaseMessagingService {
     };
   }
 
-  async sendTokenMessage(userPin: string, payload: Payload) {
+  async sendTokenMessage(userId: string, payload: Payload) {
     const { title, scheduleTime, data, body, isClickable } = payload;
 
-    const payloadData = FirebaseMessagingService._createDataPayload(
-      data,
-      scheduleTime,
-    );
+    const payloadData = this.createDataPayload(data, scheduleTime);
 
-    from(this.getFcmToken(userPin)).pipe(
+    from(this.getFcmToken(userId)).pipe(
       map<string, admin.messaging.TokenMessage>((token) => ({
         token,
         data: payloadData,
@@ -77,10 +76,7 @@ export class FirebaseMessagingService {
   async sendTopicMessage(topic: DefaultTopic | string, payload: Payload) {
     const { title, body, isClickable, scheduleTime, data } = payload;
 
-    const payloadData = FirebaseMessagingService._createDataPayload(
-      data,
-      scheduleTime,
-    );
+    const payloadData = this.createDataPayload(data, scheduleTime);
 
     const message: admin.messaging.TopicMessage = {
       ...(isClickable ? FirebaseMessagingService._clickableNotification : {}),
@@ -93,5 +89,14 @@ export class FirebaseMessagingService {
     };
 
     await admin.messaging().send(message);
+  }
+
+  async register(userId: string, fcmToken: string, topic: DefaultTopic) {
+    await this.users.doc(userId).set({
+      token: fcmToken,
+      updatedAt: DateTime.now().toUnixInteger(),
+    });
+
+    await admin.messaging().subscribeToTopic(fcmToken, topic);
   }
 }

@@ -7,15 +7,28 @@ export const firebaseConfig = registerAs<FirebaseConfig>(
   ConfigToken.GCP,
   () => {
     if (process.env.GOOGLE_CERT) {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const serviceAccount = require(process.env.GOOGLE_CERT);
-      return {
-        credential: admin.credential.cert(serviceAccount),
-        storageBucket: `${process.env.STAGING_STORAGE}.appspot.com`,
-      };
+      if (process.env.NODE_ENV && process.env.NODE_ENV === "production") {
+        const cert = JSON.parse(process.env.GOOGLE_CERT);
+        return {
+          credential: admin.credential.cert({
+            projectId: cert.project_id,
+            privateKey: cert.private_key,
+            clientEmail: cert.client_email,
+          }),
+          storageBucket: `${process.env.STORAGE_BUCKET}.appspot.com`,
+        };
+      } else {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const serviceAccount = require(process.env.GOOGLE_CERT);
+        return {
+          credential: admin.credential.cert(serviceAccount),
+          storageBucket: `${process.env.STORAGE_BUCKET}.appspot.com`,
+        };
+      }
     } else {
       return {
         credential: admin.credential.applicationDefault(),
+        storageBucket: `${process.env.STORAGE_BUCKET}.appspot.com`,
       };
     }
   },

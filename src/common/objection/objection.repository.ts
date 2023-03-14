@@ -1,5 +1,5 @@
 import { Entity } from "entities/base.entity";
-import { ModelClass } from "objection";
+import { MaybeCompositeId, ModelClass } from "objection";
 import { Injectable } from "@nestjs/common";
 import { QueryBuilder } from "common/objection/query-builder";
 import { Hackathon } from "entities/hackathon.entity";
@@ -59,7 +59,7 @@ export class Repository<TEntity extends Entity = Entity> {
     };
   }
 
-  findOne(id: string | number): StagedQuery<TEntity> {
+  findOne(id: MaybeCompositeId): StagedQuery<TEntity> {
     return this._stageQuery((qb) => qb.findById(id));
   }
 

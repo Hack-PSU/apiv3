@@ -2,6 +2,7 @@ export enum ControllerMethod {
   GET = "GET",
   POST = "POST",
   REPLACE = "PUT",
-  UPDATE = "PATCH",
+  PATCH = "PATCH",
   DELETE = "DELETE",
+  BATCH = "BATCH",
 }

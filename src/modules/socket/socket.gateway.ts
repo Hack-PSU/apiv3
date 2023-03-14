@@ -1,6 +1,7 @@
-import { UseGuards } from "@nestjs/common";
+import { UseGuards, ValidationPipe } from "@nestjs/common";
 import {
   ConnectedSocket,
+  MessageBody,
   OnGatewayConnection,
   OnGatewayInit,
   SubscribeMessage,
@@ -10,12 +11,16 @@ import {
 import { Server, Socket } from "socket.io";
 import { SocketRoom } from "common/socket";
 import { Role, Roles, RolesGuard } from "common/gcp";
+import { DefaultTopic, FirebaseMessagingService } from "common/gcp/messaging";
+import { MobilePingBody } from "modules/socket/socket.interface";
 
 @WebSocketGateway({
   namespace: "socket",
 })
 export class SocketGateway implements OnGatewayInit, OnGatewayConnection {
   @WebSocketServer() public socket: Server;
+
+  constructor(private readonly fcmService: FirebaseMessagingService) {}
 
   afterInit(server: Server) {
     this.socket = server;
@@ -39,8 +44,20 @@ export class SocketGateway implements OnGatewayInit, OnGatewayConnection {
   @UseGuards(RolesGuard)
   @Roles(Role.NONE)
   @SubscribeMessage("ping:mobile")
-  private handleMobilePing(@ConnectedSocket() socket: Socket) {
+  private async handleMobilePing(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody(
+      new ValidationPipe({
+        forbidNonWhitelisted: true,
+        whitelist: true,
+        transform: true,
+      }),
+    )
+    data: MobilePingBody,
+  ) {
     socket.join(SocketRoom.MOBILE);
+
+    await this.fcmService.register(data.userId, data.token, DefaultTopic.ALL);
   }
 
   @UseGuards(RolesGuard)

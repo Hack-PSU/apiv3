@@ -3,4 +3,5 @@ export enum ConfigToken {
   GCP = "GCP",
   MJML = "MJML",
   FirebaseWeb = "FirebaseWeb",
+  SENDGRID = "SENDGRID",
 }

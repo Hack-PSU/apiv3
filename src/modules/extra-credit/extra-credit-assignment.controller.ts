@@ -1,15 +1,17 @@
-import { Controller, Get, Param } from "@nestjs/common";
+import { Controller, Get, Param, UseFilters } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
 import {
   ExtraCreditAssignment,
   ExtraCreditAssignmentEntity,
 } from "entities/extra-credit-assignment.entity";
-import { ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
-import { ApiAuth } from "common/docs/api-auth.decorator";
+import { ApiTags } from "@nestjs/swagger";
 import { Role, Roles } from "common/gcp";
+import { ApiDoc } from "common/docs";
+import { DBExceptionFilter } from "common/filters";
 
 @ApiTags("Extra Credit")
 @Controller("extra-credit/assignments")
+@UseFilters(DBExceptionFilter)
 export class ExtraCreditAssignmentController {
   constructor(
     @InjectRepository(ExtraCreditAssignment)
@@ -18,19 +20,14 @@ export class ExtraCreditAssignmentController {
 
   @Get("/")
   @Roles(Role.TEAM)
-  @ApiOperation({ summary: "Get All Extra Credit Assignments" })
-  @ApiOkResponse({ type: [ExtraCreditAssignmentEntity] })
-  @ApiAuth(Role.TEAM)
+  @ApiDoc({
+    summary: "Get All Extra Credit Assignments",
+    response: {
+      ok: { type: [ExtraCreditAssignmentEntity] },
+    },
+    auth: Role.TEAM,
+  })
   async getAll() {
     return this.ecAssignmentRepo.findAll().exec();
-  }
-
-  @Get(":id")
-  @Roles(Role.TEAM)
-  @ApiOperation({ summary: "Get an Extra Credit Assignment" })
-  @ApiOkResponse({ type: ExtraCreditAssignmentEntity })
-  @ApiAuth(Role.TEAM)
-  async getOne(@Param("id") id: number) {
-    return this.ecAssignmentRepo.findOne(id).exec();
   }
 }
