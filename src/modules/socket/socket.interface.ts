@@ -7,3 +7,8 @@ export class MobilePingBody {
   @IsString()
   token: string;
 }
+
+export class AdminPingBody {
+  @IsString()
+  userId: string;
+}

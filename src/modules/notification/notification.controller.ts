@@ -4,16 +4,32 @@ import {
   HttpCode,
   HttpException,
   HttpStatus,
+  Param,
   Post,
+  Req,
+  UnauthorizedException,
   ValidationPipe,
 } from "@nestjs/common";
-import { FirebaseMessagingService } from "common/gcp/messaging";
+import { DefaultTopic, FirebaseMessagingService } from "common/gcp/messaging";
 import {
   BroadcastMessageEntity,
   UserMessageEntity,
 } from "modules/notification/notification.interface";
 import { Role, Roles } from "common/gcp";
-import { ApiDoc } from "common/docs";
+import { ApiDoc, BadRequestExceptionResponse } from "common/docs";
+import { ApiProperty } from "@nestjs/swagger";
+import { IsString } from "class-validator";
+import { Request } from "express";
+
+class RegisterDeviceBody {
+  @ApiProperty()
+  @IsString()
+  userId: string;
+
+  @ApiProperty()
+  @IsString()
+  token: string;
+}
 
 @Controller("notifications")
 export class NotificationController {
@@ -63,6 +79,12 @@ export class NotificationController {
     },
     response: {
       noContent: true,
+      custom: [
+        {
+          status: HttpStatus.BAD_REQUEST,
+          type: BadRequestExceptionResponse,
+        },
+      ],
     },
     dbException: false,
     auth: Role.TEAM,
@@ -87,5 +109,32 @@ export class NotificationController {
       ...payload,
       isClickable: payload.metadata && payload.metadata.link,
     });
+  }
+
+  @Post("/register/device/:deviceId")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Roles(Role.NONE)
+  @ApiDoc({
+    summary: "Register Mobile User Device to Notifications Service",
+    auth: Role.NONE,
+    params: [
+      {
+        name: "deviceId",
+        description: "ID must be set to a valid FCM token",
+      },
+    ],
+    response: {
+      noContent: true,
+    },
+  })
+  async registerUser(@Req() req: Request, @Param("deviceId") deviceId: string) {
+    if (!req.user || !("sub" in req.user)) {
+      throw new UnauthorizedException();
+    }
+
+    const userId = String(req.user.sub);
+
+    await this.fcmService.register(userId, deviceId);
+    await this.fcmService.subscribeTo(deviceId, DefaultTopic.ALL);
   }
 }

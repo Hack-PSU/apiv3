@@ -11,6 +11,8 @@ import {
   Post,
   Put,
   Query,
+  Req,
+  UnauthorizedException,
   UseFilters,
   UseInterceptors,
   ValidationPipe,
@@ -23,12 +25,13 @@ import { SocketGateway } from "modules/socket/socket.gateway";
 import { nanoid } from "nanoid";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { UploadedIcon } from "modules/event/uploaded-icon.decorator";
-import { Express } from "express";
+import { Express, Request } from "express";
 import { EventService } from "modules/event/event.service";
 import { Scan, ScanEntity } from "entities/scan.entity";
 import { Role, Roles } from "common/gcp";
-import { ApiDoc } from "common/docs";
+import { ApiDoc, BadRequestExceptionResponse } from "common/docs";
 import { DBExceptionFilter } from "common/filters";
+import { FirebaseMessagingService } from "common/gcp/messaging";
 
 class EventCreateEntity extends OmitType(EventEntity, ["id", "icon"] as const) {
   @ApiProperty({ type: "string", format: "binary", required: false })
@@ -51,6 +54,7 @@ export class EventController {
     private readonly eventRepo: Repository<Event>,
     @InjectRepository(Scan)
     private readonly scanRepo: Repository<Scan>,
+    private readonly fcmService: FirebaseMessagingService,
     private readonly socket: SocketGateway,
     private readonly eventService: EventService,
   ) {}
@@ -270,6 +274,85 @@ export class EventController {
     return event;
   }
 
+  @Post(":id/notifications/subscribe")
+  @Roles(Role.NONE)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiDoc({
+    summary: "Subscribe User to Event",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to an event's ID",
+      },
+    ],
+    auth: Role.NONE,
+    response: {
+      noContent: true,
+      custom: [
+        {
+          status: HttpStatus.BAD_REQUEST,
+          type: BadRequestExceptionResponse,
+        },
+      ],
+    },
+  })
+  async subscribeToEvent(@Req() req: Request, @Param("id") eventId: string) {
+    if (!req.user || !("sub" in req.user)) {
+      throw new UnauthorizedException();
+    }
+
+    const userId = String(req.user.sub);
+    const success = await this.fcmService.subscribeUsingId(userId, eventId);
+
+    if (!success) {
+      throw new HttpException(
+        "Unable to subscribe user to event",
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  @Post(":id/notifications/unsubscribe")
+  @Roles(Role.NONE)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiDoc({
+    summary: "Unsubscribe User From Event",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to an event's ID",
+      },
+    ],
+    auth: Role.NONE,
+    response: {
+      noContent: true,
+      custom: [
+        {
+          status: HttpStatus.BAD_REQUEST,
+          type: BadRequestExceptionResponse,
+        },
+      ],
+    },
+  })
+  async unsubscribeFromEvent(
+    @Req() req: Request,
+    @Param("id") eventId: string,
+  ) {
+    if (!req.user || !("sub" in req.user)) {
+      throw new UnauthorizedException();
+    }
+
+    const userId = String(req.user.sub);
+    const success = await this.fcmService.unsubscribeUsingId(userId, eventId);
+
+    if (!success) {
+      throw new HttpException(
+        "Unable to unsubscribe user from event",
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
   @Post(":id/check-in/user/:userId")
   @Roles(Role.TEAM)
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -307,9 +390,9 @@ export class EventController {
     )
     data: CreateScanEntity,
   ) {
-    const hasEvent = await this.eventRepo.findOne(id).exec();
+    const event = await this.eventRepo.findOne(id).exec();
 
-    if (!hasEvent) {
+    if (!event) {
       throw new HttpException("event not found", HttpStatus.BAD_REQUEST);
     }
 
@@ -320,5 +403,10 @@ export class EventController {
         eventId: id,
       })
       .byHackathon(data.hackathonId);
+
+    await this.fcmService.sendTokenMessage(userId, {
+      title: "Check-in",
+      body: `You have just checked-in to ${event.name}`,
+    });
   }
 }

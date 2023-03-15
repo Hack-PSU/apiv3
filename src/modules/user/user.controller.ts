@@ -132,7 +132,8 @@ export class UserController {
     response: {
       created: { type: UserEntity },
     },
-    auth: Role.TEAM,
+    restricted: true,
+    auth: Role.NONE,
   })
   async createOne(
     @Body(

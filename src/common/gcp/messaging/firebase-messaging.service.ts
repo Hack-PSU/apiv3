@@ -32,11 +32,14 @@ export class FirebaseMessagingService {
     },
   };
 
-  private getFcmToken(userId: string): Observable<string | null> {
-    return from(this.users.doc(userId).get()).pipe(
-      map((user) => user.get("token")),
-      catchError(() => null),
-    );
+  private async getFcmToken(userId: string): Promise<string | null> {
+    const user = await this.users.doc(userId).get();
+
+    if (!user) {
+      return null;
+    }
+
+    return user.get("token");
   }
 
   private createDataPayload(
@@ -91,12 +94,42 @@ export class FirebaseMessagingService {
     await admin.messaging().send(message);
   }
 
-  async register(userId: string, fcmToken: string, topic: DefaultTopic) {
-    await this.users.doc(userId).set({
+  async register(userId: string, fcmToken: string) {
+    return this.users.doc(userId).set({
       token: fcmToken,
       updatedAt: DateTime.now().toUnixInteger(),
     });
+  }
 
+  async subscribeTo(fcmToken: string, topic: DefaultTopic | string) {
     await admin.messaging().subscribeToTopic(fcmToken, topic);
+  }
+
+  async unsubscribeTo(fcmToken: string, topic: DefaultTopic | string) {
+    await admin.messaging().unsubscribeFromTopic(fcmToken, topic);
+  }
+
+  async subscribeUsingId(userId: string, topic: string): Promise<boolean> {
+    const fcmToken = await this.getFcmToken(userId);
+
+    if (!fcmToken) {
+      return false;
+    }
+
+    await this.subscribeTo(fcmToken, topic);
+
+    return true;
+  }
+
+  async unsubscribeUsingId(userId: string, topic: string): Promise<boolean> {
+    const fcmToken = await this.getFcmToken(userId);
+
+    if (!fcmToken) {
+      return false;
+    }
+
+    await this.unsubscribeTo(fcmToken, topic);
+
+    return true;
   }
 }
