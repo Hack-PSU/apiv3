@@ -17,10 +17,15 @@ import { IsOptional, IsString } from "class-validator";
     },
   },
   modifiers: {
-    scoreAvg: (qb) =>
+    scoreAvg: async (qb) =>
       qb
         .select("projects.*", raw("AVG(scores.total)").as("average"))
-        .groupBy("projects.id", "scores.id"),
+        .groupBy(
+          "projects.id",
+          "scores.id",
+          "scores.projectId",
+          "scores.judgeId",
+        ),
   },
 })
 export class Project extends Entity {

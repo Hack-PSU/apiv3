@@ -21,6 +21,8 @@ import { ScanModule } from "modules/scan/scan.module";
 import { ExtraCreditModule } from "modules/extra-credit/extra-credit.module";
 import { SendGridModule } from "common/sendgrid";
 import { RegistrationModule } from "modules/registration/registration.module";
+import { AppleAuthModule } from "common/apple/apple-auth.module";
+import { AppleModule } from "modules/apple/apple.module";
 
 @Module({
   imports: [
@@ -53,6 +55,14 @@ import { RegistrationModule } from "modules/registration/registration.module";
       inject: [ConfigService],
     }),
 
+    // Apple
+    AppleAuthModule.forRoot({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) =>
+        configService.get(ConfigToken.APPLE),
+      inject: [ConfigService],
+    }),
+
     // Endpoints
     HackathonModule,
     LocationModule,
@@ -64,6 +74,7 @@ import { RegistrationModule } from "modules/registration/registration.module";
     ScanModule,
     ExtraCreditModule,
     RegistrationModule,
+    AppleModule,
 
     // WebSocket
     SocketModule,

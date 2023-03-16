@@ -28,15 +28,13 @@ import { Expose } from "class-transformer";
     },
   },
   modifiers: {
-    agg: (qb) =>
-      qb
-        .select(
-          "scores.*",
-          raw(
-            "SUM(creativity + technical + implementation + clarity + growth)",
-          ).as("total"),
-        )
-        .groupBy("scores.id"),
+    agg: async (qb) =>
+      qb.select(
+        "scores.*",
+        raw("creativity + technical + implementation + clarity + growth").as(
+          "total",
+        ),
+      ),
   },
 })
 export class Score extends Entity {
