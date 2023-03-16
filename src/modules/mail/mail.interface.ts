@@ -1,6 +1,7 @@
 import {
   IsArray,
   IsEmail,
+  IsNotEmpty,
   IsObject,
   IsOptional,
   IsString,
@@ -12,6 +13,7 @@ import { DefaultFromEmail } from "common/sendgrid/sendgrid.constants";
 
 export class SendMailBody {
   @ApiProperty({ required: true, example: "user@email.com" })
+  @IsNotEmpty()
   @IsArray({ each: true })
   @IsEmail()
   to: string[];
@@ -62,6 +64,7 @@ export class SendBatchMailBody extends OmitType(SendMailBody, [
   "data",
 ] as const) {
   @ApiProperty({ type: [SendBatchReceiver] })
+  @IsNotEmpty()
   @ValidateNested({ each: true })
   @Type(() => SendBatchReceiver)
   to: SendBatchReceiver[];

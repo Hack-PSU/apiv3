@@ -23,6 +23,7 @@ import { SendGridModule } from "common/sendgrid";
 import { RegistrationModule } from "modules/registration/registration.module";
 import { AppleAuthModule } from "common/apple/apple-auth.module";
 import { AppleModule } from "modules/apple/apple.module";
+import { FlagModule } from "modules/flag/flag.module";
 
 @Module({
   imports: [
@@ -75,6 +76,7 @@ import { AppleModule } from "modules/apple/apple.module";
     ExtraCreditModule,
     RegistrationModule,
     AppleModule,
+    FlagModule,
 
     // WebSocket
     SocketModule,
