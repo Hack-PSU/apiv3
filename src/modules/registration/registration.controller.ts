@@ -6,7 +6,7 @@ import { Role, Roles } from "common/gcp";
 import { ApiDoc } from "common/docs";
 
 @ApiTags("Registrations")
-@Controller()
+@Controller("registrations")
 export class RegistrationController {
   constructor(
     @InjectRepository(Registration)
