@@ -17,7 +17,9 @@ import {
 } from "modules/flag/flag.interface";
 import { Role, Roles } from "common/gcp";
 import { ApiDoc, BadRequestExceptionResponse } from "common/docs";
+import { ApiTags } from "@nestjs/swagger";
 
+@ApiTags("Feature Flags")
 @Controller("flags")
 export class FlagController {
   constructor(private readonly flagService: FeatureFlagService) {}

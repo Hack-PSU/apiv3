@@ -24,12 +24,13 @@ import { RegistrationModule } from "modules/registration/registration.module";
 import { AppleAuthModule } from "common/apple/apple-auth.module";
 import { AppleModule } from "modules/apple/apple.module";
 import { FlagModule } from "modules/flag/flag.module";
+import { appleConfig } from "common/config/apple.config";
 
 @Module({
   imports: [
     // Configs
     ConfigModule.forRoot({
-      load: [dbConfig, firebaseConfig, sendGridConfig],
+      load: [dbConfig, firebaseConfig, sendGridConfig, appleConfig],
     }),
 
     // Database
