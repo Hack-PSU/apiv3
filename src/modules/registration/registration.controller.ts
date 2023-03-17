@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from "@nestjs/common";
+import { Controller, Get, ParseBoolPipe, Query } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
 import { Registration, RegistrationEntity } from "entities/registration.entity";
 import { ApiTags } from "@nestjs/swagger";
@@ -20,21 +20,21 @@ export class RegistrationController {
     auth: Role.TEAM,
     query: [
       {
-        name: "hackathonId",
+        name: "all",
+        type: "boolean",
         required: false,
-        description:
-          "ID can be set to a hackathon's ID. Defaults to current hackathon.",
+        description: "Set all to true to return all registrations.",
       },
     ],
     response: {
       ok: { type: [RegistrationEntity] },
     },
   })
-  async getAll(@Query("hackathonId") hackathonId?: string) {
-    if (hackathonId) {
-      return this.registrationRepo.findAll().byHackathon(hackathonId);
-    } else {
+  async getAll(@Query("all", ParseBoolPipe) all?: boolean) {
+    if (all) {
       return this.registrationRepo.findAll().exec();
+    } else {
+      return this.registrationRepo.findAll().byHackathon();
     }
   }
 }
