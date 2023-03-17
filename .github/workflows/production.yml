@@ -1,11 +1,11 @@
-name: Deploy Staging API
+name: Deploy Production API
 
 on:
   workflow_dispatch:
   
 jobs:
   deploy:
-    name: Deploy to Staging
+    name: Deploy to Production
     runs-on: ubuntu-latest
     env:
       PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
