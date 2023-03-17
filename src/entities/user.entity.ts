@@ -1,16 +1,7 @@
 import { ApiProperty, PickType } from "@nestjs/swagger";
 import { Column, ID, Table } from "common/objection";
 import { Entity } from "entities/base.entity";
-import { Type } from "class-transformer";
-import Objection from "objection";
-import {
-  IsBoolean,
-  IsEmail,
-  IsNumber,
-  IsOptional,
-  IsString,
-} from "class-validator";
-import { Hackathon } from "entities/hackathon.entity";
+import { IsEmail, IsOptional, IsString } from "class-validator";
 
 @Table({
   name: "users",

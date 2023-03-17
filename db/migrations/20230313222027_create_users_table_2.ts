@@ -20,8 +20,8 @@ export async function up(knex: Knex): Promise<void> {
 
     t.enum("shirt_size", ["XS", "S", "M", "L", "XL", "XXL"]).notNullable();
 
-    t.string("dietary_restriction").nullable();
-    t.string("allergies").nullable();
+    t.text("dietary_restriction").nullable();
+    t.text("allergies").nullable();
 
     t.text("university").notNullable();
     t.text("email").notNullable();
