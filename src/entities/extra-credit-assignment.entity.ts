@@ -4,16 +4,15 @@ import { ApiProperty, PickType } from "@nestjs/swagger";
 
 @Table({
   name: "extraCreditAssignments",
+  disableByHackathon: true,
 })
 export class ExtraCreditAssignment extends Entity {
   @ID({ type: "string" })
   @ApiProperty()
-  @Column({ type: "string" })
   userId: string;
 
-  @ID({ type: "string" })
+  @ID({ type: "integer" })
   @ApiProperty()
-  @Column({ type: "integer" })
   classId: number;
 }
 

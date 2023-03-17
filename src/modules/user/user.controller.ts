@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -42,7 +43,7 @@ import {
   ExtraCreditAssignment,
   ExtraCreditAssignmentEntity,
 } from "entities/extra-credit-assignment.entity";
-import { ApiDoc } from "common/docs";
+import { ApiDoc, BadRequestExceptionResponse } from "common/docs";
 import { DBExceptionFilter } from "common/filters";
 import {
   DefaultFromEmail,
@@ -558,8 +559,45 @@ export class UserController {
       throw new HttpException("class not found", HttpStatus.BAD_REQUEST);
     }
 
-    return this.ecAssignmentRepo
-      .createOne({ userId: id, classId })
-      .byHackathon();
+    return this.ecAssignmentRepo.createOne({ userId: id, classId }).exec();
+  }
+
+  @Post(":id/extra-credit/unassign/:classId")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @RestrictedRoles({
+    roles: [Role.NONE, Role.VOLUNTEER],
+    predicate: (req) => req.user && req.user.sub === req.params.id,
+  })
+  @Roles(Role.TEAM)
+  @ApiDoc({
+    summary: "Unassign Extra Credit Class to User",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to a user's ID",
+      },
+      {
+        name: "classId",
+        description: "ID must be set to a class's ID",
+      },
+    ],
+    response: {
+      noContent: true,
+      custom: [
+        {
+          status: HttpStatus.BAD_REQUEST,
+          type: BadRequestExceptionResponse,
+        },
+      ],
+    },
+    auth: Role.NONE,
+    restricted: true,
+    dbException: true,
+  })
+  async unassignUserFromClass(
+    @Param("id") id: string,
+    @Param("classId", ParseIntPipe) classId: number,
+  ) {
+    return this.ecAssignmentRepo.deleteOne([id, classId]).exec();
   }
 }

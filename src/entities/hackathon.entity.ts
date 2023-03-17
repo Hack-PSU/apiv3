@@ -64,7 +64,7 @@ import { IsBoolean, IsNumber, IsString } from "class-validator";
       },
     },
     extraCreditAssignments: {
-      relation: Entity.HasManyRelation,
+      relation: Entity.ManyToManyRelation,
       modelClass: "extra-credit-assignment.entity.js",
       join: {
         from: "hackathons.id",

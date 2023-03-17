@@ -35,7 +35,6 @@ import { SocketRoom } from "common/socket";
 import { Role, Roles } from "common/gcp";
 import { ApiDoc } from "common/docs";
 import { ControllerMethod } from "common/validation";
-import { UniqueViolationError } from "objection";
 import { DBExceptionFilter } from "common/filters";
 
 class SponsorCreateEntity extends OmitType(SponsorEntity, [

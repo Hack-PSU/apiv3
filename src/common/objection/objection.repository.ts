@@ -79,7 +79,7 @@ export class Repository<TEntity extends Entity = Entity> {
     return this._stageQuery((qb) => qb.insertAndFetch(data));
   }
 
-  deleteOne(id: string | number): StagedQuery<TEntity> {
+  deleteOne(id: MaybeCompositeId): StagedQuery<TEntity> {
     return this._stageQuery((qb) => qb.deleteById(id));
   }
 }

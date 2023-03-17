@@ -76,7 +76,10 @@ export class EventController {
     auth: Role.NONE,
   })
   async getAll(@Query("hackathonId") hackathonId?: string) {
-    return this.eventRepo.findAll().byHackathon(hackathonId);
+    return this.eventRepo
+      .findAll()
+      .byHackathon(hackathonId)
+      .withGraphFetched("location");
   }
 
   @Post("/")
@@ -119,7 +122,8 @@ export class EventController {
         icon: iconUrl,
         ...data,
       })
-      .byHackathon(data.hackathonId);
+      .byHackathon(data.hackathonId)
+      .withGraphFetched("location");
 
     this.socket.emit("create:event", event);
 
@@ -142,7 +146,7 @@ export class EventController {
     auth: Role.NONE,
   })
   async getOne(@Param("id") id: string) {
-    return this.eventRepo.findOne(id).exec();
+    return this.eventRepo.findOne(id).raw().withGraphFetched("location");
   }
 
   @Patch(":id")
@@ -189,7 +193,8 @@ export class EventController {
 
     const event = await this.eventRepo
       .patchOne(id, { ...data, ...(iconUrl ? { icon: iconUrl } : {}) })
-      .exec();
+      .raw()
+      .withGraphFetched("location");
 
     this.socket.emit("update:event", event);
 
@@ -241,7 +246,8 @@ export class EventController {
 
     const event = await this.eventRepo
       .replaceOne(id, { ...data, icon: iconUrl })
-      .exec();
+      .raw()
+      .withGraphFetched("location");
 
     this.socket.emit("update:event", event);
 

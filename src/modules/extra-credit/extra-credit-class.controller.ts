@@ -10,7 +10,6 @@ import {
   Patch,
   Post,
   Put,
-  Query,
   UseFilters,
   ValidationPipe,
 } from "@nestjs/common";
@@ -21,14 +20,11 @@ import {
 } from "entities/extra-credit-class.entity";
 import {
   ApiExtraModels,
-  ApiOperation,
   ApiProperty,
   ApiTags,
   OmitType,
   PartialType,
 } from "@nestjs/swagger";
-import { Hackathon } from "entities/hackathon.entity";
-import { ApiAuth } from "common/docs/api-auth.decorator";
 import { Role, Roles } from "common/gcp";
 import { ApiDoc } from "common/docs";
 import { DBExceptionFilter } from "common/filters";
