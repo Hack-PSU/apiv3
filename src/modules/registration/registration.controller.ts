@@ -1,9 +1,34 @@
-import { Controller, Get, ParseBoolPipe, Query } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  ParseBoolPipe,
+  Query,
+  ValidationPipe,
+} from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
 import { Registration, RegistrationEntity } from "entities/registration.entity";
-import { ApiTags } from "@nestjs/swagger";
+import { ApiProperty, ApiTags } from "@nestjs/swagger";
 import { Role, Roles } from "common/gcp";
 import { ApiDoc } from "common/docs";
+import { IsBoolean, IsOptional } from "class-validator";
+import { Transform } from "class-transformer";
+
+class ActiveRegistrationParams {
+  @ApiProperty()
+  @IsOptional()
+  @IsBoolean()
+  @Transform(({ value }) => {
+    switch (value) {
+      case "true":
+        return true;
+      case "false":
+        return false;
+      default:
+        return undefined;
+    }
+  })
+  all?: boolean;
+}
 
 @ApiTags("Registrations")
 @Controller("registrations")
@@ -30,7 +55,10 @@ export class RegistrationController {
       ok: { type: [RegistrationEntity] },
     },
   })
-  async getAll(@Query("all", ParseBoolPipe) all?: boolean) {
+  async getAll(
+    @Query(new ValidationPipe({ transform: true }))
+    { all }: ActiveRegistrationParams,
+  ) {
     if (all) {
       return this.registrationRepo.findAll().exec();
     } else {
