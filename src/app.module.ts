@@ -25,6 +25,7 @@ import { AppleAuthModule } from "common/apple/apple-auth.module";
 import { AppleModule } from "modules/apple/apple.module";
 import { FlagModule } from "modules/flag/flag.module";
 import { appleConfig } from "common/config/apple.config";
+import { NotificationModule } from "modules/notification/notification.module";
 
 @Module({
   imports: [
@@ -78,6 +79,7 @@ import { appleConfig } from "common/config/apple.config";
     RegistrationModule,
     AppleModule,
     FlagModule,
+    NotificationModule,
 
     // WebSocket
     SocketModule,
