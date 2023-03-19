@@ -40,7 +40,7 @@ export class AppleAuthService {
 
     const data = {
       code: code,
-      client_id: "org.hackpsu.prod",
+      client_id: "org.hackpsu.prod", // matches AppleAuthConfig.sub
       client_secret: clientSecret,
       grant_type: "authorization_code",
     };

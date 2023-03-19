@@ -160,23 +160,6 @@ export class UserController {
       })
       .exec();
 
-    const message = await this.sendGridService.populateTemplate(
-      DefaultTemplate.registration,
-      {
-        previewText: "HackPSU Spring 2023 Registration",
-        date: "April 1st-2nd",
-        address: "Business Building, University Park PA",
-        firstName: data.firstName,
-      },
-    );
-
-    await this.sendGridService.send({
-      from: DefaultFromEmail,
-      to: data.email,
-      subject: "Thank you for your Registration",
-      message,
-    });
-
     this.socket.emit("create:user", user);
 
     return user;
@@ -404,12 +387,31 @@ export class UserController {
       throw new HttpException("Duplicate registration", HttpStatus.CONFLICT);
     }
 
-    return this.registrationRepo
+    const newRegistration = this.registrationRepo
       .createOne({
         userId: id,
         ...data,
       })
       .byHackathon();
+
+    const message = await this.sendGridService.populateTemplate(
+      DefaultTemplate.registration,
+      {
+        previewText: "HackPSU Spring 2023 Registration",
+        date: "April 1st-2nd",
+        address: "Business Building, University Park PA",
+        firstName: user.firstName,
+      },
+    );
+
+    await this.sendGridService.send({
+      from: DefaultFromEmail,
+      to: user.email,
+      subject: "Thank you for your Registration",
+      message,
+    });
+
+    return newRegistration;
   }
 
   @Get("info/me")

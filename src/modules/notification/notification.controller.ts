@@ -17,19 +17,7 @@ import {
 } from "modules/notification/notification.interface";
 import { Role, Roles } from "common/gcp";
 import { ApiDoc, BadRequestExceptionResponse } from "common/docs";
-import { ApiProperty } from "@nestjs/swagger";
-import { IsString } from "class-validator";
 import { Request } from "express";
-
-class RegisterDeviceBody {
-  @ApiProperty()
-  @IsString()
-  userId: string;
-
-  @ApiProperty()
-  @IsString()
-  token: string;
-}
 
 @Controller("notifications")
 export class NotificationController {
