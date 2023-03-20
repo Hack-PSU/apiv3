@@ -5,7 +5,6 @@ import {
   IsObject,
   IsOptional,
   IsString,
-  ValidateIf,
 } from "class-validator";
 import { DefaultTopic } from "common/gcp/messaging";
 
@@ -31,6 +30,7 @@ export class MessageEntity {
 
 export class UserMessageEntity extends MessageEntity {
   @ApiProperty()
+  @IsString()
   userId: string;
 }
 
