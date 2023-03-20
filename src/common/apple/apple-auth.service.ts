@@ -1,10 +1,4 @@
-import {
-  BadRequestException,
-  HttpException,
-  HttpStatus,
-  Inject,
-  Injectable,
-} from "@nestjs/common";
+import { BadRequestException, Inject, Injectable } from "@nestjs/common";
 import { AppleAuthConfigProvider } from "common/apple/apple-auth.constants";
 import { AppleAuthConfig } from "common/apple/apple-auth.types";
 import * as jwt from "jsonwebtoken";
@@ -25,8 +19,8 @@ export class AppleAuthService {
     return jwt.sign(
       {
         iss: this.appleAuthConfig.iss,
-        iat: Math.floor(DateTime.now().toMillis()),
-        exp: Math.floor(DateTime.now().toMillis()) + 3600,
+        iat: DateTime.now().toSeconds(),
+        exp: DateTime.now().toSeconds() + 120,
         aud: this.appleAuthConfig.aud,
         sub: this.appleAuthConfig.sub,
       },
@@ -43,12 +37,11 @@ export class AppleAuthService {
 
   async refreshToken(code: string) {
     const clientSecret = this.createClientSecret();
-    console.log(clientSecret);
 
     const data = {
-      client_id: "org.hackpsu.prod", // matches AppleAuthConfig.sub
-      client_secret: clientSecret,
       code: code,
+      client_id: "org.hackpsu.prod",
+      client_secret: clientSecret,
       grant_type: "authorization_code",
     };
 
@@ -63,10 +56,11 @@ export class AppleAuthService {
         },
       );
 
-      console.log(refreshToken);
-      return refreshToken;
+      return refreshToken.data.refresh_token;
     } catch (err) {
-      console.log(err);
+      if (process.env.ALLOW_CORS) {
+        console.error(err);
+      }
       return null;
     }
   }
