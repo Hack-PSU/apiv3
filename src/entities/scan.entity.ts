@@ -37,13 +37,11 @@ export class Scan extends Entity {
   @ID({ type: "string" })
   @ApiProperty()
   @IsString()
-  @Column({ type: "string" })
   eventId: string;
 
   @ID({ type: "string" })
   @ApiProperty()
   @IsString()
-  @Column({ type: "string" })
   userId: string;
 
   @Column({ type: "string" })

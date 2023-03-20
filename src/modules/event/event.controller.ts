@@ -32,6 +32,7 @@ import { Role, Roles } from "common/gcp";
 import { ApiDoc, BadRequestExceptionResponse } from "common/docs";
 import { DBExceptionFilter } from "common/filters";
 import { FirebaseMessagingService } from "common/gcp/messaging";
+import { User } from "entities/user.entity";
 
 class EventCreateEntity extends OmitType(EventEntity, ["id", "icon"] as const) {
   @ApiProperty({ type: "string", format: "binary", required: false })
@@ -54,6 +55,8 @@ export class EventController {
     private readonly eventRepo: Repository<Event>,
     @InjectRepository(Scan)
     private readonly scanRepo: Repository<Scan>,
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
     private readonly fcmService: FirebaseMessagingService,
     private readonly socket: SocketGateway,
     private readonly eventService: EventService,
@@ -397,9 +400,14 @@ export class EventController {
     data: CreateScanEntity,
   ) {
     const event = await this.eventRepo.findOne(id).exec();
+    const user = await this.userRepo.findOne(userId).exec();
 
     if (!event) {
       throw new HttpException("event not found", HttpStatus.BAD_REQUEST);
+    }
+
+    if (!user) {
+      throw new HttpException("user not found", HttpStatus.BAD_REQUEST);
     }
 
     await this.scanRepo
