@@ -29,7 +29,7 @@ import {
   PartialType,
 } from "@nestjs/swagger";
 import { SocketGateway } from "modules/socket/socket.gateway";
-import { RestrictedRoles, Role, Roles } from "common/gcp";
+import { FirebaseAuthService, RestrictedRoles, Role, Roles } from "common/gcp";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { UserService } from "modules/user/user.service";
 import { UploadedResume } from "modules/user/uploaded-resume.decorator";
@@ -105,6 +105,7 @@ export class UserController {
     private readonly socket: SocketGateway,
     private readonly userService: UserService,
     private readonly sendGridService: SendGridService,
+    private readonly auth: FirebaseAuthService,
   ) {}
 
   @Get("/")
@@ -160,6 +161,7 @@ export class UserController {
       })
       .exec();
 
+    await this.auth.updateUserClaims(user.id, 0);
     this.socket.emit("create:user", user);
 
     return user;

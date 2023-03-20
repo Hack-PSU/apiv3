@@ -27,7 +27,14 @@ export class FirebaseAuthService {
       return true;
     }
     return access.every(
-      fn ?? ((role) => user.privilege && user.privilege >= role),
+      fn ??
+        ((role) => {
+          if (role === Role.NONE && !user.privilege) {
+            return true;
+          } else {
+            return user.privilege && user.privilege >= role;
+          }
+        }),
     );
   }
 
