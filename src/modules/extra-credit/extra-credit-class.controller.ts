@@ -89,7 +89,7 @@ export class ExtraCreditClassController {
     )
     data: ECClassCreateEntity,
   ) {
-    return this.ecClassRepo.createOne(data).exec();
+    return this.ecClassRepo.createOne(data).byHackathon();
   }
 
   @Get(":id")
