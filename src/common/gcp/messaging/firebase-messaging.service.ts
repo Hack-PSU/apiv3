@@ -62,18 +62,19 @@ export class FirebaseMessagingService {
 
     const payloadData = this.createDataPayload(data, scheduleTime);
 
-    from(this.getFcmToken(userId)).pipe(
-      map<string, admin.messaging.TokenMessage>((token) => ({
-        token,
-        data: payloadData,
-        ...(isClickable ? FirebaseMessagingService._clickableNotification : {}),
-        notification: {
-          title,
-          body,
-        },
-      })),
-      map((message) => admin.messaging().send(message)),
-    );
+    const token = await this.getFcmToken(userId);
+
+    const message: admin.messaging.TokenMessage = {
+      token,
+      data: payloadData,
+      ...(isClickable ? FirebaseMessagingService._clickableNotification : {}),
+      notification: {
+        title,
+        body,
+      },
+    };
+
+    return admin.messaging().send(message);
   }
 
   async sendTopicMessage(topic: DefaultTopic | string, payload: Payload) {
