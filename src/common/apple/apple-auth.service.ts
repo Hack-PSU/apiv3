@@ -1,11 +1,11 @@
 import { BadRequestException, Inject, Injectable } from "@nestjs/common";
 import { AppleAuthConfigProvider } from "common/apple/apple-auth.constants";
 import { AppleAuthConfig } from "common/apple/apple-auth.types";
-import jwt from "jsonwebtoken";
+import * as jwt from "jsonwebtoken";
 import { DateTime } from "luxon";
 import { HttpService } from "@nestjs/axios";
-import { catchError, from, map, queueScheduler } from "rxjs";
-import qs from "qs";
+import { catchError, map } from "rxjs";
+import * as qs from "qs";
 
 @Injectable()
 export class AppleAuthService {
