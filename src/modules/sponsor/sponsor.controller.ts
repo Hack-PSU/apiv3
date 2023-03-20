@@ -32,7 +32,7 @@ import { UploadedLogo } from "modules/sponsor/uploaded-logo.decorator";
 import { Express } from "express";
 import { SponsorService } from "modules/sponsor/sponsor.service";
 import { SocketRoom } from "common/socket";
-import { Role, Roles } from "common/gcp";
+import { RestrictedRoles, Role, Roles } from "common/gcp";
 import { ApiDoc } from "common/docs";
 import { ControllerMethod } from "common/validation";
 import { DBExceptionFilter } from "common/filters";
@@ -70,6 +70,10 @@ export class SponsorController {
 
   @Get("/")
   @Roles(Role.TEAM)
+  @RestrictedRoles({
+    roles: [Role.NONE, Role.VOLUNTEER],
+    predicate: (req) => req.query.hackathonId === undefined,
+  })
   @ApiDoc({
     summary: "Get All Sponsors",
     query: [
@@ -81,6 +85,7 @@ export class SponsorController {
     response: {
       ok: { type: [SponsorEntity] },
     },
+    restricted: true,
     auth: Role.TEAM,
   })
   async getAll(@Query("hackathonId") hackathonId?: string) {
