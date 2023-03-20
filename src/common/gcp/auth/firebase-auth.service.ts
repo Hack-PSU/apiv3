@@ -64,7 +64,7 @@ export class FirebaseAuthService {
     const user = request.user;
 
     // check for intersecting roles
-    if (user && !access.includes(user.privilege)) {
+    if (user && user.privilege && !access.includes(user.privilege)) {
       return undefined;
     }
 
