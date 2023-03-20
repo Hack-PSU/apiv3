@@ -437,12 +437,16 @@ export class UserController {
       .raw()
       .withGraphFetched("registrations(active)");
 
-    const { registrations, ...data } = user;
+    if (user) {
+      const { registrations, ...data } = user;
 
-    return {
-      ...data,
-      registration: registrations[0] ?? null,
-    };
+      return {
+        ...data,
+        registration: registrations[0] ?? null,
+      };
+    } else {
+      return {};
+    }
   }
 
   @Post(":id/check-in/event/:eventId")

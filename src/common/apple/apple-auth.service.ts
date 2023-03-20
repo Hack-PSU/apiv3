@@ -1,4 +1,10 @@
-import { BadRequestException, Inject, Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+} from "@nestjs/common";
 import { AppleAuthConfigProvider } from "common/apple/apple-auth.constants";
 import { AppleAuthConfig } from "common/apple/apple-auth.types";
 import * as jwt from "jsonwebtoken";
@@ -15,12 +21,12 @@ export class AppleAuthService {
     private readonly httpService: HttpService,
   ) {}
 
-  private async createClientSecret() {
+  private createClientSecret() {
     return jwt.sign(
       {
         iss: this.appleAuthConfig.iss,
         iat: Math.floor(DateTime.now().toMillis()),
-        exp: Math.floor(DateTime.now().toMillis()) + 120,
+        exp: Math.floor(DateTime.now().toMillis()) + 3600,
         aud: this.appleAuthConfig.aud,
         sub: this.appleAuthConfig.sub,
       },
@@ -37,26 +43,32 @@ export class AppleAuthService {
 
   async refreshToken(code: string) {
     const clientSecret = this.createClientSecret();
+    console.log(clientSecret);
 
     const data = {
-      code: code,
       client_id: "org.hackpsu.prod", // matches AppleAuthConfig.sub
       client_secret: clientSecret,
+      code: code,
       grant_type: "authorization_code",
     };
 
-    return this.httpService
-      .post(`https://appleid.apple.com/auth/token`, qs.stringify(data), {
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
+    try {
+      const refreshToken = await this.httpService.axiosRef.post(
+        `https://appleid.apple.com/auth/token`,
+        qs.stringify(data),
+        {
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
         },
-      })
-      .pipe(
-        map((resp) => resp.data.refresh_token),
-        catchError(() => {
-          throw new BadRequestException("Invalid authorization code");
-        }),
       );
+
+      console.log(refreshToken);
+      return refreshToken;
+    } catch (err) {
+      console.log(err);
+      return null;
+    }
   }
 
   async revokeToken(refreshToken: string) {
