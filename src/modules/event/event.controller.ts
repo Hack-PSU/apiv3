@@ -19,7 +19,13 @@ import {
 } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
 import { Event, EventEntity } from "entities/event.entity";
-import { ApiProperty, ApiTags, OmitType, PartialType } from "@nestjs/swagger";
+import {
+  ApiExtraModels,
+  ApiProperty,
+  ApiTags,
+  OmitType,
+  PartialType,
+} from "@nestjs/swagger";
 import { SanitizeFieldsPipe } from "common/pipes";
 import { SocketGateway } from "modules/socket/socket.gateway";
 import { nanoid } from "nanoid";
@@ -33,6 +39,15 @@ import { ApiDoc, BadRequestExceptionResponse } from "common/docs";
 import { DBExceptionFilter } from "common/filters";
 import { FirebaseMessagingService } from "common/gcp/messaging";
 import { User } from "entities/user.entity";
+import { LocationEntity } from "entities/location.entity";
+
+class EventEntityResponse extends OmitType(EventEntity, ["wsUrls"] as const) {
+  @ApiProperty({ type: [String] })
+  wsUrls: string[];
+
+  @ApiProperty({ type: LocationEntity })
+  location: LocationEntity;
+}
 
 class EventCreateEntity extends OmitType(EventEntity, ["id", "icon"] as const) {
   @ApiProperty({ type: "string", format: "binary", required: false })
@@ -48,6 +63,7 @@ class CreateScanEntity extends OmitType(ScanEntity, [
 
 @ApiTags("Events")
 @Controller("events")
+@ApiExtraModels(EventEntityResponse)
 @UseFilters(DBExceptionFilter)
 export class EventController {
   constructor(
@@ -74,7 +90,7 @@ export class EventController {
       },
     ],
     response: {
-      ok: { type: [EventEntity] },
+      ok: { type: [EventEntityResponse] },
     },
     auth: Role.NONE,
   })
@@ -96,7 +112,7 @@ export class EventController {
       validate: true,
     },
     response: {
-      created: { type: EventEntity },
+      created: { type: EventEntityResponse },
     },
     auth: Role.TEAM,
   })
@@ -144,7 +160,7 @@ export class EventController {
       },
     ],
     response: {
-      ok: { type: EventEntity },
+      ok: { type: EventEntityResponse },
     },
     auth: Role.NONE,
   })
@@ -169,7 +185,7 @@ export class EventController {
       validate: true,
     },
     response: {
-      ok: { type: EventEntity },
+      ok: { type: EventEntityResponse },
     },
     auth: Role.TEAM,
   })
@@ -221,7 +237,7 @@ export class EventController {
       validate: true,
     },
     response: {
-      ok: { type: EventEntity },
+      ok: { type: EventEntityResponse },
     },
     auth: Role.TEAM,
   })

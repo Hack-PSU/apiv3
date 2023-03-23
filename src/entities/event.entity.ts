@@ -9,6 +9,7 @@ import {
   IsString,
   ValidateIf,
 } from "class-validator";
+import Objection from "objection";
 
 enum EventType {
   activity = "activity",
@@ -115,6 +116,15 @@ export class Event extends Entity {
   @IsString()
   @Column({ type: "string", nullable: true, required: false })
   hackathonId?: string;
+
+  $formatJson(json: Objection.Pojo): Objection.Pojo {
+    json = super.$formatJson(json);
+
+    return {
+      ...json,
+      wsUrls: json["wsUrls"].split("|"),
+    };
+  }
 }
 
 export class EventEntity extends PickType(Event, [
