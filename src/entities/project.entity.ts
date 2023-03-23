@@ -1,7 +1,6 @@
 import { Column, ID, Table } from "common/objection";
 import { Entity } from "entities/base.entity";
 import { ApiProperty, PickType } from "@nestjs/swagger";
-import { raw } from "objection";
 import { IsOptional, IsString } from "class-validator";
 
 @Table({
@@ -15,17 +14,6 @@ import { IsOptional, IsString } from "class-validator";
         to: "scores.projectId",
       },
     },
-  },
-  modifiers: {
-    scoreAvg: async (qb) =>
-      qb
-        .select("projects.*", raw("AVG(scores.total)").as("average"))
-        .groupBy(
-          "projects.id",
-          "scores.id",
-          "scores.projectId",
-          "scores.judgeId",
-        ),
   },
 })
 export class Project extends Entity {

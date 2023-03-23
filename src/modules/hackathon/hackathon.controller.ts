@@ -125,7 +125,7 @@ export class HackathonController {
     return [
       {
         ...activeHackathon,
-        checkInId: checkIn.id,
+        ...(checkIn ? { checkInId: checkIn.id } : {}),
       },
     ];
   }

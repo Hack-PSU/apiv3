@@ -32,11 +32,16 @@ import { IsBoolean, IsNumber, IsString } from "class-validator";
       },
     },
     users: {
-      relation: Entity.HasManyRelation,
+      relation: Entity.ManyToManyRelation,
       modelClass: "user.entity.js",
       join: {
         from: "hackathons.id",
-        to: "users.hackathonId",
+        through: {
+          modelClass: "registration.entity.js",
+          from: "registrations.hackathonId",
+          to: "registrations.userId",
+        },
+        to: "users.id",
       },
     },
     sponsors: {

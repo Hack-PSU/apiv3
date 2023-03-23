@@ -1,21 +1,19 @@
-import { Controller, Get, Param, UseFilters } from "@nestjs/common";
+import { Controller, Get, UseFilters } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
-import {
-  ExtraCreditAssignment,
-  ExtraCreditAssignmentEntity,
-} from "entities/extra-credit-assignment.entity";
 import { ApiTags } from "@nestjs/swagger";
 import { Role, Roles } from "common/gcp";
 import { ApiDoc } from "common/docs";
 import { DBExceptionFilter } from "common/filters";
+import { ExtraCreditClass } from "entities/extra-credit-class.entity";
+import { ECClassResponse } from "./extra-credit-class.controller";
 
 @ApiTags("Extra Credit")
 @Controller("extra-credit/assignments")
 @UseFilters(DBExceptionFilter)
 export class ExtraCreditAssignmentController {
   constructor(
-    @InjectRepository(ExtraCreditAssignment)
-    private readonly ecAssignmentRepo: Repository<ExtraCreditAssignment>,
+    @InjectRepository(ExtraCreditClass)
+    private readonly ecClassRepo: Repository<ExtraCreditClass>,
   ) {}
 
   @Get("/")
@@ -23,11 +21,11 @@ export class ExtraCreditAssignmentController {
   @ApiDoc({
     summary: "Get All Extra Credit Assignments",
     response: {
-      ok: { type: [ExtraCreditAssignmentEntity] },
+      ok: { type: [ECClassResponse] },
     },
     auth: Role.TEAM,
   })
   async getAll() {
-    return this.ecAssignmentRepo.findAll().exec();
+    return this.ecClassRepo.findAll().byHackathon().withGraphFetched("users");
   }
 }

@@ -5,7 +5,6 @@ import { IsEmail, IsOptional, IsString } from "class-validator";
 
 @Table({
   name: "users",
-  disableByHackathon: true,
   relationMappings: {
     extraCreditClasses: {
       relation: Entity.ManyToManyRelation,

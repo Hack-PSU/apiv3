@@ -2,12 +2,14 @@ import { ApiProperty, OmitType } from "@nestjs/swagger";
 import {
   IsArray,
   IsBoolean,
+  IsEnum,
   IsNotEmpty,
   IsOptional,
   IsString,
   ValidateNested,
 } from "class-validator";
 import { Type } from "class-transformer";
+import { SocketRoom } from "common/socket";
 
 export class FlagEntity {
   @ApiProperty()
@@ -26,6 +28,11 @@ export class ActivateFlagBody extends OmitType(FlagEntity, [
   @IsBoolean()
   @IsOptional()
   isEnabled?: boolean;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsEnum(SocketRoom)
+  broadcast?: SocketRoom;
 }
 
 export class PatchFlagsBody {

@@ -348,16 +348,4 @@ export class SponsorController {
 
     return sponsors;
   }
-
-  @Post("/test/uniqueness/1")
-  async testUniqueness() {
-    return this.sponsorRepo
-      .createOne({
-        id: 1,
-        name: "Sponsor1",
-        level: "Gold",
-        order: 1,
-      })
-      .byHackathon();
-  }
 }

@@ -36,9 +36,15 @@ class ECClassPatchEntity extends PartialType(ECClassCreateEntity) {}
 class ECClassAssignedUser {
   @ApiProperty()
   id: string;
+
+  @ApiProperty()
+  firstName: string;
+
+  @ApiProperty()
+  lastName: string;
 }
 
-class ECClassResponse extends ExtraCreditClassEntity {
+export class ECClassResponse extends ExtraCreditClassEntity {
   @ApiProperty({ type: [ECClassAssignedUser] })
   users: ECClassAssignedUser[];
 }

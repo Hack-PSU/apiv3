@@ -18,11 +18,15 @@ import {
 import { Role, Roles } from "common/gcp";
 import { ApiDoc, BadRequestExceptionResponse } from "common/docs";
 import { ApiTags } from "@nestjs/swagger";
+import { SocketGateway } from "modules/socket/socket.gateway";
 
 @ApiTags("Feature Flags")
 @Controller("flags")
 export class FlagController {
-  constructor(private readonly flagService: FeatureFlagService) {}
+  constructor(
+    private readonly flagService: FeatureFlagService,
+    private readonly socket: SocketGateway,
+  ) {}
 
   @Get("/")
   @Roles(Role.TEAM)
@@ -75,6 +79,10 @@ export class FlagController {
 
     if (!success) {
       throw new BadRequestException("Flag does not exist");
+    }
+
+    if (data.broadcast) {
+      this.socket.emit(`update:${data.name}`, {}, data.broadcast);
     }
   }
 

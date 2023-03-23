@@ -26,6 +26,7 @@ import { AppleModule } from "modules/apple/apple.module";
 import { FlagModule } from "modules/flag/flag.module";
 import { appleConfig } from "common/config/apple.config";
 import { NotificationModule } from "modules/notification/notification.module";
+import { AnalyticsModule } from "modules/analytics/analytics.module";
 
 @Module({
   imports: [
@@ -80,6 +81,7 @@ import { NotificationModule } from "modules/notification/notification.module";
     AppleModule,
     FlagModule,
     NotificationModule,
+    AnalyticsModule,
 
     // WebSocket
     SocketModule,

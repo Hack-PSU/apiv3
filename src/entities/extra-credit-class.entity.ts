@@ -17,7 +17,8 @@ import { IsNumber, IsOptional, IsString } from "class-validator";
     users: {
       relation: Entity.ManyToManyRelation,
       modelClass: "user.entity.js",
-      filter: (qb) => qb.select("users.id"),
+      filter: (qb) =>
+        qb.select("users.id", "users.firstName", "users.lastName"),
       join: {
         from: "extraCreditClasses.id",
         through: {

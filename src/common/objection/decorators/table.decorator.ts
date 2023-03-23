@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // ts-ignore required to inject static properties into constructor
 
-import { Model, Modifiers, Relation, RelationMappings } from "objection";
+import { Model, Modifiers, RelationMappings } from "objection";
 import { QueryBuilder } from "../query-builder";
 import {
   TableIDKey,
