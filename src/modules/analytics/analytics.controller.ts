@@ -37,7 +37,7 @@ class AcademicYearCounts extends CountsResponse {
 
 class CodingExpCounts extends CountsResponse {
   @ApiProperty()
-  codingExp: string;
+  codingExperience: string;
 }
 
 class AnalyticsSummaryResponse {
