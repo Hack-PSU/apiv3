@@ -51,6 +51,7 @@ import {
   SendGridService,
 } from "common/sendgrid";
 import { Registration, RegistrationEntity } from "entities/registration.entity";
+import * as admin from "firebase-admin";
 
 class UserCreateEntity extends OmitType(UserEntity, ["resume"] as const) {
   @ApiProperty({
@@ -331,6 +332,7 @@ export class UserController {
   async deleteOne(@Param("id") id: string) {
     const deletedUser = await this.userRepo.deleteOne(id).exec();
     await this.userService.deleteResume(id);
+    await admin.auth().deleteUser(id);
 
     this.socket.emit("update:user", id);
 
