@@ -246,7 +246,8 @@ export class SponsorController {
     const { darkLogo, lightLogo } = files;
 
     const currentSponsor = await this.sponsorRepo.findOne(id).exec();
-    let logoUrl = null;
+    let lightLogoUrl = null;
+    let darkLogoUrl = null;
 
     if (darkLogo) {
       await this.sponsorService.deleteLogo(
@@ -257,7 +258,7 @@ export class SponsorController {
         "dark",
       );
 
-      logoUrl = await this.sponsorService.uploadLogo(
+      darkLogoUrl = await this.sponsorService.uploadLogo(
         {
           id,
           name: data.name ?? currentSponsor.name,
@@ -276,7 +277,7 @@ export class SponsorController {
         "light",
       );
 
-      await this.sponsorService.uploadLogo(
+      lightLogoUrl = await this.sponsorService.uploadLogo(
         {
           id,
           name: data.name ?? currentSponsor.name,
@@ -289,7 +290,8 @@ export class SponsorController {
     const sponsor = await this.sponsorRepo
       .patchOne(id, {
         ...data,
-        ...(logoUrl ? { logo: logoUrl } : {}),
+        ...(lightLogoUrl ? { lightLogo: lightLogoUrl } : {}),
+        ...(darkLogoUrl ? { darkLogo: darkLogoUrl } : {}),
       })
       .exec();
 
