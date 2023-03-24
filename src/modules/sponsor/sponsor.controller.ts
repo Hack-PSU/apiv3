@@ -12,6 +12,7 @@ import {
   Post,
   Put,
   Query,
+  UploadedFiles,
   UseFilters,
   UseInterceptors,
   ValidationPipe,
@@ -27,8 +28,7 @@ import {
   PartialType,
   PickType,
 } from "@nestjs/swagger";
-import { FileInterceptor } from "@nestjs/platform-express";
-import { UploadedLogo } from "modules/sponsor/uploaded-logo.decorator";
+import { FileFieldsInterceptor } from "@nestjs/platform-express";
 import { Express } from "express";
 import { SponsorService } from "modules/sponsor/sponsor.service";
 import { SocketRoom } from "common/socket";
@@ -39,7 +39,8 @@ import { DBExceptionFilter } from "common/filters";
 
 class SponsorCreateEntity extends OmitType(SponsorEntity, [
   "id",
-  "logo",
+  "lightLogo",
+  "darkLogo",
 ] as const) {
   @ApiProperty({
     type: "string",
@@ -47,15 +48,33 @@ class SponsorCreateEntity extends OmitType(SponsorEntity, [
     required: false,
     nullable: true,
   })
-  logo?: any;
+  lightLogo?: any;
+
+  @ApiProperty({
+    type: "string",
+    format: "binary",
+    required: false,
+    nullable: true,
+  })
+  darkLogo?: any;
 }
 
 class SponsorPatchEntity extends PartialType(SponsorCreateEntity) {}
 
 class SponsorPatchBatchEntity extends IntersectionType(
-  OmitType(SponsorPatchEntity, ["name", "logo", "hackathonId"] as const),
+  OmitType(SponsorPatchEntity, [
+    "name",
+    "lightLogo",
+    "darkLogo",
+    "hackathonId",
+  ] as const),
   PickType(SponsorEntity, ["id"] as const),
 ) {}
+
+type UploadedLogos = {
+  darkLogo?: Express.Multer.File;
+  lightLogo?: Express.Multer.File;
+};
 
 @ApiTags("Sponsorship")
 @Controller("sponsors")
@@ -94,7 +113,12 @@ export class SponsorController {
 
   @Post("/")
   @Roles(Role.TEAM)
-  @UseInterceptors(FileInterceptor("logo"))
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: "darkLogo", maxCount: 1 },
+      { name: "lightLogo", maxCount: 1 },
+    ]),
+  )
   @ApiDoc({
     summary: "Create a Sponsor",
     request: {
@@ -115,23 +139,45 @@ export class SponsorController {
       }),
     )
     data: SponsorCreateEntity,
-    @UploadedLogo() logo?: Express.Multer.File,
+    @UploadedFiles() files: UploadedLogos,
   ) {
+    const { darkLogo, lightLogo } = files;
+
     let sponsor = await this.sponsorRepo
       .createOne(data)
       .byHackathon(data.hackathonId);
 
-    if (logo) {
-      const logoUrl = await this.sponsorService.uploadLogo(
-        {
-          id: sponsor.id,
-          name: sponsor.name,
-        },
-        logo,
-      );
+    if (darkLogo || lightLogo) {
+      let darkLogoUrl = "";
+      let lightLogoUrl = "";
+
+      if (darkLogo) {
+        darkLogoUrl = await this.sponsorService.uploadLogo(
+          {
+            id: sponsor.id,
+            name: sponsor.name,
+          },
+          darkLogo,
+          "dark",
+        );
+      }
+
+      if (lightLogo) {
+        lightLogoUrl = await this.sponsorService.uploadLogo(
+          {
+            id: sponsor.id,
+            name: sponsor.name,
+          },
+          lightLogo,
+          "light",
+        );
+      }
 
       sponsor = await this.sponsorRepo
-        .patchOne(sponsor.id, { logo: logoUrl })
+        .patchOne(sponsor.id, {
+          darkLogo: darkLogoUrl,
+          lightLogo: lightLogoUrl,
+        })
         .exec();
     }
 
@@ -161,7 +207,12 @@ export class SponsorController {
 
   @Patch(":id")
   @Roles(Role.TEAM)
-  @UseInterceptors(FileInterceptor("logo"))
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: "lightLogo", maxCount: 1 },
+      { name: "darkLogo", maxCount: 1 },
+    ]),
+  )
   @ApiDoc({
     summary: "Patch a Sponsor",
     request: {
@@ -189,23 +240,48 @@ export class SponsorController {
       }),
     )
     data: SponsorPatchEntity,
-    @UploadedLogo() logo?: Express.Multer.File,
+    @UploadedFiles() files: UploadedLogos,
   ) {
+    const { darkLogo, lightLogo } = files;
+
     const currentSponsor = await this.sponsorRepo.findOne(id).exec();
     let logoUrl = null;
 
-    if (logo) {
-      await this.sponsorService.deleteLogo({
-        id,
-        name: currentSponsor.name,
-      });
+    if (darkLogo) {
+      await this.sponsorService.deleteLogo(
+        {
+          id,
+          name: currentSponsor.name,
+        },
+        "dark",
+      );
 
       logoUrl = await this.sponsorService.uploadLogo(
         {
           id,
-          name: data.name,
+          name: data.name ?? currentSponsor.name,
         },
-        logo,
+        darkLogo,
+        "dark",
+      );
+    }
+
+    if (lightLogo) {
+      await this.sponsorService.deleteLogo(
+        {
+          id,
+          name: currentSponsor.name,
+        },
+        "light",
+      );
+
+      await this.sponsorService.uploadLogo(
+        {
+          id,
+          name: data.name ?? currentSponsor.name,
+        },
+        lightLogo,
+        "dark",
       );
     }
 
@@ -223,7 +299,12 @@ export class SponsorController {
 
   @Put(":id")
   @Roles(Role.TEAM)
-  @UseInterceptors(FileInterceptor("logo"))
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: "lightLogo", maxCount: 1 },
+      { name: "darkLogo", maxCount: 1 },
+    ]),
+  )
   @ApiDoc({
     summary: "Replace a Sponsor",
     request: {
@@ -252,30 +333,61 @@ export class SponsorController {
       }),
     )
     data: SponsorCreateEntity,
-    @UploadedLogo() logo?: Express.Multer.File,
+    @UploadedFiles() files: UploadedLogos,
   ) {
+    const { darkLogo, lightLogo } = files;
+
     const currentSponsor = await this.sponsorRepo.findOne(id).exec();
-    let logoUrl = null;
 
-    await this.sponsorService.deleteLogo({
-      id,
-      name: currentSponsor.name,
-    });
+    await this.sponsorService.deleteLogo(
+      {
+        id,
+        name: currentSponsor.name,
+      },
+      "light",
+    );
 
-    if (logo) {
+    await this.sponsorService.deleteLogo(
+      {
+        id,
+        name: currentSponsor.name,
+      },
+      "dark",
+    );
+
+    let darkLogoUrl = "";
+    let lightLogoUrl = "";
+
+    if (darkLogo) {
       // Insert new logo with new name
-      logoUrl = await this.sponsorService.uploadLogo(
+      darkLogoUrl = await this.sponsorService.uploadLogo(
         {
           id,
           name: data.name,
         },
-        logo,
+        darkLogo,
+        "dark",
+      );
+    }
+
+    if (lightLogo) {
+      lightLogoUrl = await this.sponsorService.uploadLogo(
+        {
+          id,
+          name: data.name,
+        },
+        lightLogo,
+        "light",
       );
     }
 
     // fills hackathonId based on currently active
     const sponsor = await this.sponsorRepo
-      .replaceOne(id, { ...data, logo: logoUrl })
+      .replaceOne(id, {
+        ...data,
+        lightLogo: lightLogoUrl,
+        darkLogo: darkLogoUrl,
+      })
       .exec();
 
     this.socket.emit("update:sponsor", sponsor, SocketRoom.MOBILE);
@@ -302,10 +414,21 @@ export class SponsorController {
   async deleteOne(@Param("id", ParseIntPipe) id: number) {
     const currentSponsor = await this.sponsorRepo.findOne(id).exec();
 
-    await this.sponsorService.deleteLogo({
-      id,
-      name: currentSponsor.name,
-    });
+    await this.sponsorService.deleteLogo(
+      {
+        id,
+        name: currentSponsor.name,
+      },
+      "light",
+    );
+
+    await this.sponsorService.deleteLogo(
+      {
+        id,
+        name: currentSponsor.name,
+      },
+      "dark",
+    );
 
     const sponsor = await this.sponsorRepo.deleteOne(id).exec();
 

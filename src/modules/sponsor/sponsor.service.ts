@@ -15,11 +15,15 @@ export class SponsorService {
     return "sponsor-logos";
   }
 
-  private getFilename(sponsor: SponsorData) {
-    return `${sponsor.id}-${sponsor.name}`;
+  private getFilename(sponsor: SponsorData, variant: "light" | "dark") {
+    return `${sponsor.id}-${sponsor.name}-${variant}`;
   }
 
-  private getFile(sponsor: SponsorData, file: Express.Multer.File) {
+  private getFile(
+    sponsor: SponsorData,
+    file: Express.Multer.File,
+    variant: "light" | "dark",
+  ) {
     let ext = mime.extension(file.mimetype);
 
     if (!ext) {
@@ -27,11 +31,15 @@ export class SponsorService {
       ext = ext[ext.length - 1];
     }
 
-    return `${this.prefix}/${this.getFilename(sponsor)}.${ext}`;
+    return `${this.prefix}/${this.getFilename(sponsor, variant)}.${ext}`;
   }
 
-  async uploadLogo(sponsor: SponsorData, file: Express.Multer.File) {
-    const blob = this.sponsorBucket.file(this.getFile(sponsor, file));
+  async uploadLogo(
+    sponsor: SponsorData,
+    file: Express.Multer.File,
+    variant: "light" | "dark",
+  ) {
+    const blob = this.sponsorBucket.file(this.getFile(sponsor, file, variant));
 
     await blob.save(file.buffer, { public: true });
 
@@ -40,8 +48,8 @@ export class SponsorService {
     return blob.publicUrl();
   }
 
-  async deleteLogo(sponsor: SponsorData) {
-    const prefix = `${this.prefix}/${this.getFilename(sponsor)}`;
+  async deleteLogo(sponsor: SponsorData, variant: "light" | "dark") {
+    const prefix = `${this.prefix}/${this.getFilename(sponsor, variant)}`;
     const [files, ,] = await this.sponsorBucket.getFiles({ prefix });
 
     const filenames = files.filter((file) => file.name.startsWith(prefix));

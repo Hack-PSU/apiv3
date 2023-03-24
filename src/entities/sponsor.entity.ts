@@ -27,13 +27,21 @@ export class Sponsor extends Entity {
 
   @ApiProperty({ required: false, nullable: true })
   @IsUrl()
+  @IsOptional()
   @Column({ type: "string", required: false, nullable: true })
   link?: string;
 
   @ApiProperty()
   @IsUrl()
+  @IsOptional()
   @Column({ type: "string", required: false, nullable: true })
-  logo?: string;
+  darkLogo?: string;
+
+  @ApiProperty()
+  @IsUrl()
+  @IsOptional()
+  @Column({ type: "string", required: false, nullable: true })
+  lightLogo?: string;
 
   @ApiProperty()
   @IsNumber()
@@ -51,7 +59,8 @@ export class Sponsor extends Entity {
 export class SponsorEntity extends PickType(Sponsor, [
   "id",
   "hackathonId",
-  "logo",
+  "darkLogo",
+  "lightLogo",
   "link",
   "order",
   "level",
