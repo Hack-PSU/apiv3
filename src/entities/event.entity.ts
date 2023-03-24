@@ -122,7 +122,9 @@ export class Event extends Entity {
 
     return {
       ...json,
-      ...(json["wsUrls"] ? { wsUrls: json["wsUrls"].split("|") } : {}),
+      ...(json["wsUrls"]
+        ? { wsUrls: json["wsUrls"].split("|") }
+        : { wsUrls: [] }),
     };
   }
 }

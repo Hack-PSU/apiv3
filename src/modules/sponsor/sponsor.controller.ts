@@ -36,6 +36,7 @@ import { RestrictedRoles, Role, Roles } from "common/gcp";
 import { ApiDoc } from "common/docs";
 import { ControllerMethod } from "common/validation";
 import { DBExceptionFilter } from "common/filters";
+import { Hackathon } from "entities/hackathon.entity";
 
 class SponsorCreateEntity extends OmitType(SponsorEntity, [
   "id",
@@ -72,8 +73,8 @@ class SponsorPatchBatchEntity extends IntersectionType(
 ) {}
 
 type UploadedLogos = {
-  darkLogo?: Express.Multer.File;
-  lightLogo?: Express.Multer.File;
+  darkLogo?: Express.Multer.File[];
+  lightLogo?: Express.Multer.File[];
 };
 
 @ApiTags("Sponsorship")
@@ -148,8 +149,8 @@ export class SponsorController {
       .byHackathon(data.hackathonId);
 
     if (darkLogo || lightLogo) {
-      let darkLogoUrl = "";
-      let lightLogoUrl = "";
+      let darkLogoUrl = null;
+      let lightLogoUrl = null;
 
       if (darkLogo) {
         darkLogoUrl = await this.sponsorService.uploadLogo(
@@ -157,7 +158,7 @@ export class SponsorController {
             id: sponsor.id,
             name: sponsor.name,
           },
-          darkLogo,
+          darkLogo[0],
           "dark",
         );
       }
@@ -168,7 +169,7 @@ export class SponsorController {
             id: sponsor.id,
             name: sponsor.name,
           },
-          lightLogo,
+          lightLogo[0],
           "light",
         );
       }
@@ -261,7 +262,7 @@ export class SponsorController {
           id,
           name: data.name ?? currentSponsor.name,
         },
-        darkLogo,
+        darkLogo[0],
         "dark",
       );
     }
@@ -280,8 +281,8 @@ export class SponsorController {
           id,
           name: data.name ?? currentSponsor.name,
         },
-        lightLogo,
-        "dark",
+        lightLogo[0],
+        "light",
       );
     }
 
@@ -365,7 +366,7 @@ export class SponsorController {
           id,
           name: data.name,
         },
-        darkLogo,
+        darkLogo[0],
         "dark",
       );
     }
@@ -376,7 +377,7 @@ export class SponsorController {
           id,
           name: data.name,
         },
-        lightLogo,
+        lightLogo[0],
         "light",
       );
     }
