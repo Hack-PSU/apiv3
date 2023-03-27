@@ -20,8 +20,14 @@ async function bootstrap() {
 
   const configService = await app.get<ConfigService>(ConfigService);
 
-  if (configService.get("ALLOW_CORS")) {
+  if (configService.get("ALLOW_CORS") === "true") {
     app.enableCors();
+  }
+
+  if (configService.get("ALLOW_CORS") === "prod") {
+    app.enableCors({
+      origin: new RegExp(/^(https:\/\/([^.]*\.)?hackpsu.org)$/, "i"),
+    });
   }
 
   await app.listen(parseInt(configService.get("PORT")) || 3000);
