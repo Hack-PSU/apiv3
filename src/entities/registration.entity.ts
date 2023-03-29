@@ -27,23 +27,26 @@ export class Registration extends Entity {
   @Column({ type: "string" })
   userId: string;
 
-  @ApiProperty()
+  @ApiProperty({ default: false })
+  @IsOptional()
   @IsBoolean()
   @Type(() => Boolean)
   @Column({ type: "boolean" })
-  travelReimbursement: boolean;
+  travelReimbursement = false;
 
-  @ApiProperty()
+  @ApiProperty({ default: false })
+  @IsOptional()
   @IsBoolean()
   @Type(() => Boolean)
   @Column({ type: "boolean" })
-  driving: boolean;
+  driving = false;
 
-  @ApiProperty()
+  @ApiProperty({ default: false })
+  @IsOptional()
   @IsBoolean()
   @Type(() => Boolean)
   @Column({ type: "boolean" })
-  firstHackathon: boolean;
+  firstHackathon = false;
 
   @ApiProperty()
   @IsString()
@@ -97,26 +100,41 @@ export class Registration extends Entity {
   @Column({ type: "string", required: false, nullable: true })
   expectations?: string;
 
-  @ApiProperty({ type: "boolean", required: false, nullable: true })
+  @ApiProperty({
+    type: "boolean",
+    required: false,
+    nullable: true,
+    default: false,
+  })
   @IsOptional()
   @IsBoolean()
   @Type(() => Boolean)
   @Column({ type: "boolean", required: false, nullable: true })
-  shareAddressMlh?: boolean;
+  shareAddressMlh?: boolean = false;
 
-  @ApiProperty({ type: "boolean", required: false, nullable: true })
+  @ApiProperty({
+    type: "boolean",
+    required: false,
+    nullable: true,
+    default: false,
+  })
   @IsOptional()
   @IsBoolean()
   @Type(() => Boolean)
   @Column({ type: "boolean", required: false, nullable: true })
-  shareAddressSponsors?: boolean;
+  shareAddressSponsors?: boolean = false;
 
-  @ApiProperty({ type: "boolean", required: false, nullable: true })
+  @ApiProperty({
+    type: "boolean",
+    required: false,
+    nullable: true,
+    default: false,
+  })
   @IsOptional()
   @IsBoolean()
   @Type(() => Boolean)
   @Column({ type: "boolean", required: false, nullable: true })
-  shareEmailMlh?: boolean;
+  shareEmailMlh?: boolean = false;
 
   @ApiProperty()
   @IsString()

@@ -373,7 +373,7 @@ export class UserController {
   }
 
   @Post(":id/register")
-  @Roles(Role.NONE)
+  @Roles(Role.TEAM)
   @RestrictedRoles({
     roles: [Role.NONE],
     predicate: (req) => req.user && req.user.sub === req.params.id,
