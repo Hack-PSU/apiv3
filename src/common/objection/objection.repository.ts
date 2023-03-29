@@ -71,7 +71,7 @@ export class Repository<TEntity extends Entity = Entity> {
     return this._stageQuery((qb) => qb.updateAndFetchById(id, data));
   }
 
-  patchOne(id: string | number, data: any): StagedQuery<TEntity> {
+  patchOne(id: MaybeCompositeId, data: any): StagedQuery<TEntity> {
     return this._stageQuery((qb) => qb.patchAndFetchById(id, data));
   }
 

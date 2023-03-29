@@ -18,6 +18,27 @@ import { ControllerMethod } from "common/validation";
         to: "scans.organizerId",
       },
     },
+    scores: {
+      relation: Entity.HasManyRelation,
+      modelClass: "score.entity.js",
+      join: {
+        from: "organizers.id",
+        to: "scores.judgeId",
+      },
+    },
+    projects: {
+      relation: Entity.ManyToManyRelation,
+      modelClass: "project.entity.js",
+      join: {
+        from: "organizers.id",
+        through: {
+          modelClass: "score.entity.js",
+          from: "scores.judgeId",
+          to: "scores.projectId",
+        },
+        to: "projects.id",
+      },
+    },
   },
 })
 export class Organizer extends Entity {

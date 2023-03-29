@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -52,6 +51,8 @@ import {
 } from "common/sendgrid";
 import { Registration, RegistrationEntity } from "entities/registration.entity";
 import * as admin from "firebase-admin";
+import { IsOptional } from "class-validator";
+import { Transform } from "class-transformer";
 
 class UserCreateEntity extends OmitType(UserEntity, ["resume"] as const) {
   @ApiProperty({
@@ -87,6 +88,25 @@ class UserProfileResponse extends UserEntity {
   registration: RegistrationEntity;
 }
 
+class ActiveUsersParams {
+  @ApiProperty({
+    required: false,
+    description: "active can either be a boolean or undefined",
+  })
+  @IsOptional()
+  @Transform(({ value }) => {
+    switch (value) {
+      case "true":
+        return true;
+      case "false":
+        return false;
+      default:
+        return undefined;
+    }
+  })
+  active?: boolean;
+}
+
 @ApiTags("Users")
 @Controller("users")
 @UseFilters(DBExceptionFilter)
@@ -113,13 +133,26 @@ export class UserController {
   @Roles(Role.TEAM)
   @ApiDoc({
     summary: "Get All Users",
+    query: [
+      {
+        name: "active",
+        type: ActiveUsersParams,
+      },
+    ],
     response: {
       ok: { type: [UserEntity] },
     },
     auth: Role.TEAM,
   })
-  async getAll() {
-    return this.userRepo.findAll().exec();
+  async getAll(
+    @Query(new ValidationPipe({ transform: true }))
+    { active }: ActiveUsersParams,
+  ) {
+    if (active === undefined || active === false) {
+      return this.userRepo.findAll().exec();
+    } else if (active === true) {
+      return this.userRepo.findAll().byHackathon();
+    }
   }
 
   @Post("/")

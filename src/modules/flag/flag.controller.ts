@@ -5,6 +5,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Param,
   Patch,
   Post,
   ValidationPipe,
@@ -43,6 +44,26 @@ export class FlagController {
       name: flag.name,
       isEnabled: flag.isEnabled,
     }));
+  }
+
+  @Get("/state/:id")
+  @Roles(Role.TEAM)
+  @ApiDoc({
+    summary: "Get the state of a feature flag",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to a valid flag ID or name.",
+      },
+    ],
+    response: {
+      ok: { type: FlagEntity },
+    },
+    auth: Role.TEAM,
+  })
+  async getOne(@Param("id") flagId: string) {
+    const allFlags = await this.flagService.allFlags();
+    return allFlags.filter((f) => f.name === flagId);
   }
 
   @Post("/toggle")

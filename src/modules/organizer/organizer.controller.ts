@@ -7,6 +7,7 @@ import {
   HttpException,
   HttpStatus,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
   Put,
@@ -16,7 +17,7 @@ import {
 import { InjectRepository, Repository } from "common/objection";
 import { Organizer, OrganizerEntity } from "entities/organizer.entity";
 import { SocketGateway } from "modules/socket/socket.gateway";
-import { ApiTags, OmitType, PartialType } from "@nestjs/swagger";
+import { ApiProperty, ApiTags, OmitType, PartialType } from "@nestjs/swagger";
 import { FirebaseAuthService, RestrictedRoles, Role, Roles } from "common/gcp";
 import { take, toArray } from "rxjs";
 import { OrganizerService } from "modules/organizer/organizer.service";
@@ -24,6 +25,8 @@ import { SocketRoom } from "common/socket";
 import { ControllerMethod } from "common/validation";
 import { ApiDoc } from "common/docs";
 import { DBExceptionFilter } from "common/filters";
+import { Project, ProjectEntity } from "entities/project.entity";
+import { Score, ScoreEntity } from "entities/score.entity";
 
 class OrganizerCreateEntity extends OrganizerEntity {}
 
@@ -33,6 +36,21 @@ class OrganizerReplaceEntity extends OmitType(OrganizerCreateEntity, [
 
 class OrganizerUpdateEntity extends PartialType(OrganizerReplaceEntity) {}
 
+class ScoreDataEntity extends OmitType(ScoreEntity, [
+  "hackathonId",
+  "judgeId",
+  "projectId",
+] as const) {}
+
+class OrganizerUpdateScoreEntity extends PartialType(
+  OmitType(ScoreDataEntity, ["id"] as const),
+) {}
+
+class ProjectScoreEntity extends OmitType(ProjectEntity, ["hackathonId"]) {
+  @ApiProperty({ type: ScoreDataEntity })
+  score: ScoreDataEntity;
+}
+
 @ApiTags("Organizers")
 @Controller("organizers")
 @UseFilters(DBExceptionFilter)
@@ -40,6 +58,8 @@ export class OrganizerController {
   constructor(
     @InjectRepository(Organizer)
     private readonly organizerRepo: Repository<Organizer>,
+    @InjectRepository(Score)
+    private readonly scoreRepo: Repository<Score>,
     private readonly socket: SocketGateway,
     private readonly auth: FirebaseAuthService,
     private readonly organizerService: OrganizerService,
@@ -232,5 +252,92 @@ export class OrganizerController {
     this.socket.emit("delete:organizer", organizer, SocketRoom.ADMIN);
 
     return organizer;
+  }
+
+  @Get(":id/scans")
+  @Roles(Role.EXEC)
+  @RestrictedRoles({
+    roles: [Role.TEAM],
+    predicate: (req) => req.user && req.user.sub === req.params.id,
+  })
+  async getAllOrganizerScans(@Param("id") id: string) {
+    return this.organizerRepo.findOne(id).raw().withGraphFetched("scans");
+  }
+
+  @Get(":id/judging/projects")
+  @Roles(Role.EXEC)
+  @RestrictedRoles({
+    roles: [Role.TEAM],
+    predicate: (req) => req.user && req.user.sub === req.params.id,
+  })
+  @ApiDoc({
+    summary: "Get all assigned judging projects for an Organizer",
+    auth: Role.TEAM,
+    restricted: true,
+    params: [
+      {
+        name: "id",
+        description: "ID must be a valid organizer ID",
+      },
+    ],
+    response: {
+      ok: { type: [ProjectScoreEntity] },
+    },
+  })
+  async getAllJudgingProjects(@Param("id") id: string) {
+    const assignedProjects = await this.organizerRepo
+      .findOne(id)
+      .raw()
+      .withGraphJoined("projects.scores(filterOrganizerScores)")
+      .modifiers({
+        filterOrganizerScores: (query) => query.modify("scoresByOrganizer", id),
+      });
+
+    return assignedProjects.projects.map(({ scores, ...p }) => ({
+      ...p,
+      score: scores[0],
+    }));
+  }
+
+  @Patch(":id/judging/projects/:projectId")
+  @Roles(Role.EXEC)
+  @RestrictedRoles({
+    roles: [Role.TEAM],
+    predicate: (req) => req.user && req.user.sub === req.params.id,
+  })
+  @ApiDoc({
+    summary: "Patch Judging Scores for Assigned Project",
+    auth: Role.TEAM,
+    restricted: true,
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to a valid organizer's ID",
+      },
+      {
+        name: "projectId",
+        description: "ID must be set to a valid project's ID",
+      },
+    ],
+    request: {
+      body: { type: OrganizerUpdateScoreEntity },
+    },
+    response: {
+      ok: { type: ScoreEntity },
+    },
+  })
+  async patchAssignedProjectScore(
+    @Param("id") id: string,
+    @Param("projectId", ParseIntPipe) projectId: number,
+    @Body(
+      new ValidationPipe({
+        forbidNonWhitelisted: true,
+        whitelist: true,
+        transform: true,
+      }),
+    )
+    data: OrganizerUpdateScoreEntity,
+  ) {
+    return this.scoreRepo.patchOne([id, projectId], data).exec();
   }
 }

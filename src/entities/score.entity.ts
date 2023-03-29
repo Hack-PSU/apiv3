@@ -35,6 +35,7 @@ import { Expose } from "class-transformer";
           "total",
         ),
       ),
+    scoresByOrganizer: async (qb, id: string) => qb.where("judgeId", id),
   },
 })
 export class Score extends Entity {

@@ -3,9 +3,15 @@ import { InjectRepository, Repository } from "common/objection";
 import { Hackathon } from "entities/hackathon.entity";
 import { User } from "entities/user.entity";
 import { Registration } from "entities/registration.entity";
-import { ApiExtraModels, ApiProperty, ApiTags } from "@nestjs/swagger";
+import {
+  ApiExtraModels,
+  ApiProperty,
+  ApiTags,
+  PickType,
+} from "@nestjs/swagger";
 import { ApiDoc } from "common/docs";
 import { Role, Roles } from "common/gcp";
+import { Organizer, OrganizerEntity } from "entities/organizer.entity";
 
 class CountsResponse {
   @ApiProperty()
@@ -57,6 +63,15 @@ class AnalyticsSummaryResponse {
   codingExp: CodingExpCounts[];
 }
 
+class AnalyticsScansResponse extends PickType(OrganizerEntity, [
+  "id",
+  "firstName",
+  "lastName",
+] as const) {
+  @ApiProperty()
+  count: number;
+}
+
 @ApiTags("Analytics")
 @Controller("analytics")
 @ApiExtraModels(AnalyticsSummaryResponse)
@@ -66,6 +81,8 @@ export class AnalyticsController {
     private readonly hackathonRepo: Repository<Hackathon>,
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
+    @InjectRepository(Organizer)
+    private readonly organizerRepo: Repository<Organizer>,
     @InjectRepository(Registration)
     private readonly registrationRepo: Repository<Registration>,
   ) {}
@@ -127,5 +144,18 @@ export class AnalyticsController {
       academicYear: activeAcademicYearCounts,
       codingExp: activeCodingExpCounts,
     };
+  }
+
+  @Get("/scans")
+  @Roles(Role.TECH)
+  async getOrganizerScans() {
+    return this.organizerRepo
+      .findAll()
+      .raw()
+      .joinRelated("scans")
+      .count("scans.organizerId", { as: "count" })
+      .groupBy("organizers.id")
+      .orderBy("count", "DESC")
+      .select("organizers.id", "organizers.firstName", "organizers.lastName");
   }
 }
