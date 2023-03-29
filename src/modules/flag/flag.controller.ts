@@ -63,7 +63,7 @@ export class FlagController {
   })
   async getOne(@Param("id") flagId: string) {
     const allFlags = await this.flagService.allFlags();
-    return allFlags.filter((f) => f.name === flagId);
+    return allFlags.find((f) => f.name === flagId);
   }
 
   @Post("/toggle")
