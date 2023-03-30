@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -23,10 +24,12 @@ import { take, toArray } from "rxjs";
 import { OrganizerService } from "modules/organizer/organizer.service";
 import { SocketRoom } from "common/socket";
 import { ControllerMethod } from "common/validation";
-import { ApiDoc } from "common/docs";
+import { ApiDoc, BadRequestExceptionResponse } from "common/docs";
 import { DBExceptionFilter } from "common/filters";
 import { Project, ProjectEntity } from "entities/project.entity";
 import { Score, ScoreEntity } from "entities/score.entity";
+import { JudgingService } from "modules/judging/judging.service";
+import { IsArray, IsNumber, IsOptional } from "class-validator";
 
 class OrganizerCreateEntity extends OrganizerEntity {}
 
@@ -42,13 +45,18 @@ class ScoreDataEntity extends OmitType(ScoreEntity, [
   "projectId",
 ] as const) {}
 
-class OrganizerUpdateScoreEntity extends PartialType(
-  OmitType(ScoreDataEntity, ["id"] as const),
-) {}
+class OrganizerUpdateScoreEntity extends PartialType(ScoreDataEntity) {}
 
 class ProjectScoreEntity extends OmitType(ProjectEntity, ["hackathonId"]) {
   @ApiProperty({ type: ScoreDataEntity })
   score: ScoreDataEntity;
+}
+
+class ProjectReassignEntity {
+  @ApiProperty()
+  @IsOptional()
+  @IsNumber({}, { each: true })
+  excludeProjects: number[] = [];
 }
 
 @ApiTags("Organizers")
@@ -58,11 +66,14 @@ export class OrganizerController {
   constructor(
     @InjectRepository(Organizer)
     private readonly organizerRepo: Repository<Organizer>,
+    @InjectRepository(Project)
+    private readonly projectRepo: Repository<Project>,
     @InjectRepository(Score)
     private readonly scoreRepo: Repository<Score>,
     private readonly socket: SocketGateway,
     private readonly auth: FirebaseAuthService,
     private readonly organizerService: OrganizerService,
+    private readonly judgingService: JudgingService,
   ) {}
 
   @Get("/")
@@ -339,5 +350,95 @@ export class OrganizerController {
     data: OrganizerUpdateScoreEntity,
   ) {
     return this.scoreRepo.patchOne([id, projectId], data).exec();
+  }
+
+  @Delete(":id/judging/projects/:projectId")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Roles(Role.EXEC)
+  @RestrictedRoles({
+    roles: [Role.TEAM],
+    predicate: (req) => req.user && req.user.sub === req.params.id,
+  })
+  @ApiDoc({
+    summary: "Delete Judging Project and Reassign Organizer",
+    auth: Role.TEAM,
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to a valid organizer ID",
+      },
+      {
+        name: "projectId",
+        description: "ID must be set to a valid project ID",
+      },
+    ],
+    request: {
+      body: { type: ProjectReassignEntity },
+    },
+    response: {
+      noContent: true,
+      custom: [
+        {
+          status: HttpStatus.BAD_REQUEST,
+          type: BadRequestExceptionResponse,
+        },
+      ],
+    },
+    restricted: true,
+  })
+  async deleteProjectAndReassign(
+    @Param("id") id: string,
+    @Param("projectId", ParseIntPipe) projectId: number,
+    @Body(
+      new ValidationPipe({
+        forbidNonWhitelisted: true,
+        whitelist: true,
+        transform: true,
+      }),
+    )
+    data: ProjectReassignEntity,
+  ) {
+    const judge = await this.organizerRepo.findOne(id).exec();
+    const project = await this.projectRepo.findOne(projectId).exec();
+
+    if (!judge) {
+      throw new BadRequestException("Invalid organizer");
+    }
+
+    if (!project) {
+      throw new BadRequestException("Invalid projectId");
+    }
+
+    await this.scoreRepo.deleteOne([id, projectId]).exec();
+
+    let excludeProjects;
+
+    if (!data.excludeProjects.includes(projectId)) {
+      excludeProjects = [...data.excludeProjects, projectId];
+    } else {
+      excludeProjects = data.excludeProjects;
+    }
+
+    const newAssignment = await this.judgingService.reassignJudge(
+      id,
+      excludeProjects,
+    );
+
+    await this.scoreRepo.createOne(newAssignment).byHackathon();
+
+    this.socket.emit(
+      "update:judging:exclude",
+      { excludeProjects },
+      SocketRoom.ADMIN,
+    );
+
+    this.socket.emit(
+      "update:judging:reassign",
+      {
+        judge: `${judge.firstName} ${judge.lastName}`,
+        project: project.name,
+      },
+      SocketRoom.EXEC,
+    );
   }
 }

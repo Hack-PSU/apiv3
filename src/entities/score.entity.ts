@@ -39,11 +39,6 @@ import { Expose } from "class-transformer";
   },
 })
 export class Score extends Entity {
-  @ID()
-  @ApiProperty()
-  @IsNumber()
-  id: number;
-
   @ApiProperty()
   @IsNumber()
   @Column({ type: "integer", required: false })
@@ -90,16 +85,16 @@ export class Score extends Entity {
   @Column({ type: "string", required: false })
   hackathonId: string;
 
+  @ID({ type: "string" })
   @ApiProperty()
   @IsString()
   @Expose({ groups: [ControllerMethod.POST] })
-  @Column({ type: "string" })
   judgeId: string;
 
+  @ID({ type: "integer" })
   @ApiProperty()
   @IsNumber()
   @Expose({ groups: [ControllerMethod.POST] })
-  @Column({ type: "integer" })
   projectId: number;
 
   @ApiProperty()
@@ -127,7 +122,6 @@ export class Score extends Entity {
 }
 
 export class ScoreEntity extends PickType(Score, [
-  "id",
   "creativity",
   "technical",
   "implementation",

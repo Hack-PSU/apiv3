@@ -1,14 +1,7 @@
-import { IsString } from "class-validator";
-
-export class MobilePingBody {
-  @IsString()
-  userId: string;
-
-  @IsString()
-  token: string;
-}
+import { IsEnum } from "class-validator";
+import { Role } from "common/gcp";
 
 export class AdminPingBody {
-  @IsString()
-  userId: string;
+  @IsEnum(Role)
+  role: Role;
 }

@@ -1,4 +1,13 @@
-import { Controller, Get, UseFilters } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Post,
+  UseFilters,
+  ValidationPipe,
+} from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
 import { Project, ProjectEntity } from "entities/project.entity";
 import { Score, ScoreEntity } from "entities/score.entity";
@@ -13,6 +22,8 @@ import { OrganizerEntity } from "entities/organizer.entity";
 import { ApiDoc } from "common/docs";
 import { DBExceptionFilter } from "common/filters";
 import * as _ from "lodash";
+import { JudgingService } from "modules/judging/judging.service";
+import { IsArray, IsNumber, IsString, ValidateNested } from "class-validator";
 
 class ScoreBreakdownJudgeEntity extends OmitType(OrganizerEntity, [
   "privilege",
@@ -67,6 +78,20 @@ class ProjectBreakdownEntity extends OmitType(ProjectEntity, [
   scores: ScoreBreakdownEntity[];
 }
 
+class JudgingAssignmentEntity {
+  @ApiProperty()
+  @IsString({ each: true })
+  users: string[];
+
+  @ApiProperty()
+  @IsNumber({}, { each: true })
+  projects: number[];
+
+  @ApiProperty()
+  @IsNumber()
+  projectsPerUser: number;
+}
+
 @ApiTags("Judging")
 @Controller("judging")
 @UseFilters(DBExceptionFilter)
@@ -77,6 +102,7 @@ export class JudgingController {
     private readonly projectRepo: Repository<Project>,
     @InjectRepository(Score)
     private readonly scoreRepo: Repository<Score>,
+    private readonly judgingService: JudgingService,
   ) {}
 
   @Get("/breakdown")
@@ -121,5 +147,28 @@ export class JudgingController {
         average,
       };
     });
+  }
+
+  @Post("/assign")
+  @Roles(Role.EXEC)
+  async assignJudging(
+    @Body(
+      new ValidationPipe({
+        forbidNonWhitelisted: true,
+        whitelist: true,
+        transform: true,
+      }),
+    )
+    data: JudgingAssignmentEntity,
+  ) {
+    const assignments = this.judgingService.createAssignments(
+      data.users,
+      data.projects,
+      data.projectsPerUser,
+    );
+
+    await Promise.allSettled(
+      assignments.map((a) => this.scoreRepo.createOne(a).byHackathon()),
+    );
   }
 }

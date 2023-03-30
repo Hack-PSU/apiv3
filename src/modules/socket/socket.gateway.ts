@@ -60,6 +60,10 @@ export class SocketGateway implements OnGatewayInit, OnGatewayConnection {
     )
     data: AdminPingBody,
   ) {
-    socket.join([SocketRoom.ADMIN, data.userId]);
+    if (data.role >= Role.EXEC) {
+      socket.join([SocketRoom.ADMIN, SocketRoom.EXEC]);
+    } else {
+      socket.join(SocketRoom.ADMIN);
+    }
   }
 }
