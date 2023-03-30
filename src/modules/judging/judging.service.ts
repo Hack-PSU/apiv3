@@ -30,6 +30,14 @@ export class JudgingService {
     return projects;
   }
 
+  async getUnassignedProjects() {
+    return this.projectRepo
+      .findAll()
+      .byHackathon()
+      .leftJoinRelated("scores")
+      .where("scores.project_id", null);
+  }
+
   async getMinCountProjects(excludeProjects: number[]) {
     const minCountQuery = this.scoreRepo
       .findAll()
@@ -42,6 +50,7 @@ export class JudgingService {
     const minCountProjects = await this.projectRepo
       .findAll()
       .byHackathon()
+      .whereNotIn("projects.id", excludeProjects)
       .joinRelated("scores")
       .count("scores.projectId", { as: "count" })
       .groupBy("projects.id")
@@ -73,13 +82,20 @@ export class JudgingService {
     return assignments;
   }
 
-  async reassignJudge(
-    judgeId: string,
-    excludeProjects: number[],
-  ): Promise<JudgeAssignment> {
-    const minCountProjects = await this.getMinCountProjects(excludeProjects);
-    const projectIdx = _.random(minCountProjects.length - 1);
+  async reassignJudge(judgeId: string, excludeProjects: number[]) {
+    const unassignedProjects = await this.getUnassignedProjects();
+    const validUnassignedProjects = unassignedProjects.filter(
+      (p) => !excludeProjects.includes(p.id),
+    );
 
-    return { judgeId, projectId: minCountProjects[projectIdx] };
+    if (validUnassignedProjects.length > 0) {
+      const projectIdx = _.random(validUnassignedProjects.length - 1);
+      return { judgeId, projectId: validUnassignedProjects[projectIdx].id };
+    } else {
+      const minCountProjects = await this.getMinCountProjects(excludeProjects);
+      const projectIdx = _.random(minCountProjects.length - 1);
+
+      return { judgeId, projectId: minCountProjects[projectIdx] };
+    }
   }
 }

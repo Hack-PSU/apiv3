@@ -29,7 +29,7 @@ import { DBExceptionFilter } from "common/filters";
 import { Project, ProjectEntity } from "entities/project.entity";
 import { Score, ScoreEntity } from "entities/score.entity";
 import { JudgingService } from "modules/judging/judging.service";
-import { IsArray, IsNumber, IsOptional } from "class-validator";
+import { IsNumber, IsOptional } from "class-validator";
 
 class OrganizerCreateEntity extends OrganizerEntity {}
 

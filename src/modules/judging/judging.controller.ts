@@ -2,8 +2,6 @@ import {
   Body,
   Controller,
   Get,
-  HttpCode,
-  HttpStatus,
   Post,
   UseFilters,
   ValidationPipe,
@@ -23,7 +21,7 @@ import { ApiDoc } from "common/docs";
 import { DBExceptionFilter } from "common/filters";
 import * as _ from "lodash";
 import { JudgingService } from "modules/judging/judging.service";
-import { IsArray, IsNumber, IsString, ValidateNested } from "class-validator";
+import { IsNumber, IsString } from "class-validator";
 
 class ScoreBreakdownJudgeEntity extends OmitType(OrganizerEntity, [
   "privilege",

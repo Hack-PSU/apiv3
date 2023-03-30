@@ -11,7 +11,6 @@ import {
 import { Server, Socket } from "socket.io";
 import { SocketRoom } from "common/socket";
 import { Role, Roles, RolesGuard } from "common/gcp";
-import { FirebaseMessagingService } from "common/gcp/messaging";
 import { AdminPingBody } from "modules/socket/socket.interface";
 
 @WebSocketGateway({
