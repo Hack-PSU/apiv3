@@ -35,7 +35,7 @@ export class JudgingService {
       .findAll()
       .byHackathon()
       .leftJoinRelated("scores")
-      .where("scores.project_id", null);
+      .where("scores.projectId", null);
   }
 
   async getMinCountProjects(excludeProjects: number[]) {
