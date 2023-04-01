@@ -12,6 +12,8 @@ import {
   Patch,
   Post,
   Put,
+  Req,
+  Res,
   UseFilters,
   ValidationPipe,
 } from "@nestjs/common";
@@ -30,6 +32,7 @@ import { Project, ProjectEntity } from "entities/project.entity";
 import { Score, ScoreEntity } from "entities/score.entity";
 import { JudgingService } from "modules/judging/judging.service";
 import { IsNumber, IsOptional } from "class-validator";
+import { Response } from "express";
 
 class OrganizerCreateEntity extends OrganizerEntity {}
 
@@ -152,6 +155,10 @@ export class OrganizerController {
   })
   async getOne(@Param("id") id: string) {
     const organizer = await this.organizerRepo.findOne(id).exec();
+
+    if (!organizer) {
+      return;
+    }
 
     return this.organizerService.injectUserRoles([organizer]).pipe(take(1));
   }
