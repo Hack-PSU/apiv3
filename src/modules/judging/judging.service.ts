@@ -38,7 +38,7 @@ export class JudgingService {
       .where("scores.projectId", null);
   }
 
-  async getMinCountProjects(excludeProjects: number[]) {
+  async getMinCountProjects(judgeId: string, excludeProjects: number[]) {
     const minCountQuery = this.scoreRepo
       .findAll()
       .byHackathon()
@@ -52,6 +52,7 @@ export class JudgingService {
       .byHackathon()
       .whereNotIn("projects.id", excludeProjects)
       .joinRelated("scores")
+      .whereNot("scores.judgeId", judgeId)
       .count("scores.projectId", { as: "count" })
       .groupBy("projects.id")
       .having("count", "=", minCountQuery)
@@ -92,7 +93,10 @@ export class JudgingService {
       const projectIdx = _.random(validUnassignedProjects.length - 1);
       return { judgeId, projectId: validUnassignedProjects[projectIdx].id };
     } else {
-      const minCountProjects = await this.getMinCountProjects(excludeProjects);
+      const minCountProjects = await this.getMinCountProjects(
+        judgeId,
+        excludeProjects,
+      );
 
       if (minCountProjects.length > 0) {
         const projectIdx = _.random(minCountProjects.length - 1);
