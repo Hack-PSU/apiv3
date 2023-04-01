@@ -15,6 +15,10 @@ import { IsOptional, IsString } from "class-validator";
       },
     },
   },
+  modifiers: {
+    projectsByHackathon: async (qb, id) =>
+      qb.where("projects.hackathon_id", id),
+  },
 })
 export class Project extends Entity {
   @ApiProperty()

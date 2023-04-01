@@ -33,6 +33,7 @@ import { Score, ScoreEntity } from "entities/score.entity";
 import { JudgingService } from "modules/judging/judging.service";
 import { IsNumber, IsOptional } from "class-validator";
 import { Response } from "express";
+import { Hackathon } from "entities/hackathon.entity";
 
 class OrganizerCreateEntity extends OrganizerEntity {}
 
@@ -305,12 +306,21 @@ export class OrganizerController {
     },
   })
   async getAllJudgingProjects(@Param("id") id: string) {
+    const activeHackathon = await Hackathon.query()
+      .where("active", true)
+      .select("id")
+      .first();
+
     const assignedProjects = await this.organizerRepo
       .findOne(id)
       .raw()
-      .withGraphJoined("projects.scores(filterOrganizerScores)")
+      .withGraphJoined(
+        "projects(filterCurrentHackathon).scores(filterOrganizerScores)",
+      )
       .modifiers({
         filterOrganizerScores: (query) => query.modify("scoresByOrganizer", id),
+        filterCurrentHackathon: (query) =>
+          query.modify("projectsByHackathon", activeHackathon.id),
       });
 
     return assignedProjects.projects.map(({ scores, ...p }) => ({
