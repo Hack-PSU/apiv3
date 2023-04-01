@@ -14,8 +14,7 @@ import { DefaultFromEmail } from "common/sendgrid/sendgrid.constants";
 export class SendMailBody {
   @ApiProperty({ required: true, example: "user@email.com" })
   @IsNotEmpty()
-  @IsArray({ each: true })
-  @IsEmail()
+  @IsEmail({}, { each: true })
   to: string[];
 
   @ApiProperty({ example: "registration" })
