@@ -190,13 +190,15 @@ export class OrganizerController {
     data: OrganizerUpdateEntity,
   ) {
     const { privilege, ...rest } = data;
-    const organizer = await this.organizerRepo.patchOne(id, rest).exec();
+    let organizer = await this.organizerRepo.patchOne(id, rest).exec();
 
     if (privilege) {
       await this.auth.updateUserClaims(id, privilege);
     }
 
     this.socket.emit("update:organizer", organizer, SocketRoom.ADMIN);
+
+    organizer = await this.organizerRepo.findOne(id).exec();
 
     return this.organizerService.injectUserRoles([organizer]).pipe(take(1));
   }
