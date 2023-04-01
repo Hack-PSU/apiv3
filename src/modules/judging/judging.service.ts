@@ -93,9 +93,13 @@ export class JudgingService {
       return { judgeId, projectId: validUnassignedProjects[projectIdx].id };
     } else {
       const minCountProjects = await this.getMinCountProjects(excludeProjects);
-      const projectIdx = _.random(minCountProjects.length - 1);
 
-      return { judgeId, projectId: minCountProjects[projectIdx] };
+      if (minCountProjects.length > 0) {
+        const projectIdx = _.random(minCountProjects.length - 1);
+        return { judgeId, projectId: minCountProjects[projectIdx] };
+      } else {
+        return null;
+      }
     }
   }
 }

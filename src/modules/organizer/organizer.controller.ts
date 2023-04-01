@@ -424,11 +424,13 @@ export class OrganizerController {
       excludeProjects,
     );
 
-    await this.scoreRepo.createOne(newAssignment).byHackathon();
+    if (newAssignment !== null) {
+      await this.scoreRepo.createOne(newAssignment).byHackathon();
+    }
 
     this.socket.emit(
       "update:judging:exclude",
-      { excludeProjects },
+      { excludeProjects, project: project.name },
       SocketRoom.ADMIN,
     );
 
