@@ -12,6 +12,7 @@ import {
 import { ApiDoc } from "common/docs";
 import { Role, Roles } from "common/gcp";
 import { Organizer, OrganizerEntity } from "entities/organizer.entity";
+import { Event, EventEntity } from "entities/event.entity";
 
 class CountsResponse {
   @ApiProperty()
@@ -72,6 +73,15 @@ class AnalyticsScansResponse extends PickType(OrganizerEntity, [
   count: number;
 }
 
+class AnalyticsEventsResponse extends PickType(EventEntity, [
+  "type",
+  "id",
+  "name",
+] as const) {
+  @ApiProperty()
+  count: number;
+}
+
 @ApiTags("Analytics")
 @Controller("analytics")
 @ApiExtraModels(AnalyticsSummaryResponse)
@@ -85,6 +95,8 @@ export class AnalyticsController {
     private readonly organizerRepo: Repository<Organizer>,
     @InjectRepository(Registration)
     private readonly registrationRepo: Repository<Registration>,
+    @InjectRepository(Event)
+    private readonly eventRepo: Repository<Event>,
   ) {}
 
   @Get("/summary")
@@ -144,6 +156,26 @@ export class AnalyticsController {
       academicYear: activeAcademicYearCounts,
       codingExp: activeCodingExpCounts,
     };
+  }
+
+  @Get("/events")
+  @Roles(Role.TEAM)
+  @ApiDoc({
+    summary: "Get Check-In count for each event",
+    auth: Role.TEAM,
+    response: {
+      ok: { type: AnalyticsEventsResponse },
+    },
+  })
+  async getEventsAnalytics() {
+    return this.eventRepo
+      .findAll()
+      .byHackathon()
+      .joinRelated("scans")
+      .count("scans.userId", { as: "count" })
+      .groupBy("scans.event_id")
+      .having("count", ">", 0)
+      .select("events.id", "events.name", "events.type");
   }
 
   @Get("/scans")

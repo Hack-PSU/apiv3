@@ -33,7 +33,7 @@ enum EventType {
       relation: Entity.HasManyRelation,
       modelClass: "scan.entity.js",
       filter: (qb) =>
-        qb.select("scans.id", "scans.userId", "scans.organizerId"),
+        qb.select("scans.eventId", "scans.userId", "scans.organizerId"),
       join: {
         from: "events.id",
         to: "scans.eventId",
@@ -120,12 +120,15 @@ export class Event extends Entity {
   $formatJson(json: Objection.Pojo): Objection.Pojo {
     json = super.$formatJson(json);
 
-    return {
-      ...json,
-      ...(json["wsUrls"]
-        ? { wsUrls: json["wsUrls"].split("|") }
-        : { wsUrls: [] }),
-    };
+    if ("wsUrls" in json) {
+      return {
+        ...json,
+        ...(json["wsUrls"]
+          ? { wsUrls: json["wsUrls"].split("|") }
+          : { wsUrls: [] }),
+      };
+    }
+    return json;
   }
 }
 
