@@ -120,31 +120,34 @@ export class JudgingController {
       .byHackathon()
       .withGraphJoined("scores(agg).judge");
 
-    return projectBreakdown.map((project) => {
-      const creativity = _.meanBy(project.scores, "creativity");
-      const implementation = _.meanBy(project.scores, "implementation");
-      const clarity = _.meanBy(project.scores, "clarity");
-      const growth = _.meanBy(project.scores, "growth");
-      const technical = _.meanBy(project.scores, "technical");
-      const energy = _.meanBy(project.scores, "energy");
-      const supplyChain = _.meanBy(project.scores, "supplyChain");
-      const environmental = _.meanBy(project.scores, "environmental");
+    return _.chain(projectBreakdown)
+      .filter((project) => project.scores.length > 0)
+      .map((project) => {
+        const creativity = _.meanBy(project.scores, "creativity");
+        const implementation = _.meanBy(project.scores, "implementation");
+        const clarity = _.meanBy(project.scores, "clarity");
+        const growth = _.meanBy(project.scores, "growth");
+        const technical = _.meanBy(project.scores, "technical");
+        const energy = _.meanBy(project.scores, "energy");
+        const supplyChain = _.meanBy(project.scores, "supplyChain");
+        const environmental = _.meanBy(project.scores, "environmental");
 
-      const average = _.meanBy(project.scores, "total");
+        const average = _.meanBy(project.scores, "total");
 
-      return {
-        ...project,
-        creativity,
-        implementation,
-        clarity,
-        growth,
-        technical,
-        energy,
-        supplyChain,
-        environmental,
-        average,
-      };
-    });
+        return {
+          ...project,
+          creativity,
+          implementation,
+          clarity,
+          growth,
+          technical,
+          energy,
+          supplyChain,
+          environmental,
+          average,
+        };
+      })
+      .value();
   }
 
   @Post("/assign")
