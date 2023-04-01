@@ -434,9 +434,13 @@ export class EventController {
       })
       .byHackathon(data.hackathonId);
 
-    await this.fcmService.sendTokenMessage(userId, {
-      title: "Check-in",
-      body: `You have just checked-in to ${event.name}`,
-    });
+    try {
+      await this.fcmService.sendTokenMessage(userId, {
+        title: "Check-in",
+        body: `You have just checked-in to ${event.name}`,
+      });
+    } catch (e) {
+      console.error(`Cannot send token message to: ${userId}`, e);
+    }
   }
 }

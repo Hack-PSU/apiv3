@@ -53,6 +53,8 @@ import { Registration, RegistrationEntity } from "entities/registration.entity";
 import * as admin from "firebase-admin";
 import { IsOptional } from "class-validator";
 import { Transform } from "class-transformer";
+import { FirebaseMessagingService } from "common/gcp/messaging";
+import { Event } from "entities/event.entity";
 
 class UserCreateEntity extends OmitType(UserEntity, ["resume"] as const) {
   @ApiProperty({
@@ -115,6 +117,8 @@ export class UserController {
   constructor(
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
+    @InjectRepository(Event)
+    private readonly eventRepo: Repository<Event>,
     @InjectRepository(Scan)
     private readonly scanRepo: Repository<Scan>,
     @InjectRepository(ExtraCreditClass)
@@ -127,6 +131,7 @@ export class UserController {
     private readonly userService: UserService,
     private readonly sendGridService: SendGridService,
     private readonly auth: FirebaseAuthService,
+    private readonly fcmService: FirebaseMessagingService,
   ) {}
 
   @Get("/")
@@ -522,9 +527,14 @@ export class UserController {
     data: CreateUserScanEntity,
   ) {
     const hasUser = await this.userRepo.findOne(id).exec();
+    const event = await this.eventRepo.findOne(eventId).exec();
 
     if (!hasUser) {
       throw new HttpException("user not found", HttpStatus.BAD_REQUEST);
+    }
+
+    if (!event) {
+      throw new HttpException("event not found", HttpStatus.BAD_REQUEST);
     }
 
     const { hackathonId, ...rest } = data;
@@ -536,6 +546,18 @@ export class UserController {
         eventId,
       })
       .byHackathon(hackathonId);
+
+    try {
+      await this.fcmService.sendTokenMessage(hasUser.id, {
+        title: "Check-In",
+        body: `You have just checked-in to ${event.name}`,
+      });
+    } catch (e) {
+      console.error(
+        `User_Controller: Cannot send token message to ${hasUser.id}`,
+        e,
+      );
+    }
   }
 
   @Get(":id/extra-credit/classes")
