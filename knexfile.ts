@@ -6,7 +6,7 @@ const config: { [key: string]: Knex.Config } = {
   development: {
     client: "mysql",
     connection: {
-      database: "hackpsu-local",
+      database: "",
       user: "root",
       password: "password",
       port: 3306,
@@ -26,7 +26,7 @@ const config: { [key: string]: Knex.Config } = {
       database: "staging",
       user: "apiv3_staging",
       host: "",
-      password: process.env.STAGING_MYSQL_PASSWORD,
+      password:"" ,
     },
     pool: {
       min: 2,
@@ -41,9 +41,26 @@ const config: { [key: string]: Knex.Config } = {
   production: {
     client: "mysql",
     connection: {
-      database: "hackpsu",
-      user: "root",
-      password: "password",
+      database: "production",
+      user: "apiv3_production",
+      password: "",
+    },
+    pool: {
+      min: 2,
+      max: 10,
+    },
+    migrations: {
+      tableName: "knex_migrations",
+      directory: "./db/migrations",
+    },
+  },
+
+  test: {
+    client: "mysql",
+    connection: {
+      database: "test",
+      user: "apiv3_test",
+      password: "",
     },
     pool: {
       min: 2,
