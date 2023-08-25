@@ -150,6 +150,7 @@ export class HackathonController {
     { active }: ActiveHackathonParams,
   ) {
     if (active === undefined) {
+      console.log(this.hackathonRepo.findAll().raw().toKnexQuery().toSQL());
       return this.hackathonRepo.findAll().exec();
     } else if (active === true) {
       return this.getActiveHackathon();
