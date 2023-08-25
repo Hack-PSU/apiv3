@@ -6,6 +6,9 @@ export const dbConfig = registerAs<Knex.StaticConnectionConfig>(
   ConfigToken.DB,
   () => {
     if (process.env.NODE_ENV === "production") {
+      console.log(process.env.MYSQL_USER);
+      console.log(process.env.MYSQL_DATABASE);
+      console.log(process.env.MYSQL_SOCKET_PATH);
       return {
         user: process.env.MYSQL_USER,
         password: process.env.MYSQL_PASSWORD,
