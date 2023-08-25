@@ -10,7 +10,7 @@ jobs:
     env:
       PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
       SERVICE: ${{ secrets.GCP_PRODUCTION_SERVICE_NAME }}
-      IMAGE_NAME: gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_PRODUCTION_SERVICE_NAME }}:${{ github.sha }}
+      IMAGE_NAME: us-east4-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_PRODUCTION_SERVICE_NAME }}:${{ github.sha }}
     steps:
     - name: Checkout
       uses: actions/checkout@v3.3.0
@@ -36,7 +36,7 @@ jobs:
     - name: Deploy Cloud Run Service
       run: |-
         gcloud run deploy ${{ env.SERVICE }} \
-          --region "us-central1" \
+          --region "us-east4" \
           --image ${{ env.IMAGE_NAME }} \
           --platform "managed" \
           --quiet
