@@ -79,6 +79,7 @@ export class EventController {
   ) {}
 
   @Get("/")
+  @Roles(Role.NONE)
   @ApiDoc({
     summary: "Get All Events",
     query: [

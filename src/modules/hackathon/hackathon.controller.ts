@@ -131,6 +131,7 @@ export class HackathonController {
   }
 
   @Get("/")
+  @Roles(Role.NONE)
   @ApiDoc({
     summary: "Get All Hackathons",
     query: [
@@ -142,6 +143,7 @@ export class HackathonController {
     response: {
       ok: { type: ConditionalHackathonResponse },
     },
+    auth: Role.NONE,
   })
   async getAll(
     @Query(new ValidationPipe({ transform: true }))
