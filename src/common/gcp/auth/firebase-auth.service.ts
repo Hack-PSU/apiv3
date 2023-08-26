@@ -101,6 +101,7 @@ export class FirebaseAuthService {
   }
 
   updateUserClaims(uid: string, privilege: Role) {
+    console.log(`name: ${admin.app().name}`);
     return admin.auth().setCustomUserClaims(uid, { privilege });
   }
 }
