@@ -28,6 +28,7 @@ export const firebaseConfig = registerAs<FirebaseConfig>(
     } else {
       return {
         credential: admin.credential.applicationDefault(),
+        projectId: process.env.GOOGLE_CLOUD_PROJECT,
         storageBucket: `${process.env.STORAGE_BUCKET}.appspot.com`,
       };
     }
