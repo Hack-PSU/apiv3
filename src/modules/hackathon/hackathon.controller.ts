@@ -149,12 +149,7 @@ export class HackathonController {
     { active }: ActiveHackathonParams,
   ) {
     if (active === undefined) {
-      console.log(this.hackathonRepo.findAll().raw().toKnexQuery().toSQL().sql);
-      const asdfasdf = this.hackathonRepo.findAll().exec();
-      console.log("waiting.");
-      const stuff = await asdfasdf;
-      console.log(stuff);
-      return asdfasdf;
+      return this.hackathonRepo.findAll().exec();
     } else if (active === true) {
       return this.getActiveHackathon();
     } else {

@@ -192,10 +192,6 @@ export class UserController {
       resumeUrl = await this.userService.uploadResume(data.id, resume);
     }
 
-    console.log(`updating custom claims for user ${data.id}.`);
-    await this.auth.updateUserClaims(data.id, 0);
-    console.log("updated claims.");
-
     const user = await this.userRepo
       .createOne({
         ...data,
@@ -203,7 +199,9 @@ export class UserController {
       })
       .exec();
 
-    // this.socket.emit("create:user", user);
+    await this.auth.updateUserClaims(data.id, 0);
+
+    this.socket.emit("create:user", user);
 
     return user;
   }

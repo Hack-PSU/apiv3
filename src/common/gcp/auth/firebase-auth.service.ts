@@ -23,14 +23,12 @@ export class FirebaseAuthService {
   }
 
   private validateAccess(user: any, access?: Role[], fn?: ValidateCmp) {
-    console.log(user.privilege);
     if (!access) {
       return true;
     }
     return access.every(
       fn ??
         ((role) => {
-          console.log(role);
           if (role === Role.NONE && !user.privilege) {
             return true;
           } else {
@@ -103,7 +101,6 @@ export class FirebaseAuthService {
   }
 
   updateUserClaims(uid: string, privilege: Role) {
-    console.log(`name: ${admin.app().name}`);
     return admin.auth().setCustomUserClaims(uid, { privilege });
   }
 }

@@ -43,19 +43,11 @@ export class RolesGuard extends AuthGuard("jwt") {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     // canActivate is called last and will check user against permissions
 
-    console.log("calling canActivate.");
-
     // rolesList is an array of Role values from the @Roles decorator
     const rolesList = this.reflector.get(
       FirebaseAuthRoles,
       context.getHandler(),
     );
-
-    if (rolesList) {
-      rolesList.forEach((element) => {
-        console.log(`role: ${element}`);
-      });
-    }
 
     // object will be built based on provided route metadata
     let restricted: RestrictedRolesOptions | undefined;
@@ -90,12 +82,9 @@ export class RolesGuard extends AuthGuard("jwt") {
     }
 
     // Must call super.canActivate to inject user into request and run passport auth logic
-    console.log("calling super canActivate.");
-    console.log(`context type: ${context.getType()}`);
     const passportAccess = await super.canActivate(context);
 
     if (!passportAccess) {
-      console.log("no passport access.");
       return false;
     }
 

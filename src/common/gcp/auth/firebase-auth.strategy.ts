@@ -35,8 +35,6 @@ export class FirebaseAuthStrategy extends PassportStrategy(Strategy) {
           });
       },
     });
-
-    console.log(`jwt_auth_audience: ${configService.get("JWT_AUTH_AUDIENCE")}`);
   }
 
   validate(payload: unknown): unknown {
