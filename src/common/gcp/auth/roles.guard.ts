@@ -53,7 +53,7 @@ export class RolesGuard extends AuthGuard("jwt") {
 
     if (rolesList) {
       rolesList.forEach((element) => {
-        console.log(element);
+        console.log(`role: ${element}`);
       });
     }
 
@@ -89,11 +89,9 @@ export class RolesGuard extends AuthGuard("jwt") {
       return true;
     }
 
-    // Must call super.canActivate to inject user into request and run
-    // passport auth logic
+    // Must call super.canActivate to inject user into request and run passport auth logic
     console.log("calling super canActivate.");
-    console.log(context.getType());
-    console.log(context);
+    console.log(`context type: ${context.getType()}`);
     const passportAccess = await super.canActivate(context);
 
     if (!passportAccess) {

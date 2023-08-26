@@ -16,7 +16,7 @@ export class FirebaseAuthStrategy extends PassportStrategy(Strategy) {
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      // audience: configService.get("JWT_AUTH_AUDIENCE"),
+      audience: configService.get("JWT_AUTH_AUDIENCE"),
       ignoreExpiration: false,
       secretOrKeyProvider: (request, rawJwtToken, done) => {
         const jwtHeader = jwtDecode(rawJwtToken, {
