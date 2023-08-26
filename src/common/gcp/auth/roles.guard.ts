@@ -92,9 +92,8 @@ export class RolesGuard extends AuthGuard("jwt") {
     // Must call super.canActivate to inject user into request and run
     // passport auth logic
     console.log("calling super canActivate.");
-    const passportAccess = await super.canActivate(context);
-
     console.log(context.getType());
+    const passportAccess = await super.canActivate(context);
 
     if (!passportAccess) {
       console.log("no passport access.");
