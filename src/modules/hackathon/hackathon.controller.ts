@@ -131,7 +131,7 @@ export class HackathonController {
   }
 
   @Get("/")
-  @Roles(Role.NONE)
+  @Roles(Role.TEAM)
   @ApiDoc({
     summary: "Get All Hackathons",
     query: [
