@@ -32,8 +32,7 @@ import { AnalyticsModule } from "modules/analytics/analytics.module";
   imports: [
     // Configs
     ConfigModule.forRoot({
-      // load: [dbConfig, firebaseConfig, sendGridConfig, appleConfig],
-      load: [dbConfig, firebaseConfig],
+      load: [dbConfig, firebaseConfig, sendGridConfig, appleConfig],
     }),
 
     // Database
@@ -53,20 +52,20 @@ import { AnalyticsModule } from "modules/analytics/analytics.module";
     }),
 
     // Email and SendGrid
-    // SendGridModule.forRoot({
-    //   imports: [ConfigModule],
-    //   useFactory: (configService: ConfigService) =>
-    //     configService.get(ConfigToken.SENDGRID),
-    //   inject: [ConfigService],
-    // }),
+    SendGridModule.forRoot({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) =>
+        configService.get(ConfigToken.SENDGRID),
+      inject: [ConfigService],
+    }),
 
     // Apple
-    // AppleAuthModule.forRoot({
-    //   imports: [ConfigModule],
-    //   useFactory: (configService: ConfigService) =>
-    //     configService.get(ConfigToken.APPLE),
-    //   inject: [ConfigService],
-    // }),
+    AppleAuthModule.forRoot({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) =>
+        configService.get(ConfigToken.APPLE),
+      inject: [ConfigService],
+    }),
 
     // Endpoints
     HackathonModule,
@@ -79,7 +78,7 @@ import { AnalyticsModule } from "modules/analytics/analytics.module";
     ScanModule,
     ExtraCreditModule,
     RegistrationModule,
-    // AppleModule,
+    AppleModule,
     FlagModule,
     NotificationModule,
     AnalyticsModule,
@@ -88,7 +87,7 @@ import { AnalyticsModule } from "modules/analytics/analytics.module";
     SocketModule,
 
     // Mail
-    // MailModule,
+    MailModule,
   ],
 })
 export class AppModule {}
