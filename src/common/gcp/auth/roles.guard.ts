@@ -52,7 +52,7 @@ export class RolesGuard extends AuthGuard("jwt") {
     );
 
     if (rolesList) {
-      rolesList.array.forEach((element) => {
+      rolesList.forEach((element) => {
         console.log(element);
       });
     }
