@@ -161,6 +161,7 @@ export class UserController {
   }
 
   @Post("/")
+  @Roles(Role.NONE)
   @UseInterceptors(FileInterceptor("resume"))
   @ApiDoc({
     summary: "Create a User",
