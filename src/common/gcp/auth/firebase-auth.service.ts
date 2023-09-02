@@ -92,6 +92,7 @@ export class FirebaseAuthService {
 
   async getUserPrivilege(uid: string) {
     try {
+      console.log(uid);
       const user = await admin.auth().getUser(uid);
       return user.customClaims.privilege;
     } catch (e) {
