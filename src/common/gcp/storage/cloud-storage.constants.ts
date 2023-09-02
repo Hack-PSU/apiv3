@@ -1,3 +1,3 @@
 export enum Storage {
-  RESUME = "hackpsu-resumes",
+  RESUME = "hackpsu23-resumes",
 }

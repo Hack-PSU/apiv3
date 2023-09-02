@@ -26,8 +26,9 @@ export class GoogleCloudModule {
 
     const firebaseAppProvider: Provider<admin.app.App> = {
       provide: FirebaseAppProvider,
-      useFactory: ({ appName, ...config }: FirebaseConfig) =>
-        admin.initializeApp(config, appName),
+      useFactory: ({ appName, ...config }: FirebaseConfig) => {
+        return admin.initializeApp(config, appName);
+      },
       inject: [FirebaseConfigProvider],
     };
 

@@ -81,8 +81,7 @@ export class RolesGuard extends AuthGuard("jwt") {
       return true;
     }
 
-    // Must call super.canActivate to inject user into request and run
-    // passport auth logic
+    // Must call super.canActivate to inject user into request and run passport auth logic
     const passportAccess = await super.canActivate(context);
 
     if (!passportAccess) {
