@@ -18,6 +18,7 @@ export const firebaseConfig = registerAs<FirebaseConfig>(
           storageBucket: `${process.env.STORAGE_BUCKET}.appspot.com`,
         };
       } else {
+        // For local testing only:
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         const serviceAccount = require(process.env.GOOGLE_CERT);
         return {
