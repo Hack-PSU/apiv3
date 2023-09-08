@@ -25,18 +25,15 @@ export class UserService {
     }
   }
 
-  private getFile(userId: string) {
+  private getFile(userId: string): string {
     return `${this.prefix}${userId}.pdf`;
   }
 
-  async uploadResume(userId: string, file: Express.Multer.File) {
+  async uploadResume(userId: string, file: Express.Multer.File): Promise<string> {
     const blob = this.resumeBucket.file(this.getFile(userId));
-
     await blob.save(file.buffer);
 
-    await blob.makePublic();
-
-    return blob.publicUrl();
+    return this.getFile(userId);
   }
 
   deleteResume(userId: string) {
