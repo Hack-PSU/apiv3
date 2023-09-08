@@ -1,1 +1,1 @@
-export { Storage } from "./cloud-storage.constants";
+export { StorageEnums } from "./cloud-storage.constants";

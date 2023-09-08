@@ -2,3 +2,5 @@ node_modules
 Dockerfile
 .dockerignore
 dist
+.env
+*service-account.json
