@@ -202,7 +202,7 @@ export class UserController {
 
     await this.auth.updateUserClaims(data.id, 0);
 
-    this.socket.emit("create:user", user);
+    // this.socket.emit("create:user", user);
 
     return user;
   }

@@ -41,5 +41,7 @@ db/local/
 .env
 
 # Keys
-*service-account.json
+*service-account*.json
+*serviceaccount*.json
+ninth-expanse-396918*.json
 hackpsu18*.json
