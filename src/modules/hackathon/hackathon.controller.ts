@@ -204,7 +204,7 @@ export class HackathonController {
       })
       .exec();
 
-    this.socket.emit("create:hackathon", newHackathon);
+    // this.socket.emit("create:hackathon", newHackathon);
 
     return {
       ...newHackathon,
@@ -262,7 +262,7 @@ export class HackathonController {
     data: HackathonPatchEntity,
   ) {
     const hackathon = await this.hackathonRepo.patchOne(id, data).exec();
-    this.socket.emit("update:hackathon", hackathon);
+    // this.socket.emit("update:hackathon", hackathon);
 
     return hackathon;
   }
@@ -298,7 +298,7 @@ export class HackathonController {
     data: HackathonUpdateEntity,
   ) {
     const hackathon = await this.hackathonRepo.replaceOne(id, data).exec();
-    this.socket.emit("update:hackathon", hackathon);
+    // this.socket.emit("update:hackathon", hackathon);
 
     return hackathon;
   }
@@ -321,7 +321,7 @@ export class HackathonController {
   })
   async deleteOne(@Param("id") id: string) {
     const hackathon = await this.hackathonRepo.deleteOne(id).exec();
-    this.socket.emit("delete:hackathon", hackathon);
+    // this.socket.emit("delete:hackathon", hackathon);
 
     return hackathon;
   }
@@ -350,7 +350,7 @@ export class HackathonController {
       .patchOne(id, { active: true })
       .exec();
 
-    this.socket.emit("update:hackathon", hackathon);
+    // this.socket.emit("update:hackathon", hackathon);
 
     return hackathon;
   }
