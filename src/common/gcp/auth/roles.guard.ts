@@ -15,6 +15,7 @@ import {
   RestrictedEndpointPredicate,
   RestrictedRolesOptions,
 } from "./restricted-roles.decorator";
+import { Role } from "./firebase-auth.types";
 
 @Injectable()
 export class RolesGuard extends AuthGuard("jwt") {
@@ -44,7 +45,7 @@ export class RolesGuard extends AuthGuard("jwt") {
     // canActivate is called last and will check user against permissions
 
     // rolesList is an array of Role values from the @Roles decorator
-    const rolesList = this.reflector.get(
+    const rolesList: Role[] | undefined = this.reflector.get(
       FirebaseAuthRoles,
       context.getHandler(),
     );
@@ -69,6 +70,11 @@ export class RolesGuard extends AuthGuard("jwt") {
     const restrictedRoles: RestrictedRolesOptions | undefined =
       this.reflector.get(FirebaseAuthRestrictedRoles, context.getHandler());
 
+    if (rolesList.includes(Role.NONE)) {
+      return true;
+    }
+
+    // Passport logic throws a 401
     if (restrictedRoles) {
       restricted = {
         roles: restrictedRoles.roles,
@@ -76,13 +82,30 @@ export class RolesGuard extends AuthGuard("jwt") {
       };
     }
 
+
     // if no authorization required default to passportAccess
     if (!restrictedRoles && !predicate && !rolesList) {
       return true;
     }
 
     // Must call super.canActivate to inject user into request and run passport auth logic
-    const passportAccess = await super.canActivate(context);
+    let passportAccess = undefined;
+    try {
+      passportAccess = await super.canActivate(context);
+    } catch (error) {
+      // super.canActivate() will throw a 401 error if no auth token is provided instead of returning false,
+      // so this allows for checking a restriction on Role.NONE that does not depend on the user.
+      if (restricted && restricted.roles && restricted.roles.includes(Role.NONE) && restricted.predicate) {
+        try {
+          const request = context.switchToHttp().getRequest();
+          if (restricted.predicate(request)) {
+            return true;
+          }
+        } catch (error) {
+          // Continue, because the predicate might depend on the user.
+        }
+      }
+    }
 
     if (!passportAccess) {
       return false;
