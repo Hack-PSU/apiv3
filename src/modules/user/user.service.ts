@@ -33,9 +33,10 @@ export class UserService {
   }
 
   async uploadResume(userId: string, file: Express.Multer.File): Promise<string> {
-    const blob = this.resumeBucket.file(this.getResumeFileName(userId));    
+    const filename = this.getResumeFileName(userId);
+    const blob = this.resumeBucket.file(filename);    
     await blob.save(file.buffer);
-    return this.getAuthenticatedResumeUrl(userId);
+    return this.getAuthenticatedResumeUrl(filename);
   }
 
   deleteResume(userId: string) {
