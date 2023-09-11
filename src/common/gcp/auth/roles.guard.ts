@@ -70,7 +70,7 @@ export class RolesGuard extends AuthGuard("jwt") {
     const restrictedRoles: RestrictedRolesOptions | undefined =
       this.reflector.get(FirebaseAuthRestrictedRoles, context.getHandler());
 
-    if (rolesList.includes(Role.NONE)) {
+    if (!rolesList || rolesList.includes(Role.NONE)) {
       return true;
     }
 
