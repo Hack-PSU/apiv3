@@ -70,10 +70,6 @@ export class RolesGuard extends AuthGuard("jwt") {
     const restrictedRoles: RestrictedRolesOptions | undefined =
       this.reflector.get(FirebaseAuthRestrictedRoles, context.getHandler());
 
-    if (!rolesList || rolesList.includes(Role.NONE)) {
-      return true;
-    }
-
     // Passport logic throws a 401
     if (restrictedRoles) {
       restricted = {
@@ -88,11 +84,16 @@ export class RolesGuard extends AuthGuard("jwt") {
       return true;
     }
 
-    // Must call super.canActivate to inject user into request and run passport auth logic
+    // Must call super.canActivate() to inject user into request and run passport auth logic
     let passportAccess = undefined;
     try {
       passportAccess = await super.canActivate(context);
     } catch (error) {
+      // Need to wait until *after* super.canActivate() for this so that we have user id for profile route.
+      if (!rolesList || rolesList.includes(Role.NONE)) {
+        return true;
+      }
+
       // super.canActivate() will throw a 401 error if no auth token is provided instead of returning false,
       // so this allows for checking a restriction on Role.NONE that does not depend on the user.
       if (restricted && restricted.roles && restricted.roles.includes(Role.NONE) && restricted.predicate) {
@@ -114,8 +115,7 @@ export class RolesGuard extends AuthGuard("jwt") {
     if (context.getType() === "ws") {
       // WS User is not injected into request so FirebaseAuthService will
       // decode the token to find for permissions
-      const token = context.switchToWs().getClient().handshake
-        .headers.authorization;
+      const token = context.switchToWs().getClient().handshake.headers.authorization;
       return this.authService.validateWsUser(token, rolesList);
     } else if (context.getType() === "http") {
       // HTTP requests are checked against possible restricted roles
