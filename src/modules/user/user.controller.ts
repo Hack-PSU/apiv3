@@ -189,22 +189,27 @@ export class UserController {
   ) {
     let resumeUrl = null;
 
-    if (resume) {
-      resumeUrl = await this.userService.uploadResume(data.id, resume);
+    try {
+      if (resume) {
+        resumeUrl = await this.userService.uploadResume(data.id, resume);
+      }
+  
+      const user = await this.userRepo
+        .createOne({
+          ...data,
+          resume: resumeUrl,
+        })
+        .exec();
+  
+      await this.auth.updateUserClaims(data.id, 0);
+  
+      // this.socket.emit("create:user", user);
+  
+      return user;
+    } catch (error) {
+      console.log(`user create: ${data.id}: ${error}`);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
-    const user = await this.userRepo
-      .createOne({
-        ...data,
-        resume: resumeUrl,
-      })
-      .exec();
-
-    await this.auth.updateUserClaims(data.id, 0);
-
-    // this.socket.emit("create:user", user);
-
-    return user;
   }
 
   @Get(":id")
@@ -414,48 +419,66 @@ export class UserController {
     )
     data: CreateUserRegistrationEntity,
   ) {
-    const user = await this.userRepo.findOne(id).exec();
+    let user;
+    try {
+      user = await this.userRepo.findOne(id).exec();
+    } catch (error) {
+      console.log(`register find user: ${id}: ${error}`);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 
     if (!user) {
       throw new HttpException("No user found", HttpStatus.BAD_REQUEST);
     }
 
-    const hasRegistration = await this.registrationRepo
-      .findAll()
-      .byHackathon()
-      .where("userId", id)
-      .first();
+    let hasRegistration;
+    try {
+      hasRegistration = await this.registrationRepo
+        .findAll()
+        .byHackathon()
+        .where("userId", id)
+        .first();
+    } catch (error) {
+      console.log(`register find registration: ${id}: ${error}`);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 
     if (hasRegistration) {
       throw new HttpException("Duplicate registration", HttpStatus.CONFLICT);
     }
 
-    const newRegistration = this.registrationRepo
-      .createOne({
-        userId: id,
-        ...data,
-      })
-      .byHackathon();
+    let newRegistration;
+    try {
+      newRegistration = this.registrationRepo
+        .createOne({
+          userId: id,
+          ...data,
+        })
+        .byHackathon();
+    } catch (error) {
+      console.log(`register create registration: ${id}: ${error}`);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 
     // If we need to test emails locally, then comment out this if statement.
     // However, we don't really want to spam ourselves if we don't have to.
     if (process.env.NODE_ENV && process.env.NODE_ENV == "production") {
-      const message = await this.sendGridService.populateTemplate(
-        DefaultTemplate.registration,
-        {
-          previewText: "HackPSU Fall 2023 Registration",
-          date: "October 21st-22nd",
-          address: "Business Building, University Park PA",
-          firstName: user.firstName,
-        },
-      );
+      // const message = await this.sendGridService.populateTemplate(
+      //   DefaultTemplate.registration,
+      //   {
+      //     previewText: "HackPSU Fall 2023 Registration",
+      //     date: "October 21st-22nd",
+      //     address: "Business Building, University Park PA",
+      //     firstName: user.firstName,
+      //   },
+      // );
   
-      await this.sendGridService.send({
-        from: DefaultFromEmail,
-        to: user.email,
-        subject: "Thank you for your Registration",
-        message,
-      });
+      // await this.sendGridService.send({
+      //   from: DefaultFromEmail,
+      //   to: user.email,
+      //   subject: "Thank you for your Registration",
+      //   message,
+      // });
     }
 
     return newRegistration;
@@ -476,21 +499,26 @@ export class UserController {
     }
 
     const userId = String(req.user.sub);
+    
+    try {
+      const user = await this.userRepo
+        .findOne(userId)
+        .raw()
+        .withGraphFetched("registrations(active)");
 
-    const user = await this.userRepo
-      .findOne(userId)
-      .raw()
-      .withGraphFetched("registrations(active)");
+      if (user) {
+        const { registrations, ...data } = user;
 
-    if (user) {
-      const { registrations, ...data } = user;
-
-      return {
-        ...data,
-        registration: registrations[0] ?? null,
-      };
-    } else {
-      return {};
+        return {
+          ...data,
+          registration: registrations[0] ?? null,
+        };
+      } else {
+        return {};
+      }
+    } catch (error) {
+      console.log(`profile: ${userId}: ${error}`);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
