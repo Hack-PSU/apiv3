@@ -78,7 +78,7 @@ export class FirebaseAuthService {
     return predicate(request);
   }
 
-  validateWsUser(token: string, access?: Role[]) {
+  validateWsUser(token: string, access?: Role[]): boolean {
     const decodedToken = this.decodeToken(this.extractAuthToken(token));
     if (decodedToken) {
       return this.validateAccess(decodedToken, access);
@@ -86,14 +86,18 @@ export class FirebaseAuthService {
     return false;
   }
 
-  async validateUser(uid: string) {
+  async validateUser(uid: string): Promise<boolean> {
     return !!(await admin.auth().getUser(uid));
   }
 
-  async getUserPrivilege(uid: string) {
+  async getUserPrivilege(uid: string): Promise<number> {
     try {
-      const user = await admin.auth().getUser(uid);
-      return user.customClaims.privilege;
+      if (await this.validateUser(uid)) {
+        const user = await admin.auth().getUser(uid);
+        return user.customClaims.privilege;  
+      } else {
+        return 0;
+      }
     } catch (e) {
       console.error(e);
       return 2;

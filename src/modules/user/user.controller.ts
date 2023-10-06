@@ -194,12 +194,7 @@ export class UserController {
         resumeUrl = await this.userService.uploadResume(data.id, resume);
       }
   
-      const user = await this.userRepo
-        .createOne({
-          ...data,
-          resume: resumeUrl,
-        })
-        .exec();
+      const user = await this.userRepo.createOne({ ...data, resume: resumeUrl }).exec();
   
       await this.auth.updateUserClaims(data.id, 0);
   
