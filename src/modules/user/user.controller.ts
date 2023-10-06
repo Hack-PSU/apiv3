@@ -336,13 +336,7 @@ export class UserController {
       resumeUrl = await this.userService.uploadResume(id, resume);
     }
 
-    const user = await this.userRepo
-      .replaceOne(id, {
-        ...data,
-        resume: resumeUrl,
-      })
-      .exec();
-
+    const user = await this.userRepo.replaceOne(id, { ...data, resume: resumeUrl }).exec();
     this.socket.emit("update:user", user);
 
     return user;
@@ -458,22 +452,22 @@ export class UserController {
     // If we need to test emails locally, then comment out this if statement.
     // However, we don't really want to spam ourselves if we don't have to.
     if (process.env.NODE_ENV && process.env.NODE_ENV == "production") {
-      // const message = await this.sendGridService.populateTemplate(
-      //   DefaultTemplate.registration,
-      //   {
-      //     previewText: "HackPSU Fall 2023 Registration",
-      //     date: "October 21st-22nd",
-      //     address: "Business Building, University Park PA",
-      //     firstName: user.firstName,
-      //   },
-      // );
+      const message = await this.sendGridService.populateTemplate(
+        DefaultTemplate.registration,
+        {
+          previewText: "HackPSU Fall 2023 Registration",
+          date: "October 21st-22nd",
+          address: "Business Building, University Park PA",
+          firstName: user.firstName,
+        },
+      );
   
-      // await this.sendGridService.send({
-      //   from: DefaultFromEmail,
-      //   to: user.email,
-      //   subject: "Thank you for your Registration",
-      //   message,
-      // });
+      await this.sendGridService.send({
+        from: DefaultFromEmail,
+        to: user.email,
+        subject: "Thank you for your Registration",
+        message,
+      });
     }
 
     return newRegistration;
