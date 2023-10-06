@@ -144,7 +144,7 @@ export class EventController {
       .byHackathon(data.hackathonId)
       .withGraphFetched("location");
 
-    // this.socket.emit("create:event", event);
+    this.socket.emit("create:event", event);
 
     return event;
   }
@@ -215,7 +215,7 @@ export class EventController {
       .raw()
       .withGraphFetched("location");
 
-    // this.socket.emit("update:event", event);
+    this.socket.emit("update:event", event);
 
     return event;
   }
@@ -268,7 +268,7 @@ export class EventController {
       .raw()
       .withGraphFetched("location");
 
-    // this.socket.emit("update:event", event);
+    this.socket.emit("update:event", event);
 
     return event;
   }
@@ -294,7 +294,7 @@ export class EventController {
 
     await this.eventService.deleteIcon(id);
 
-    // this.socket.emit("delete:event", event);
+    this.socket.emit("delete:event", event);
 
     return event;
   }

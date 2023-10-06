@@ -132,7 +132,7 @@ export class OrganizerController {
     const organizer = await this.organizerRepo.createOne(user).exec();
 
     await this.auth.updateUserClaims(data.id, privilege);
-    // this.socket.emit("create:organizer", organizer, SocketRoom.ADMIN);
+    this.socket.emit("create:organizer", organizer, SocketRoom.ADMIN);
 
     return organizer;
   }
@@ -204,7 +204,7 @@ export class OrganizerController {
       await this.auth.updateUserClaims(id, privilege);
     }
 
-    // this.socket.emit("update:organizer", organizer, SocketRoom.ADMIN);
+    this.socket.emit("update:organizer", organizer, SocketRoom.ADMIN);
 
     organizer = await this.organizerRepo.findOne(id).exec();
 
@@ -245,7 +245,7 @@ export class OrganizerController {
     const organizer = await this.organizerRepo.replaceOne(id, rest).exec();
 
     await this.auth.updateUserClaims(id, privilege);
-    // this.socket.emit("update:organizer", organizer, SocketRoom.ADMIN);
+    this.socket.emit("update:organizer", organizer, SocketRoom.ADMIN);
 
     return this.organizerService.injectUserRoles([organizer]).pipe(take(1));
   }
@@ -270,7 +270,7 @@ export class OrganizerController {
     const organizer = await this.organizerRepo.deleteOne(id).exec();
 
     await this.auth.updateUserClaims(id, Role.NONE);
-    // this.socket.emit("delete:organizer", organizer, SocketRoom.ADMIN);
+    this.socket.emit("delete:organizer", organizer, SocketRoom.ADMIN);
 
     return organizer;
   }
@@ -447,19 +447,19 @@ export class OrganizerController {
       await this.scoreRepo.createOne(newAssignment).byHackathon();
     }
 
-    // this.socket.emit(
-    //   "update:judging:exclude",
-    //   { excludeProjects, project: project.name },
-    //   SocketRoom.ADMIN,
-    // );
+    this.socket.emit(
+      "update:judging:exclude",
+      { excludeProjects, project: project.name },
+      SocketRoom.ADMIN,
+    );
 
-    // this.socket.emit(
-    //   "update:judging:reassign",
-    //   {
-    //     judge: `${judge.firstName} ${judge.lastName}`,
-    //     project: project.name,
-    //   },
-    //   SocketRoom.EXEC,
-    // );
+    this.socket.emit(
+      "update:judging:reassign",
+      {
+        judge: `${judge.firstName} ${judge.lastName}`,
+        project: project.name,
+      },
+      SocketRoom.EXEC,
+    );
   }
 }

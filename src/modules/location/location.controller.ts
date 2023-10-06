@@ -72,7 +72,7 @@ export class LocationController {
     data: LocationCreateEntity,
   ) {
     const location = await this.locationRepo.createOne(data).exec();
-    // this.socket.emit("create:location", location);
+    this.socket.emit("create:location", location);
 
     return location;
   }
@@ -127,7 +127,7 @@ export class LocationController {
     data: LocationPatchEntity,
   ) {
     const location = await this.locationRepo.patchOne(id, data).exec();
-    // this.socket.emit("update:location", location);
+    this.socket.emit("update:location", location);
 
     return location;
   }
@@ -163,7 +163,7 @@ export class LocationController {
     data: LocationCreateEntity,
   ) {
     const location = await this.locationRepo.replaceOne(id, data).exec();
-    // this.socket.emit("update:location", location);
+    this.socket.emit("update:location", location);
 
     return location;
   }
@@ -186,7 +186,7 @@ export class LocationController {
   })
   async deleteOne(@Param("id", ParseIntPipe) id: number) {
     const location = await this.locationRepo.deleteOne(id).exec();
-    // this.socket.emit("delete:location", location);
+    this.socket.emit("delete:location", location);
 
     return location;
   }

@@ -182,7 +182,7 @@ export class SponsorController {
         .exec();
     }
 
-    // this.socket.emit("create:sponsor", sponsor, SocketRoom.MOBILE);
+    this.socket.emit("create:sponsor", sponsor, SocketRoom.MOBILE);
 
     return sponsor;
   }
@@ -295,7 +295,7 @@ export class SponsorController {
       })
       .exec();
 
-    // this.socket.emit("update:sponsor", sponsor, SocketRoom.MOBILE);
+    this.socket.emit("update:sponsor", sponsor, SocketRoom.MOBILE);
 
     return sponsor;
   }
@@ -393,7 +393,7 @@ export class SponsorController {
       })
       .exec();
 
-    // this.socket.emit("update:sponsor", sponsor, SocketRoom.MOBILE);
+    this.socket.emit("update:sponsor", sponsor, SocketRoom.MOBILE);
 
     return sponsor;
   }
@@ -435,7 +435,7 @@ export class SponsorController {
 
     const sponsor = await this.sponsorRepo.deleteOne(id).exec();
 
-    // this.socket.emit("update:sponsor", sponsor, SocketRoom.MOBILE);
+    this.socket.emit("update:sponsor", sponsor, SocketRoom.MOBILE);
 
     return sponsor;
   }
@@ -470,7 +470,7 @@ export class SponsorController {
       data.map(({ id, ...data }) => this.sponsorRepo.patchOne(id, data).exec()),
     );
 
-    // this.socket.emit("batch_update:sponsor", sponsors, SocketRoom.MOBILE);
+    this.socket.emit("batch_update:sponsor", sponsors, SocketRoom.MOBILE);
 
     return sponsors;
   }

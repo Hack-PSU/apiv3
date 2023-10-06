@@ -103,7 +103,7 @@ export class FlagController {
     }
 
     if (data.broadcast) {
-      // this.socket.emit(`update:${data.name}:flag`, {}, data.broadcast);
+      this.socket.emit(`update:${data.name}:flag`, {}, data.broadcast);
     }
   }
 
