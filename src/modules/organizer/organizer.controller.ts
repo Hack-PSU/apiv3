@@ -35,7 +35,10 @@ import { IsNumber, IsOptional } from "class-validator";
 import { Response } from "express";
 import { Hackathon } from "entities/hackathon.entity";
 
-class OrganizerCreateEntity extends OrganizerEntity {}
+class OrganizerCreateEntity extends OmitType(OrganizerEntity, [
+  "award",
+  "judgingLocation",
+] as const) {}
 
 class OrganizerReplaceEntity extends OmitType(OrganizerCreateEntity, [
   "id",
@@ -85,7 +88,7 @@ export class OrganizerController {
   @ApiDoc({
     summary: "Get All Organizers",
     response: {
-      ok: { type: OrganizerEntity },
+      ok: { type: [OrganizerEntity] },
     },
     auth: Role.EXEC,
   })

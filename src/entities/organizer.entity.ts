@@ -70,6 +70,16 @@ export class Organizer extends Entity {
   })
   @IsEnum(Role)
   privilege: Role;
+
+  @ApiProperty()
+  @IsString()
+  @Column({ type: "string" })
+  award: string;
+
+  @ApiProperty()
+  @IsString()
+  @Column({ type: "string" })
+  judgingLocation: string;
 }
 
 export class OrganizerEntity extends PickType(Organizer, [
@@ -78,4 +88,6 @@ export class OrganizerEntity extends PickType(Organizer, [
   "lastName",
   "email",
   "privilege",
+  "award",
+  "judgingLocation",
 ] as const) {}
