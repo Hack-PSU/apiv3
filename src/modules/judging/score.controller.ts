@@ -58,17 +58,17 @@ class ScoreCreateEntity extends ScoreEntity {
   @ApiProperty({ required: false, default: -1 })
   @IsOptional()
   @IsNumber()
-  energy: number;
+  challenge1: number;
 
   @ApiProperty({ required: false, default: -1 })
   @IsOptional()
   @IsNumber()
-  supplyChain: number;
+  challenge2: number;
 
   @ApiProperty({ required: false, default: -1 })
   @IsOptional()
   @IsNumber()
-  environmental: number;
+  challenge3: number;
 
   @ApiProperty({ required: false, default: false })
   @IsOptional()

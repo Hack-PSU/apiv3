@@ -67,17 +67,17 @@ export class Score extends Entity {
   @ApiProperty()
   @IsNumber()
   @Column({ type: "integer", required: false })
-  energy: number;
+  challenge1: number;
 
   @ApiProperty()
   @IsNumber()
   @Column({ type: "integer", required: false })
-  supplyChain: number;
+  challenge2: number;
 
   @ApiProperty()
   @IsNumber()
   @Column({ type: "integer", required: false })
-  environmental: number;
+  challenge3: number;
 
   @ApiProperty({ required: false, default: "Current Hackathon" })
   @IsOptional()
@@ -127,9 +127,9 @@ export class ScoreEntity extends PickType(Score, [
   "implementation",
   "clarity",
   "growth",
-  "energy",
-  "supplyChain",
-  "environmental",
+  "challenge1",
+  "challenge2",
+  "challenge3",
   "hackathonId",
   "judgeId",
   "projectId",

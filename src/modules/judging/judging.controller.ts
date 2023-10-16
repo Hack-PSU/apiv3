@@ -63,14 +63,14 @@ class ProjectBreakdownEntity extends OmitType(ProjectEntity, [
   @ApiProperty({ description: "Average technical score" })
   technical: number;
 
-  @ApiProperty({ description: "Average energy score" })
-  energy: number;
+  @ApiProperty({ description: "Average challenge 1 score" })
+  challenge1: number;
 
-  @ApiProperty({ description: "Average supply chain score" })
-  supplyChain: number;
+  @ApiProperty({ description: "Average challenge 2 score" })
+  challenge2: number;
 
-  @ApiProperty({ description: "Average environmental score" })
-  environmental: number;
+  @ApiProperty({ description: "Average challenge 3 score" })
+  challenge3: number;
 
   @ApiProperty({ type: [ScoreBreakdownEntity] })
   scores: ScoreBreakdownEntity[];
@@ -118,6 +118,7 @@ export class JudgingController {
     const projectBreakdown = await this.projectRepo
       .findAll()
       .byHackathon()
+      // .where("submitted", true)
       .withGraphJoined("scores(agg).judge");
 
     return _.chain(projectBreakdown)
@@ -128,9 +129,9 @@ export class JudgingController {
         const clarity = _.meanBy(project.scores, "clarity");
         const growth = _.meanBy(project.scores, "growth");
         const technical = _.meanBy(project.scores, "technical");
-        const energy = _.meanBy(project.scores, "energy");
-        const supplyChain = _.meanBy(project.scores, "supplyChain");
-        const environmental = _.meanBy(project.scores, "environmental");
+        const challenge1 = _.meanBy(project.scores, "challenge1");
+        const challenge2 = _.meanBy(project.scores, "challenge2");
+        const challenge3 = _.meanBy(project.scores, "challenge3");
 
         const average = _.meanBy(project.scores, "total");
 
@@ -141,9 +142,9 @@ export class JudgingController {
           clarity,
           growth,
           technical,
-          energy,
-          supplyChain,
-          environmental,
+          challenge1,
+          challenge2,
+          challenge3,
           average,
         };
       })
