@@ -118,7 +118,7 @@ export class JudgingController {
     const projectBreakdown = await this.projectRepo
       .findAll()
       .byHackathon()
-      // .where("submitted", true)
+      .where("submitted", true)
       .withGraphJoined("scores(agg).judge");
 
     return _.chain(projectBreakdown)
