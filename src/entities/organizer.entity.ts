@@ -2,7 +2,7 @@ import { Column, ID, Table } from "common/objection";
 import { Entity } from "entities/base.entity";
 import { Role } from "common/gcp";
 import { ApiProperty, PickType } from "@nestjs/swagger";
-import { IsEmail, IsEnum, IsString } from "class-validator";
+import { IsEmail, IsEnum, IsOptional, IsString } from "class-validator";
 import { Expose } from "class-transformer";
 import { ControllerMethod } from "common/validation";
 
@@ -71,15 +71,17 @@ export class Organizer extends Entity {
   @IsEnum(Role)
   privilege: Role;
 
-  @ApiProperty()
+  @ApiProperty({ type: "string", required: false, nullable: true })
+  @IsOptional()
   @IsString()
-  @Column({ type: "string" })
-  award: string;
+  @Column({ type: "string", required: false, nullable: true })
+  award?: string;
 
-  @ApiProperty()
+  @ApiProperty({ type: "string", required: false, nullable: true })
+  @IsOptional()
   @IsString()
-  @Column({ type: "string" })
-  judgingLocation: string;
+  @Column({ type: "string", required: false, nullable: true })
+  judgingLocation?: string;
 }
 
 export class OrganizerEntity extends PickType(Organizer, [

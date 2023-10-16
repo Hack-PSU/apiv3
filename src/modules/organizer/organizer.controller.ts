@@ -32,7 +32,6 @@ import { Project, ProjectEntity } from "entities/project.entity";
 import { Score, ScoreEntity } from "entities/score.entity";
 import { JudgingService } from "modules/judging/judging.service";
 import { IsNumber, IsOptional } from "class-validator";
-import { Response } from "express";
 import { Hackathon } from "entities/hackathon.entity";
 
 class OrganizerCreateEntity extends OmitType(OrganizerEntity, [
@@ -114,6 +113,7 @@ export class OrganizerController {
   async createOne(
     @Body(
       new ValidationPipe({
+        enableDebugMessages: true,
         forbidNonWhitelisted: true,
         whitelist: true,
         transform: true,
