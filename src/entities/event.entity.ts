@@ -89,24 +89,28 @@ export class Event extends Entity {
 
   @ApiProperty({ required: false })
   @ValidateIf((o) => o.type === EventType.workshop)
+  @IsOptional()
   @IsString()
   @Column({ type: "string", required: false, nullable: true })
   wsPresenterNames?: string;
 
   @ApiProperty({ required: false })
   @ValidateIf((o) => o.type === EventType.workshop)
+  @IsOptional()
   @IsString()
   @Column({ type: "string", required: false, nullable: true })
   wsRelevantSkills?: string;
 
   @ApiProperty({ required: false })
   @ValidateIf((o) => o.type === EventType.workshop)
+  @IsOptional()
   @IsString()
   @Column({ type: "string", required: false, nullable: true })
   wsSkillLevel?: string;
 
   @ApiProperty({ required: false })
   @ValidateIf((o) => o.type === EventType.workshop)
+  @IsOptional()
   @IsString()
   @Column({ type: "string", required: false, nullable: true })
   wsUrls?: string;
