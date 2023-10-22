@@ -73,15 +73,15 @@ export class JudgingService {
     const awards = [
       {
         name: "Social Impact",
-        judgingLocation: "Room 106",
+        judgingLocation: "Room 126",
       },
       {
         name: "Entrepreneurship",
-        judgingLocation: "Room 107",
+        judgingLocation: "Room 124",
       },
       {
         name: "Generative AI",
-        judgingLocation: "Room 108",
+        judgingLocation: "Auditorium",
       },
     ];
     let awardNum = 0;
