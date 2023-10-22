@@ -193,13 +193,15 @@ export class UserController {
       if (resume) {
         resumeUrl = await this.userService.uploadResume(data.id, resume);
       }
-  
-      const user = await this.userRepo.createOne({ ...data, resume: resumeUrl }).exec();
-  
+
+      const user = await this.userRepo
+        .createOne({ ...data, resume: resumeUrl })
+        .exec();
+
       await this.auth.updateUserClaims(data.id, 0);
-  
+
       this.socket.emit("create:user", user);
-  
+
       return user;
     } catch (error) {
       console.log(`user create: ${data.id}: ${error}`);
@@ -336,7 +338,9 @@ export class UserController {
       resumeUrl = await this.userService.uploadResume(id, resume);
     }
 
-    const user = await this.userRepo.replaceOne(id, { ...data, resume: resumeUrl }).exec();
+    const user = await this.userRepo
+      .replaceOne(id, { ...data, resume: resumeUrl })
+      .exec();
     this.socket.emit("update:user", user);
 
     return user;
@@ -461,7 +465,7 @@ export class UserController {
           firstName: user.firstName,
         },
       );
-  
+
       await this.sendGridService.send({
         from: DefaultFromEmail,
         to: user.email,
@@ -488,7 +492,7 @@ export class UserController {
     }
 
     const userId = String(req.user.sub);
-    
+
     try {
       const user = await this.userRepo
         .findOne(userId)

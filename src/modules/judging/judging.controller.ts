@@ -152,7 +152,7 @@ export class JudgingController {
   }
 
   @Post("/assign")
-  @Roles(Role.EXEC)
+  // @Roles(Role.EXEC)
   async assignJudging(
     @Body(
       new ValidationPipe({
@@ -163,7 +163,7 @@ export class JudgingController {
     )
     data: JudgingAssignmentEntity,
   ) {
-    const assignments = this.judgingService.createAssignments(
+    const assignments = await this.judgingService.createAssignments(
       data.users,
       data.projects,
       data.projectsPerUser,

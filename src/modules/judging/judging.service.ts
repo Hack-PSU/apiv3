@@ -61,20 +61,79 @@ export class JudgingService {
     return minCountProjects.map((c) => c.id);
   }
 
-  createAssignments(
+  async createAssignments(
     users: string[],
     projects: number[],
     projectsPerUser: number,
   ) {
+    const organizers = (await this.userRepo.findAll().exec()).filter((user) =>
+      users.includes(user.id),
+    );
+
+    const awards = [
+      {
+        name: "Social Impact",
+        judgingLocation: "Room 106",
+      },
+      {
+        name: "Entrepreneurship",
+        judgingLocation: "Room 107",
+      },
+      {
+        name: "Generative AI",
+        judgingLocation: "Room 108",
+      },
+    ];
+    let awardNum = 0;
+    const techMembers = organizers.filter((user) => user.team === "tech");
+    const execMembers = organizers.filter((user) => user.team === "exec");
+    const otherMembers = organizers.filter(
+      (user) => user.team !== "tech" && user.team !== "exec",
+    );
+    for (const judge of techMembers) {
+      judge.award = awards[awardNum % awards.length].name;
+      judge.judgingLocation = awards[awardNum % awards.length].judgingLocation;
+      awardNum += 1;
+    }
+    for (const judge of execMembers) {
+      judge.award = awards[awardNum % awards.length].name;
+      judge.judgingLocation = awards[awardNum % awards.length].judgingLocation;
+      awardNum += 1;
+    }
+    for (const judge of otherMembers) {
+      judge.award = awards[awardNum % awards.length].name;
+      judge.judgingLocation = awards[awardNum % awards.length].judgingLocation;
+      awardNum += 1;
+    }
+    organizers.forEach((organizer) => {
+      this.userRepo.patchOne(organizer.id, organizer).exec();
+    });
+
     const randomProjects = this.shuffleProjects(projects);
 
     const assignments: JudgeAssignment[] = [];
     let projectIdx = 0;
 
-    for (const judge of users) {
+    for (const judge of techMembers) {
       for (let i = 0; i < projectsPerUser; i++, projectIdx++) {
         assignments.push({
-          judgeId: judge,
+          judgeId: judge.id,
+          projectId: randomProjects[projectIdx % randomProjects.length],
+        });
+      }
+    }
+    for (const judge of execMembers) {
+      for (let i = 0; i < projectsPerUser; i++, projectIdx++) {
+        assignments.push({
+          judgeId: judge.id,
+          projectId: randomProjects[projectIdx % randomProjects.length],
+        });
+      }
+    }
+    for (const judge of otherMembers) {
+      for (let i = 0; i < projectsPerUser; i++, projectIdx++) {
+        assignments.push({
+          judgeId: judge.id,
           projectId: randomProjects[projectIdx % randomProjects.length],
         });
       }

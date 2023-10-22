@@ -75,6 +75,12 @@ export class Organizer extends Entity {
   @IsOptional()
   @IsString()
   @Column({ type: "string", required: false, nullable: true })
+  team?: string;
+
+  @ApiProperty({ type: "string", required: false, nullable: true })
+  @IsOptional()
+  @IsString()
+  @Column({ type: "string", required: false, nullable: true })
   award?: string;
 
   @ApiProperty({ type: "string", required: false, nullable: true })
