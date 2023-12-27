@@ -94,7 +94,7 @@ export class FirebaseAuthService {
     try {
       if (await this.validateUser(uid)) {
         const user = await admin.auth().getUser(uid);
-        return user.customClaims.privilege;  
+        return user.customClaims.privilege;
       } else {
         return 0;
       }

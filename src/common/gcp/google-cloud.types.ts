@@ -4,6 +4,10 @@ export type FirebaseConfig = AppOptions & {
   appName?: string;
 };
 
+export type ResumeBucketConfig = {
+  resume_bucket?: string;
+};
+
 export type GoogleCloudCoreModuleOptions = {
   imports?: any[];
   useFactory: (...args: any[]) => FirebaseConfig;

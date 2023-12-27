@@ -78,7 +78,6 @@ export class RolesGuard extends AuthGuard("jwt") {
       };
     }
 
-
     // if no authorization required default to passportAccess
     if (!restrictedRoles && !predicate && !rolesList) {
       return true;

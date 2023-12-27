@@ -5,4 +5,5 @@ export enum ConfigToken {
   FirebaseWeb = "FirebaseWeb",
   SENDGRID = "SENDGRID",
   APPLE = "Apple",
+  RESUME = "Resume",
 }

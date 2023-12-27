@@ -1,18 +1,25 @@
-import { Injectable } from "@nestjs/common";
-import * as admin from "firebase-admin";
-import { StorageEnums } from "common/gcp/storage";
-import { Express } from "express";
 import { ConfigService } from "@nestjs/config";
+import { Injectable } from "@nestjs/common";
+
+import * as admin from "firebase-admin";
+import { ConfigToken } from "common/config";
+import { ResumeBucketConfig } from "common/gcp";
 
 @Injectable()
 export class UserService {
-  constructor(private readonly configService: ConfigService) {}
+  private resumeBucketName: string;
+
+  constructor(private readonly configService: ConfigService) {
+    this.resumeBucketName = configService.get<ResumeBucketConfig>(
+      ConfigToken.RESUME,
+    ).resume_bucket;
+  }
 
   private get resumeBucket() {
     if (process.env.NODE_ENV && process.env.NODE_ENV == "staging") {
       return admin.storage().bucket();
     } else {
-      return admin.storage().bucket(StorageEnums.RESUME);
+      return admin.storage().bucket(this.resumeBucketName);
     }
   }
 
@@ -29,12 +36,15 @@ export class UserService {
   }
 
   private getAuthenticatedResumeUrl(filename: string): string {
-    return `https://storage.cloud.google.com/${StorageEnums.RESUME}/${filename}`;
+    return `https://storage.cloud.google.com/${this.resumeBucketName}/${filename}`;
   }
 
-  async uploadResume(userId: string, file: Express.Multer.File): Promise<string> {
+  async uploadResume(
+    userId: string,
+    file: Express.Multer.File,
+  ): Promise<string> {
     const filename = this.getResumeFileName(userId);
-    const blob = this.resumeBucket.file(filename);    
+    const blob = this.resumeBucket.file(filename);
     await blob.save(file.buffer);
     return this.getAuthenticatedResumeUrl(filename);
   }
