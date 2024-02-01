@@ -459,8 +459,8 @@ export class UserController {
       const message = await this.sendGridService.populateTemplate(
         DefaultTemplate.registration,
         {
-          previewText: "HackPSU Fall 2023 Registration",
-          date: "October 21st-22nd",
+          previewText: "HackPSU Spring 2024 Registration",
+          date: "March 16th-17th",
           address: "Business Building, University Park PA",
           firstName: user.firstName,
         },
