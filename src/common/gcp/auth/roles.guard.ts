@@ -80,6 +80,7 @@ export class RolesGuard extends AuthGuard("jwt") {
 
     // if no authorization required default to passportAccess
     if (!restrictedRoles && !predicate && !rolesList) {
+      console.log("no auth required. defaulting to passport access");
       return true;
     }
 
@@ -119,21 +120,32 @@ export class RolesGuard extends AuthGuard("jwt") {
     } else if (context.getType() === "http") {
       // HTTP requests are checked against possible restricted roles
       const request = context.switchToHttp().getRequest();
+      console.log("logging user:");
+      console.log(request.user);
 
-      // if any route is defined as restricted
+      // If the user is allowed without predicates, then let them pass.
+      if (this.authService.validateHttpUser(request.user, rolesList)) {
+        console.log("Allowed without predicates.");
+        return true;
+      }
+
+      // If route has special restrictions for lower permissions, then check the predicate.
       if (restricted) {
-        // isAllowed === undefined if user is not a part of restriction
-        // or not enough information to determine authorization
-        const isAllowed = this.authService.validateRestrictedAccess(
+        console.log("Checking restricted routes.");
+        return this.authService.validateRestrictedAccess(
           request,
           restricted.predicate,
           restricted.roles,
         );
-
-        if (isAllowed !== undefined) return isAllowed;
       }
 
-      return this.authService.validateHttpUser(request.user, rolesList);
+      // Otherwise, block the request.
+      console.log("No restrictions.");
+      return false;
+
+    } else {
+      // Return false on unrecognized context.
+      return false;
     }
   }
 }

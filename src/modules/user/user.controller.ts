@@ -198,7 +198,7 @@ export class UserController {
         .createOne({ ...data, resume: resumeUrl })
         .exec();
 
-      await this.auth.updateUserClaims(data.id, 0);
+      await this.auth.updateUserPrivilege(data.id, 0);
 
       this.socket.emit("create:user", user);
 

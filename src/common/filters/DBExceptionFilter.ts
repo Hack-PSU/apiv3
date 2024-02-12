@@ -15,12 +15,9 @@ export class DBExceptionFilter implements ExceptionFilter {
     const res = ctx.getResponse<Response>();
 
     if (exception instanceof UniqueViolationError) {
-      // if used during staging, show more details on error
-      if (
-        req.user &&
-        "aud" in req.user &&
-        req.user.aud === "hackpsu18-staging"
-      ) {
+      
+      // If used during staging, show more details on error.
+      if (process.env.NODE_ENV && process.env.NODE_ENV === "staging") {
         res.status(HttpStatus.CONFLICT).send({
           statusCode: HttpStatus.CONFLICT,
           message: exception.message,

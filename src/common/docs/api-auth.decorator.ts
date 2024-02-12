@@ -1,4 +1,3 @@
-import { Role } from "common/gcp";
 import { applyDecorators } from "@nestjs/common";
 import {
   ApiBearerAuth,
@@ -7,6 +6,8 @@ import {
   ApiUnauthorizedResponse,
 } from "@nestjs/swagger";
 import { ExceptionResponse } from "./exception-response.entity";
+
+import { Role } from "common/gcp";
 
 export const ApiAuth = (privilege: Role, restricted = false) => {
   return applyDecorators(
