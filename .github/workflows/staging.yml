@@ -33,10 +33,10 @@ jobs:
         push: true
         tags: ${{ env.IMAGE_NAME }}
 
-    # - name: Deploy Cloud Run Service
-    #   run: |-
-    #     gcloud run deploy ${{ env.SERVICE }} \
-    #       --region "us-east4" \
-    #       --image ${{ env.IMAGE_NAME }} \
-    #       --platform "managed" \
-    #       --quiet
+    - name: Deploy Cloud Run Service
+      run: |-
+        gcloud run deploy ${{ env.SERVICE }} \
+          --region "us-east4" \
+          --image ${{ env.IMAGE_NAME }} \
+          --platform "managed" \
+          --quiet
