@@ -10,7 +10,7 @@ jobs:
     env:
       PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
       SERVICE: ${{ secrets.GCP_STAGING_SERVICE_NAME }}
-      IMAGE_NAME: us-east4-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_STAGING_SERVICE_NAME }}:${{ github.sha }}
+      IMAGE_NAME: us-east4-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/api-v3/${{ secrets.GCP_STAGING_SERVICE_NAME }}:${{ github.sha }}
     steps:
     - name: Checkout
       uses: actions/checkout@v3.3.0
