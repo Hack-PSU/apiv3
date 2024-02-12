@@ -5,6 +5,7 @@ import { DocsModule } from "common/docs/docs.module";
 import { ConfigService } from "@nestjs/config";
 
 async function bootstrap() {
+  console.log(process.env.NODE_ENV);
   const app = await NestFactory.create(AppModule);
   const options = new DocumentBuilder()
     .setTitle("HackPSU Documentation")
