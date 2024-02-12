@@ -85,21 +85,16 @@ export class FirebaseAuthService {
   ): Promise<boolean> {
     if (!access || !predicate) {
       // No predicated restrictions exist on this route, so block the request.
-      console.log("No predicate found.");
       return false;
     }
 
     // Block the request if the user doesn't meet any of the predicated roles.
-    console.log(access);
     const asfasdf = await this.getUserPrivilegeFromRequest(request);
-    console.log(asfasdf);
     if (!access.includes(await this.getUserPrivilegeFromRequest(request))) {
-      console.log("Blocked on roles.");
       return false;
     }
 
     // Roles are a potential match, so check the predicate to determine access.
-    console.log("Checking predicate.");
     return predicate(request);
   }
 
@@ -132,8 +127,6 @@ export class FirebaseAuthService {
     try {
       if (await this.validateUser(uid)) {
         const user = await admin.auth().getUser(uid);
-        console.log("Logging custom claims:")
-        console.log(user.customClaims);
         return user.customClaims[this.authEnvironment];
       } else {
         return Role.NONE;

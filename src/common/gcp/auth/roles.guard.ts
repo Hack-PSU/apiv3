@@ -80,7 +80,6 @@ export class RolesGuard extends AuthGuard("jwt") {
 
     // if no authorization required default to passportAccess
     if (!restrictedRoles && !predicate && !rolesList) {
-      console.log("no auth required. defaulting to passport access");
       return true;
     }
 
@@ -120,18 +119,14 @@ export class RolesGuard extends AuthGuard("jwt") {
     } else if (context.getType() === "http") {
       // HTTP requests are checked against possible restricted roles
       const request = context.switchToHttp().getRequest();
-      console.log("logging user:");
-      console.log(request.user);
 
       // If the user is allowed without predicates, then let them pass.
       if (this.authService.validateHttpUser(request.user, rolesList)) {
-        console.log("Allowed without predicates.");
         return true;
       }
 
       // If route has special restrictions for lower permissions, then check the predicate.
       if (restricted) {
-        console.log("Checking restricted routes.");
         return this.authService.validateRestrictedAccess(
           request,
           restricted.predicate,
@@ -140,7 +135,6 @@ export class RolesGuard extends AuthGuard("jwt") {
       }
 
       // Otherwise, block the request.
-      console.log("No restrictions.");
       return false;
 
     } else {
