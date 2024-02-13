@@ -11,11 +11,11 @@ import {
 import { Role } from "./firebase-auth.types";
 
 enum AuthEnvironment {
-  PROD = "PROD",
-  STAGING = "STAGING"
+  PROD = "production",
+  STAGING = "staging"
 }
 
-type FirebaseJwtPayload = JwtPayload & { PROD?: number, STAGING?: number };
+type FirebaseJwtPayload = JwtPayload & { production?: number, staging?: number };
 type ValidateFn = (user: any, role: Role) => boolean;
 type ValidateCmp = (role: Role) => boolean;
 
@@ -138,7 +138,6 @@ export class FirebaseAuthService {
   async updateUserPrivilege(uid: string, privilege: Role): Promise<void> {
     const privileges = ((await admin.auth().getUser(uid)).customClaims) ?? {};
     privileges[this.authEnvironment] = privilege;
-    delete privileges.privilege;  // REMOVE BEFORE MERGING. REMOVES PREVIOUS SETUP.
     await admin.auth().setCustomUserClaims(uid, privileges);
   }
 }
