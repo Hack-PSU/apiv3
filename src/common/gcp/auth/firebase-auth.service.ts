@@ -25,10 +25,10 @@ export class FirebaseAuthService {
   private authEnvironment: AuthEnvironment;
   
   constructor(private readonly httpService: HttpService, private readonly configService: ConfigService) {
-    // Set Prod vs. Staging auth based on environment.
-    this.authEnvironment = 
-      (process.env.RUNTIME_INSTANCE && process.env.RUNTIME_INSTANCE === "production") ? 
-      AuthEnvironment.PROD : AuthEnvironment.STAGING;
+    this.authEnvironment = configService.get<AuthEnvironment>("AUTH_ENVIRONMENT");
+    if (!(this.authEnvironment in AuthEnvironment)) {
+      throw Error(`Unrecognized AUTH_ENVIRONMENT: ${this.authEnvironment}`);
+    }
   }
 
   private decodeToken(token: string): FirebaseJwtPayload {
