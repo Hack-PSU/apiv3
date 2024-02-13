@@ -12,7 +12,7 @@ import { Role } from "./firebase-auth.types";
 
 enum AuthEnvironment {
   PROD = "production",
-  STAGING = "staging"
+  STAGING = "staging",
 }
 
 type FirebaseJwtPayload = JwtPayload & { production?: number, staging?: number };
@@ -25,10 +25,11 @@ export class FirebaseAuthService {
   private authEnvironment: AuthEnvironment;
   
   constructor(private readonly httpService: HttpService, private readonly configService: ConfigService) {
-    this.authEnvironment = configService.get<AuthEnvironment>("AUTH_ENVIRONMENT");
-    if (!(this.authEnvironment in AuthEnvironment)) {
-      throw Error(`Unrecognized AUTH_ENVIRONMENT: ${this.authEnvironment}`);
+    const authEnv = configService.get<AuthEnvironment>("AUTH_ENVIRONMENT");
+    if (!Object.values(AuthEnvironment).includes(authEnv)) {
+      throw Error(`Unrecognized AUTH_ENVIRONMENT: ${authEnv}`);
     }
+    this.authEnvironment = authEnv;
   }
 
   private decodeToken(token: string): FirebaseJwtPayload {
