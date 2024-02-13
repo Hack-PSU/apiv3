@@ -27,11 +27,8 @@ export class FirebaseAuthService {
   constructor(private readonly httpService: HttpService, private readonly configService: ConfigService) {
     // Set Prod vs. Staging auth based on environment.
     this.authEnvironment = 
-      (process.env.NODE_ENV && process.env.NODE_ENV == "production") ? 
+      (process.env.RUNTIME_INSTANCE && process.env.RUNTIME_INSTANCE === "production") ? 
       AuthEnvironment.PROD : AuthEnvironment.STAGING;
-
-    // TEMPORARY HARDCODE FOR LOCAL TESTING. REMOVE BEFORE MERGING.
-    // this.authEnvironment = AuthEnvironment.PROD;
   }
 
   private decodeToken(token: string): FirebaseJwtPayload {

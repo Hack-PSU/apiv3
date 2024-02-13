@@ -16,8 +16,9 @@ export class DBExceptionFilter implements ExceptionFilter {
 
     if (exception instanceof UniqueViolationError) {
       
-      // If used during staging, show more details on error.
-      if (process.env.NODE_ENV && process.env.NODE_ENV === "staging") {
+      // If not a production instance, we can give information for debugging purposes, so
+      // show more details on error.
+      if (process.env.RUNTIME_INSTANCE && process.env.RUNTIME_INSTANCE != "production") {
         res.status(HttpStatus.CONFLICT).send({
           statusCode: HttpStatus.CONFLICT,
           message: exception.message,
