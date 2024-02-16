@@ -330,18 +330,30 @@ export class UserController {
     data: UserUpdateEntity,
     @UploadedResume() resume?: Express.Multer.File,
   ) {
-    let resumeUrl = null;
 
+    // Delete pre-existing resume regardless of whether a new one is given.
+    // (So that we don't accidentally give an outdated one to sponsors.)
     await this.userService.deleteResume(id);
 
+    let resumeUrl = null;
     if (resume) {
       resumeUrl = await this.userService.uploadResume(id, resume);
     }
 
-    const user = await this.userRepo
-      .replaceOne(id, { ...data, resume: resumeUrl })
-      .exec();
-    this.socket.emit("update:user", user);
+    // If a user already exists, replace their information. Otherwise, create a new one.
+    const preExistingUser = await this.userRepo.findOne(id).exec();
+    let user = null;
+    if (preExistingUser) {
+      user = await this.userRepo.replaceOne(id, { ...data, resume: resumeUrl }).exec();
+      this.socket.emit("update:user", user);
+    } else {
+      user = await this.userRepo.createOne({ ...data, resume: resumeUrl }).exec();
+      this.socket.emit("create:user", user);
+    }
+
+    if (!user) {
+      throw new HttpException("Failed to PUT user.", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 
     return user;
   }
