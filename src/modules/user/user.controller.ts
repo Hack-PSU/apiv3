@@ -347,7 +347,7 @@ export class UserController {
       user = await this.userRepo.replaceOne(id, { ...data, resume: resumeUrl }).exec();
       this.socket.emit("update:user", user);
     } else {
-      user = await this.userRepo.createOne({ ...data, resume: resumeUrl }).exec();
+      user = await this.userRepo.createOne({ ...data, id: id, resume: resumeUrl }).exec();
       this.socket.emit("create:user", user);
     }
 
