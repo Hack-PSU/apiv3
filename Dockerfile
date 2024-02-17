@@ -37,7 +37,8 @@ COPY . .
 
 RUN yarn build
 
-# Set NODE_ENV to production
+# Set NODE_ENV to production to tell yarn to consider it a production installation with production dependencies.
+# (even though this may actually be building the staging version)
 ENV NODE_ENV production
 
 RUN yarn install --prod && yarn cache clean

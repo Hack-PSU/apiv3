@@ -194,11 +194,9 @@ export class UserController {
         resumeUrl = await this.userService.uploadResume(data.id, resume);
       }
 
-      const user = await this.userRepo
-        .createOne({ ...data, resume: resumeUrl })
-        .exec();
+      const user = await this.userRepo.createOne({ ...data, resume: resumeUrl }).exec();
 
-      await this.auth.updateUserClaims(data.id, 0);
+      await this.auth.updateUserPrivilege(data.id, Role.NONE);
 
       this.socket.emit("create:user", user);
 
@@ -276,7 +274,6 @@ export class UserController {
     if (resume) {
       // remove current resume
       await this.userService.deleteResume(id);
-
       resumeUrl = await this.userService.uploadResume(id, resume);
     }
 
@@ -331,31 +328,37 @@ export class UserController {
     @UploadedResume() resume?: Express.Multer.File,
   ) {
 
-    // Delete pre-existing resume regardless of whether a new one is given.
-    // (So that we don't accidentally give an outdated one to sponsors.)
-    await this.userService.deleteResume(id);
+    try {
+      // Delete pre-existing resume regardless of whether a new one is given.
+      // (So that we don't accidentally give an outdated one to sponsors.)
+      await this.userService.deleteResume(id);
 
-    let resumeUrl = null;
-    if (resume) {
-      resumeUrl = await this.userService.uploadResume(id, resume);
+      let resumeUrl = null;
+      if (resume) {
+        resumeUrl = await this.userService.uploadResume(id, resume);
+      }
+
+      // If a user already exists, replace their information. Otherwise, create a new one.
+      const preExistingUser = await this.userRepo.findOne(id).exec();
+      let user = null;
+      if (preExistingUser) {
+        user = await this.userRepo.replaceOne(id, { ...data, resume: resumeUrl }).exec();
+        this.socket.emit("update:user", user);
+      } else {
+        user = await this.userRepo.createOne({ ...data, id: id, resume: resumeUrl }).exec();
+        this.auth.updateUserPrivilege(id, Role.NONE);
+        this.socket.emit("create:user", user);
+      }
+
+      if (!user) {
+        throw new HttpException("Failed to PUT user.", HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+      return user;
+
+    } catch (error) {
+      console.log(`user PUT: ${id}: ${error}`);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
-    // If a user already exists, replace their information. Otherwise, create a new one.
-    const preExistingUser = await this.userRepo.findOne(id).exec();
-    let user = null;
-    if (preExistingUser) {
-      user = await this.userRepo.replaceOne(id, { ...data, resume: resumeUrl }).exec();
-      this.socket.emit("update:user", user);
-    } else {
-      user = await this.userRepo.createOne({ ...data, id: id, resume: resumeUrl }).exec();
-      this.socket.emit("create:user", user);
-    }
-
-    if (!user) {
-      throw new HttpException("Failed to PUT user.", HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-    return user;
   }
 
   @Delete(":id")
@@ -465,9 +468,9 @@ export class UserController {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    // If we need to test emails locally, then comment out this if statement.
+    // If we need to test emails locally, then comment out this statement.
     // However, we don't really want to spam ourselves if we don't have to.
-    if (process.env.NODE_ENV && process.env.NODE_ENV == "production") {
+    if (process.env.RUNTIME_INSTANCE && process.env.RUNTIME_INSTANCE === "production") {
       const message = await this.sendGridService.populateTemplate(
         DefaultTemplate.registration,
         {

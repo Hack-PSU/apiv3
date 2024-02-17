@@ -120,20 +120,26 @@ export class RolesGuard extends AuthGuard("jwt") {
       // HTTP requests are checked against possible restricted roles
       const request = context.switchToHttp().getRequest();
 
-      // if any route is defined as restricted
+      // If the user is allowed without predicates, then let them pass.
+      if (this.authService.validateHttpUser(request.user, rolesList)) {
+        return true;
+      }
+
+      // If route has special restrictions for lower permissions, then check the predicate.
       if (restricted) {
-        // isAllowed === undefined if user is not a part of restriction
-        // or not enough information to determine authorization
-        const isAllowed = this.authService.validateRestrictedAccess(
+        return this.authService.validateRestrictedAccess(
           request,
           restricted.predicate,
           restricted.roles,
         );
-
-        if (isAllowed !== undefined) return isAllowed;
       }
 
-      return this.authService.validateHttpUser(request.user, rolesList);
+      // Otherwise, block the request.
+      return false;
+
+    } else {
+      // Return false on unrecognized context.
+      return false;
     }
   }
 }

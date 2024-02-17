@@ -1,14 +1,15 @@
-import { Role } from "common/gcp";
-import { nanoid } from "nanoid";
-import * as admin from "firebase-admin";
 import {
   getAuth,
   signInWithEmailAndPassword,
   getIdToken,
   User,
 } from "@firebase/auth";
+import * as admin from "firebase-admin";
+import { nanoid } from "nanoid";
 
-export async function createUser(privilege: Role = Role.TEAM) {
+import { Role } from "common/gcp";
+
+export async function createTestUser(privilege: Role = Role.TEAM) {
   const email = `test-user-${nanoid()}@email.com`;
   const password = nanoid();
 
@@ -18,7 +19,7 @@ export async function createUser(privilege: Role = Role.TEAM) {
   });
 
   await admin.auth().setCustomUserClaims(user.uid, {
-    privilege,
+    staging: Role.NONE
   });
 
   const userCredential = await signInWithEmailAndPassword(
@@ -36,7 +37,7 @@ export async function fetchToken(user: User) {
 
 export async function promoteUser(user: User, privilege: Role) {
   await admin.auth().setCustomUserClaims(user.uid, {
-    privilege,
+    staging: privilege,
   });
 }
 
