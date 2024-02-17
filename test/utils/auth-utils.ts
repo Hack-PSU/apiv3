@@ -19,7 +19,7 @@ export async function createTestUser(privilege: Role = Role.TEAM) {
   });
 
   await admin.auth().setCustomUserClaims(user.uid, {
-    STAGING: Role.NONE
+    staging: Role.NONE
   });
 
   const userCredential = await signInWithEmailAndPassword(
@@ -37,7 +37,7 @@ export async function fetchToken(user: User) {
 
 export async function promoteUser(user: User, privilege: Role) {
   await admin.auth().setCustomUserClaims(user.uid, {
-    STAGING: privilege,
+    staging: privilege,
   });
 }
 
