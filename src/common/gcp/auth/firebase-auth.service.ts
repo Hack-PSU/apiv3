@@ -131,7 +131,7 @@ export class FirebaseAuthService {
       }
     } catch (e) {
       console.error(e);
-      return Role.TEAM;
+      return Role.NONE;
     }
   }
 
