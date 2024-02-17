@@ -5,7 +5,8 @@ import { Knex } from "knex";
 export const dbConfig = registerAs<Knex.StaticConnectionConfig>(
   ConfigToken.DB,
   () => {
-    if (process.env.NODE_ENV === "production") {
+    // Connect to the database via Unix socket if we are running on Cloud Run.
+    if (process.env.RUNTIME_INSTANCE === "production" || process.env.RUNTIME_INSTANCE === "staging") {
       return {
         user: process.env.MYSQL_USER,
         password: process.env.MYSQL_PASSWORD,
@@ -13,6 +14,7 @@ export const dbConfig = registerAs<Knex.StaticConnectionConfig>(
         socketPath: process.env.MYSQL_SOCKET_PATH,
       };
     } else {
+      // Otherwise, we are running locally, so connect to database over the Cloud SQL Auth Proxy.
       return {
         host: process.env.MYSQL_HOST,
         password: process.env.MYSQL_PASSWORD,

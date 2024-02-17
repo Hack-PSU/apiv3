@@ -198,7 +198,7 @@ export class UserController {
         .createOne({ ...data, resume: resumeUrl })
         .exec();
 
-      await this.auth.updateUserClaims(data.id, 0);
+      await this.auth.updateUserPrivilege(data.id, 0);
 
       this.socket.emit("create:user", user);
 
@@ -465,9 +465,9 @@ export class UserController {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    // If we need to test emails locally, then comment out this if statement.
+    // If we need to test emails locally, then comment out this statement.
     // However, we don't really want to spam ourselves if we don't have to.
-    if (process.env.NODE_ENV && process.env.NODE_ENV == "production") {
+    if (process.env.RUNTIME_INSTANCE && process.env.RUNTIME_INSTANCE === "production") {
       const message = await this.sendGridService.populateTemplate(
         DefaultTemplate.registration,
         {
