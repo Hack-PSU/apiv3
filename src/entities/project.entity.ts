@@ -1,7 +1,7 @@
-import { Column, ID, Table } from "common/objection";
-import { Entity } from "entities/base.entity";
 import { ApiProperty, PickType } from "@nestjs/swagger";
 import { IsOptional, IsString } from "class-validator";
+import { Column, ID, Table } from "common/objection";
+import { Entity } from "entities/base.entity";
 
 @Table({
   name: "projects",
@@ -36,10 +36,17 @@ export class Project extends Entity {
   @IsString()
   @Column({ type: "string", required: false })
   hackathonId: string;
+
+  @ApiProperty({required: false})
+  @IsOptional()
+  @IsString()
+  @Column({ type: "string", required: false})
+  categories: string;
 }
 
 export class ProjectEntity extends PickType(Project, [
   "id",
   "name",
   "hackathonId",
+  "categories",
 ] as const) {}
