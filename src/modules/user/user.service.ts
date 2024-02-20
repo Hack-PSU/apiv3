@@ -37,6 +37,13 @@ export class UserService {
     return this.getAuthenticatedResumeUrl(filename);
   }
 
+  async downloadResume(userId: string): Promise<Buffer> {
+    const filename = this.getResumeFileName(userId);
+    const blob = this.resumeBucket.file(filename);
+    const [buffer] = await blob.download();
+    return buffer;
+  }
+
   deleteResume(userId: string) {
     return this.resumeBucket
       .file(this.getResumeFileName(userId))
