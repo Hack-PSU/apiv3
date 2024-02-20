@@ -542,7 +542,7 @@ export class UserController {
     }
   }
 
-  @Get(":id/resume")
+  @Get(":id/resumes")
   @Roles(Role.TEAM)
   @RestrictedRoles({
     roles: [Role.NONE],
@@ -575,6 +575,26 @@ export class UserController {
       return new StreamableFile(resume);
     } catch (error) {
       console.log(`getResume: ${id}: ${error}`);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @Get("resumes/all")
+  @Roles(Role.EXEC)
+  @Header("Content-Type", "application/zip")
+  @ApiDoc({
+    summary: "Get All Resumes",
+    response: {
+      ok: { type: StreamableFile },
+    },
+    auth: Role.TEAM,
+  })
+  async getAllResumes(): Promise<StreamableFile> {
+    try {
+      const zip = await this.userService.downloadAllResumes();
+      return new StreamableFile(zip);
+    } catch (error) {
+      console.log(`getAllResumes: ${error}`);
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
