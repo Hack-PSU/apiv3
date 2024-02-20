@@ -587,7 +587,7 @@ export class UserController {
     response: {
       ok: { type: StreamableFile },
     },
-    auth: Role.TEAM,
+    auth: Role.EXEC,
   })
   async getAllResumes(): Promise<StreamableFile> {
     try {
