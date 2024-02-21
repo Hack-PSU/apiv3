@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Header,
   HttpCode,
   HttpException,
   HttpStatus,
@@ -13,6 +14,7 @@ import {
   Put,
   Query,
   Req,
+  StreamableFile,
   UnauthorizedException,
   UseFilters,
   UseInterceptors,
@@ -194,7 +196,9 @@ export class UserController {
         resumeUrl = await this.userService.uploadResume(data.id, resume);
       }
 
-      const user = await this.userRepo.createOne({ ...data, resume: resumeUrl }).exec();
+      const user = await this.userRepo
+        .createOne({ ...data, resume: resumeUrl })
+        .exec();
 
       await this.auth.updateUserPrivilege(data.id, Role.NONE);
 
@@ -327,7 +331,6 @@ export class UserController {
     data: UserUpdateEntity,
     @UploadedResume() resume?: Express.Multer.File,
   ) {
-
     try {
       // Delete pre-existing resume regardless of whether a new one is given.
       // (So that we don't accidentally give an outdated one to sponsors.)
@@ -342,19 +345,25 @@ export class UserController {
       const preExistingUser = await this.userRepo.findOne(id).exec();
       let user = null;
       if (preExistingUser) {
-        user = await this.userRepo.replaceOne(id, { ...data, resume: resumeUrl }).exec();
+        user = await this.userRepo
+          .replaceOne(id, { ...data, resume: resumeUrl })
+          .exec();
         this.socket.emit("update:user", user);
       } else {
-        user = await this.userRepo.createOne({ ...data, id: id, resume: resumeUrl }).exec();
+        user = await this.userRepo
+          .createOne({ ...data, id: id, resume: resumeUrl })
+          .exec();
         this.auth.updateUserPrivilege(id, Role.NONE);
         this.socket.emit("create:user", user);
       }
 
       if (!user) {
-        throw new HttpException("Failed to PUT user.", HttpStatus.INTERNAL_SERVER_ERROR);
+        throw new HttpException(
+          "Failed to PUT user.",
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
       }
       return user;
-
     } catch (error) {
       console.log(`user PUT: ${id}: ${error}`);
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -470,7 +479,10 @@ export class UserController {
 
     // If we need to test emails locally, then comment out this statement.
     // However, we don't really want to spam ourselves if we don't have to.
-    if (process.env.RUNTIME_INSTANCE && process.env.RUNTIME_INSTANCE === "production") {
+    if (
+      process.env.RUNTIME_INSTANCE &&
+      process.env.RUNTIME_INSTANCE === "production"
+    ) {
       const message = await this.sendGridService.populateTemplate(
         DefaultTemplate.registration,
         {
@@ -526,6 +538,63 @@ export class UserController {
       }
     } catch (error) {
       console.log(`profile: ${userId}: ${error}`);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @Get(":id/resumes")
+  @Roles(Role.TEAM)
+  @RestrictedRoles({
+    roles: [Role.NONE],
+    predicate: (req) => req.user && req.user.sub === req.params.id,
+  })
+  @Header("Content-Type", "application/pdf")
+  @ApiDoc({
+    summary: "Get User Resume",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to a user's ID",
+      },
+    ],
+    response: {
+      ok: { type: StreamableFile },
+    },
+    auth: Role.TEAM,
+  })
+  async getResume(@Param("id") id: string): Promise<StreamableFile> {
+    try {
+      const user = await this.userRepo.findOne(id).exec();
+      if (!user) {
+        throw new HttpException("User not found", HttpStatus.NOT_FOUND);
+      }
+      if (!user.resume) {
+        throw new HttpException("User has no resume", HttpStatus.NO_CONTENT);
+      }
+      const resume = await this.userService.downloadResume(id);
+      return new StreamableFile(resume);
+    } catch (error) {
+      console.log(`getResume: ${id}: ${error}`);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @Get("resumes/all")
+  @Roles(Role.EXEC)
+  @Header("Content-Type", "application/zip")
+  @ApiDoc({
+    summary: "Get All Resumes",
+    response: {
+      ok: { type: StreamableFile },
+    },
+    auth: Role.EXEC,
+  })
+  async getAllResumes(): Promise<StreamableFile> {
+    try {
+      const zip = await this.userService.downloadAllResumes();
+      return new StreamableFile(zip);
+    } catch (error) {
+      console.log(`getAllResumes: ${error}`);
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
