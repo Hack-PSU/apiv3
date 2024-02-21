@@ -211,6 +211,63 @@ export class UserController {
     }
   }
 
+  @Get("resumes")
+  @Header("Content-Type", "application/zip")
+  @ApiDoc({
+    summary: "Get All Resumes",
+    response: {
+      ok: { type: StreamableFile },
+    },
+    auth: Role.EXEC,
+  })
+  async getAllResumes(): Promise<StreamableFile> {
+    try {
+      const zip = await this.userService.downloadAllResumes();
+      return new StreamableFile(zip);
+    } catch (error) {
+      console.log(`getAllResumes: ${error}`);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @Get("info/me")
+  @Roles(Role.NONE)
+  @ApiDoc({
+    summary: "Get User Profile",
+    auth: Role.NONE,
+    response: {
+      ok: { type: UserProfileResponse },
+    },
+  })
+  async getMyInfo(@Req() req: Request) {
+    if (!req.user || !("sub" in req.user)) {
+      throw new UnauthorizedException();
+    }
+
+    const userId = String(req.user.sub);
+
+    try {
+      const user = await this.userRepo
+        .findOne(userId)
+        .raw()
+        .withGraphFetched("registrations(active)");
+
+      if (user) {
+        const { registrations, ...data } = user;
+
+        return {
+          ...data,
+          registration: registrations[0] ?? null,
+        };
+      } else {
+        return {};
+      }
+    } catch (error) {
+      console.log(`profile: ${userId}: ${error}`);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
   @Get(":id")
   @RestrictedRoles({
     roles: [Role.NONE, Role.VOLUNTEER],
@@ -504,46 +561,7 @@ export class UserController {
     return newRegistration;
   }
 
-  @Get("info/me")
-  @Roles(Role.NONE)
-  @ApiDoc({
-    summary: "Get User Profile",
-    auth: Role.NONE,
-    response: {
-      ok: { type: UserProfileResponse },
-    },
-  })
-  async getMyInfo(@Req() req: Request) {
-    if (!req.user || !("sub" in req.user)) {
-      throw new UnauthorizedException();
-    }
-
-    const userId = String(req.user.sub);
-
-    try {
-      const user = await this.userRepo
-        .findOne(userId)
-        .raw()
-        .withGraphFetched("registrations(active)");
-
-      if (user) {
-        const { registrations, ...data } = user;
-
-        return {
-          ...data,
-          registration: registrations[0] ?? null,
-        };
-      } else {
-        return {};
-      }
-    } catch (error) {
-      console.log(`profile: ${userId}: ${error}`);
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-  }
-
   @Get(":id/resumes")
-  @Roles(Role.TEAM)
   @RestrictedRoles({
     roles: [Role.NONE],
     predicate: (req) => req.user && req.user.sub === req.params.id,
@@ -562,7 +580,7 @@ export class UserController {
     },
     auth: Role.TEAM,
   })
-  async getResume(@Param("id") id: string): Promise<StreamableFile> {
+  async getResume(@Param(":id") id: string): Promise<StreamableFile> {
     try {
       const user = await this.userRepo.findOne(id).exec();
       if (!user) {
@@ -575,26 +593,6 @@ export class UserController {
       return new StreamableFile(resume);
     } catch (error) {
       console.log(`getResume: ${id}: ${error}`);
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-  }
-
-  @Get("resumes/all")
-  @Roles(Role.EXEC)
-  @Header("Content-Type", "application/zip")
-  @ApiDoc({
-    summary: "Get All Resumes",
-    response: {
-      ok: { type: StreamableFile },
-    },
-    auth: Role.EXEC,
-  })
-  async getAllResumes(): Promise<StreamableFile> {
-    try {
-      const zip = await this.userService.downloadAllResumes();
-      return new StreamableFile(zip);
-    } catch (error) {
-      console.log(`getAllResumes: ${error}`);
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
