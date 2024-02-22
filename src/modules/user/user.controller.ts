@@ -212,6 +212,7 @@ export class UserController {
   }
 
   @Get("resumes")
+  @Roles(Role.EXEC)
   @Header("Content-Type", "application/zip")
   @ApiDoc({
     summary: "Get All Resumes",
@@ -562,6 +563,7 @@ export class UserController {
   }
 
   @Get(":id/resumes")
+  @Roles(Role.EXEC)
   @RestrictedRoles({
     roles: [Role.NONE],
     predicate: (req) => req.user && req.user.sub === req.params.id,
@@ -578,7 +580,7 @@ export class UserController {
     response: {
       ok: { type: StreamableFile },
     },
-    auth: Role.TEAM,
+    auth: Role.EXEC,
   })
   async getResume(@Param(":id") id: string): Promise<StreamableFile> {
     try {
