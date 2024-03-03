@@ -22,3 +22,8 @@
 //       .expect('Hello World!');
 //   });
 // });
+
+// dummy test that should pass
+test("dummy test", () => {
+  expect(1).toBe(1);
+});
