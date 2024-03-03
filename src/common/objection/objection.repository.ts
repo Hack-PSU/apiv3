@@ -76,6 +76,7 @@ export class Repository<TEntity extends Entity = Entity> {
   }
 
   createOne(data: any): StagedQuery<TEntity> {
+    console.log(data);
     return this._stageQuery((qb) => qb.insertAndFetch(data));
   }
 

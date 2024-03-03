@@ -11,5 +11,6 @@
     "^entities/([^/]*)$": "<rootDir>/src/entities/$1",
     "^modules/(.*)$": "<rootDir>/src/modules/$1",
     "^test/(.*)$": "<rootDir>/test/$1"
-  }
+  },
+  "setupFilesAfterEnv": ["<rootDir>/test/test-setup.ts"]
 }

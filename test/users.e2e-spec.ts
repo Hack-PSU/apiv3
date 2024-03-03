@@ -1,4 +1,4 @@
-/* import { Test } from "@nestjs/testing";
+import { Test } from "@nestjs/testing";
 import { User } from "entities/user.entity";
 import { Scan } from "entities/scan.entity";
 import { ExtraCreditClass } from "entities/extra-credit-class.entity";
@@ -41,8 +41,6 @@ describe("UsersController (e2e)", () => {
     const { appName, ...options } = configService.get<FirebaseConfig>(
       ConfigToken.GCP,
     );
-
-    admin.initializeApp(options, appName);
 
     user = await createTestUser();
   });
@@ -96,7 +94,7 @@ describe("UsersController (e2e)", () => {
     await deleteUser(user);
   });
 });
- */
+
 test("dummy test", () => {
   expect(1).toBe(1);
 });

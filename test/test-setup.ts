@@ -3,6 +3,7 @@ import { INestApplication } from "@nestjs/common";
 import { AppModule } from "../src/app.module";
 import { ObjectionTestingModule } from "../test/objection/objection-testing.module";
 import { Location } from "../src/entities/location.entity";
+
 export let app: INestApplication;
 
 beforeAll(async () => {
