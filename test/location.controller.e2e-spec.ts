@@ -1,29 +1,79 @@
 import * as request from "supertest";
-import { app } from "../test/test-setup";
+import { app, testUserToken } from "../test/test-setup";
 
 describe("LocationController (e2e)", () => {
+  const token = testUserToken;
+
+  const newLocation = { name: "Test Location" };
+  const updatedLocation = { name: "Updated Test Location" };
+  const replacedLocation = { name: "Replaced Test Location" };
+  let locationId;
+
   it("/locations (GET)", async () => {
-    return await request(app.getHttpServer())
+    await request(app.getHttpServer())
       .get("/locations")
-      .expect(200)
-      .expect((response) => {
-        expect(response.body).toBeInstanceOf(Array);
-        // Additional assertions as necessary
-      });
+      .set("Authorization", `Bearer ${token}`)
+      .expect(200);
   });
 
   it("/locations (POST)", async () => {
-    const newLocation = {
-      name: "Test Location",
-    };
-    return await request(app.getHttpServer())
+    const response = await request(app.getHttpServer())
       .post("/locations")
       .send(newLocation)
-      .expect(201)
+      .set("Authorization", `Bearer ${token}`)
+      .expect(201);
+
+    expect(response.body).toMatchObject(newLocation);
+    locationId = response.body.id;
+  });
+
+  it("/locations/:id (GET)", async () => {
+    await request(app.getHttpServer())
+      .get(`/locations/${locationId}`)
+      .set("Authorization", `Bearer ${token}`)
+      .expect(200)
       .expect((response) => {
-        expect(response.body).toMatchObject(newLocation);
+        expect(response.body).toMatchObject({ ...newLocation, id: locationId });
       });
   });
 
-  // Add more tests for other endpoints like GET /locations/:id, PATCH /locations/:id, etc.
+  it("/locations/:id (PATCH)", async () => {
+    await request(app.getHttpServer())
+      .patch(`/locations/${locationId}`)
+      .send(updatedLocation)
+      .expect(200)
+      .set("Authorization", `Bearer ${token}`)
+      .expect((response) => {
+        expect(response.body).toMatchObject({
+          ...updatedLocation,
+          id: locationId,
+        });
+      });
+  });
+
+  it("/locations/:id (PUT)", async () => {
+    await request(app.getHttpServer())
+      .put(`/locations/${locationId}`)
+      .send(replacedLocation)
+      .expect(200)
+      .set("Authorization", `Bearer ${token}`)
+      .expect((response) => {
+        expect(response.body).toMatchObject({
+          ...replacedLocation,
+          id: locationId,
+        });
+      });
+  });
+
+  it("/locations/:id (DELETE)", async () => {
+    await request(app.getHttpServer())
+      .delete(`/locations/${locationId}`)
+      .set("Authorization", `Bearer ${token}`)
+      .expect(204);
+
+    await request(app.getHttpServer())
+      .get(`/locations/${locationId}`)
+      .set("Authorization", `Bearer ${token}`)
+      .expect(404);
+  });
 });

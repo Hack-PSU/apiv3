@@ -9,6 +9,7 @@ import {
   appleConfig,
   resumeBucketConfig,
   ConfigToken,
+  firebaseWebConfig,
 } from "common/config";
 import { GoogleCloudModule } from "common/gcp";
 import { ObjectionModule } from "common/objection";
@@ -29,8 +30,12 @@ import { ScanModule } from "modules/scan/scan.module";
 import { SocketModule } from "modules/socket/socket.module";
 import { SponsorModule } from "modules/sponsor/sponsor.module";
 import { UserModule } from "modules/user/user.module";
+import { createTestUser, deleteUser } from "./utils/auth-utils";
+import { User } from "@firebase/auth";
 
 export let app: INestApplication;
+export let testUserToken: string;
+let testUser: User;
 
 beforeAll(async () => {
   jest.setTimeout(30000);
@@ -39,12 +44,14 @@ beforeAll(async () => {
     imports: [
       // Configs
       ConfigModule.forRoot({
+        isGlobal: true,
         load: [
           dbConfig,
           firebaseConfig,
           sendGridConfig,
           appleConfig,
           resumeBucketConfig,
+          firebaseWebConfig,
         ],
       }),
 
@@ -104,10 +111,18 @@ beforeAll(async () => {
     ],
   }).compile();
 
+  testUser = await createTestUser(
+    moduleFixture.get(ConfigService).get(ConfigToken.FirebaseWeb),
+  );
+  testUserToken = await testUser.getIdToken();
+
+  console.log("Test user token:", testUserToken);
+
   app = moduleFixture.createNestApplication();
   await app.init();
 });
 
 afterAll(async () => {
   await app.close();
+  deleteUser(testUser);
 });
