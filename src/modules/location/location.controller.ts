@@ -71,9 +71,7 @@ export class LocationController {
     )
     data: LocationCreateEntity,
   ) {
-    console.log(data);
     const location = await this.locationRepo.createOne(data).exec();
-    console.log(location);
     this.socket.emit("create:location", location);
 
     return location;

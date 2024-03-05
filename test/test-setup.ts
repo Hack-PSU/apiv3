@@ -30,14 +30,14 @@ import { ScanModule } from "modules/scan/scan.module";
 import { SocketModule } from "modules/socket/socket.module";
 import { SponsorModule } from "modules/sponsor/sponsor.module";
 import { UserModule } from "modules/user/user.module";
-import { createTestUser, deleteUser } from "./utils/auth-utils";
+import { createTestUser, deleteUser, fetchToken } from "./utils/auth-utils";
 import { User } from "@firebase/auth";
 
 export let app: INestApplication;
 export let testUserToken: string;
 let testUser: User;
 
-beforeAll(async () => {
+async function initializeTestApp() {
   jest.setTimeout(30000);
 
   const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -114,15 +114,21 @@ beforeAll(async () => {
   testUser = await createTestUser(
     moduleFixture.get(ConfigService).get(ConfigToken.FirebaseWeb),
   );
-  testUserToken = await testUser.getIdToken();
-
-  console.log("Test user token:", testUserToken);
+  testUserToken = await fetchToken(testUser);
 
   app = moduleFixture.createNestApplication();
   await app.init();
+}
+
+async function cleanupTestApp() {
+  await app.close();
+  await deleteUser(testUser);
+}
+
+beforeAll(async () => {
+  await initializeTestApp();
 });
 
 afterAll(async () => {
-  await app.close();
-  deleteUser(testUser);
+  await cleanupTestApp();
 });

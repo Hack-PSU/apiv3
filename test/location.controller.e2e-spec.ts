@@ -2,8 +2,6 @@ import * as request from "supertest";
 import { app, testUserToken } from "../test/test-setup";
 
 describe("LocationController (e2e)", () => {
-  const token = testUserToken;
-
   const newLocation = { name: "Test Location" };
   const updatedLocation = { name: "Updated Test Location" };
   const replacedLocation = { name: "Replaced Test Location" };
@@ -12,7 +10,7 @@ describe("LocationController (e2e)", () => {
   it("/locations (GET)", async () => {
     await request(app.getHttpServer())
       .get("/locations")
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `Bearer ${testUserToken}`)
       .expect(200);
   });
 
@@ -20,7 +18,7 @@ describe("LocationController (e2e)", () => {
     const response = await request(app.getHttpServer())
       .post("/locations")
       .send(newLocation)
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `Bearer ${testUserToken}`)
       .expect(201);
 
     expect(response.body).toMatchObject(newLocation);
@@ -30,7 +28,7 @@ describe("LocationController (e2e)", () => {
   it("/locations/:id (GET)", async () => {
     await request(app.getHttpServer())
       .get(`/locations/${locationId}`)
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `Bearer ${testUserToken}`)
       .expect(200)
       .expect((response) => {
         expect(response.body).toMatchObject({ ...newLocation, id: locationId });
@@ -42,7 +40,7 @@ describe("LocationController (e2e)", () => {
       .patch(`/locations/${locationId}`)
       .send(updatedLocation)
       .expect(200)
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `Bearer ${testUserToken}`)
       .expect((response) => {
         expect(response.body).toMatchObject({
           ...updatedLocation,
@@ -56,7 +54,7 @@ describe("LocationController (e2e)", () => {
       .put(`/locations/${locationId}`)
       .send(replacedLocation)
       .expect(200)
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `Bearer ${testUserToken}`)
       .expect((response) => {
         expect(response.body).toMatchObject({
           ...replacedLocation,
@@ -68,12 +66,12 @@ describe("LocationController (e2e)", () => {
   it("/locations/:id (DELETE)", async () => {
     await request(app.getHttpServer())
       .delete(`/locations/${locationId}`)
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `Bearer ${testUserToken}`)
       .expect(204);
 
     await request(app.getHttpServer())
       .get(`/locations/${locationId}`)
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `Bearer ${testUserToken}`)
       .expect(404);
   });
 });
