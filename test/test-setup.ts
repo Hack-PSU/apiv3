@@ -1,17 +1,18 @@
-import { Test, TestingModule } from "@nestjs/testing";
+import { User } from "@firebase/auth";
 import { INestApplication } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
+import { Test, TestingModule } from "@nestjs/testing";
 import { AppleAuthModule } from "common/apple/apple-auth.module";
 import {
+  ConfigToken,
+  appleConfig,
   dbConfig,
   firebaseConfig,
-  sendGridConfig,
-  appleConfig,
-  resumeBucketConfig,
-  ConfigToken,
   firebaseWebConfig,
+  resumeBucketConfig,
+  sendGridConfig,
 } from "common/config";
-import { GoogleCloudModule } from "common/gcp";
+import { GoogleCloudModule, Role } from "common/gcp";
 import { ObjectionModule } from "common/objection";
 import { SendGridModule } from "common/sendgrid";
 import { AnalyticsModule } from "modules/analytics/analytics.module";
@@ -31,15 +32,18 @@ import { SocketModule } from "modules/socket/socket.module";
 import { SponsorModule } from "modules/sponsor/sponsor.module";
 import { UserModule } from "modules/user/user.module";
 import { createTestUser, deleteUser, fetchToken } from "./utils/auth-utils";
-import { User } from "@firebase/auth";
 
 export let app: INestApplication;
-export let testUserToken: string;
-let testUser: User;
+export let testTeamToken: string;
+export let testNoneToken: string;
+export let testExecToken: string;
+let testTeamUser: User;
+let testNoneUser: User;
+let testExecUser: User;
+
+jest.setTimeout(30000);
 
 async function initializeTestApp() {
-  jest.setTimeout(30000);
-
   const moduleFixture: TestingModule = await Test.createTestingModule({
     imports: [
       // Configs
@@ -111,10 +115,25 @@ async function initializeTestApp() {
     ],
   }).compile();
 
-  testUser = await createTestUser(
+  testTeamUser = await createTestUser(
     moduleFixture.get(ConfigService).get(ConfigToken.FirebaseWeb),
+    Role.TEAM,
   );
-  testUserToken = await fetchToken(testUser);
+  testTeamToken = await fetchToken(testTeamUser);
+
+  testNoneUser = await createTestUser(
+    moduleFixture.get(ConfigService).get(ConfigToken.FirebaseWeb),
+    Role.NONE,
+  );
+
+  testNoneToken = await fetchToken(testNoneUser);
+
+  testExecUser = await createTestUser(
+    moduleFixture.get(ConfigService).get(ConfigToken.FirebaseWeb),
+    Role.EXEC,
+  );
+
+  testExecToken = await fetchToken(testExecUser);
 
   app = moduleFixture.createNestApplication();
   await app.init();
@@ -122,7 +141,9 @@ async function initializeTestApp() {
 
 async function cleanupTestApp() {
   await app.close();
-  await deleteUser(testUser);
+  await deleteUser(testTeamUser);
+  await deleteUser(testNoneUser);
+  await deleteUser(testExecUser);
 }
 
 beforeAll(async () => {

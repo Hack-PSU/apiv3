@@ -13,5 +13,4 @@
     "^test/(.*)$": "<rootDir>/test/$1"
   },
   "setupFilesAfterEnv": ["<rootDir>/test/test-setup.ts"]
-
 }
