@@ -1,12 +1,25 @@
 import * as request from "supertest";
-import { app, testNoneToken, testTeamToken } from "../test/test-setup";
+import { app, testNoneToken, testTeamToken } from "./test-setup";
+import {
+  Routes,
+  prepareUnauthorizedRequestTests,
+} from "./utils/common-test-utils";
 
 describe("LocationController (e2e)", () => {
   let locationId;
 
-  // Test unauthorized access
-  it("/locations (GET) without token should be unauthorized", async () => {
-    await request(app.getHttpServer()).get("/locations").expect(403);
+  prepareUnauthorizedRequestTests("/locations", "1", [
+    "GET",
+    "PATCH",
+    "PUT",
+    "DELETE",
+  ]).forEach(({ method, path }) => {
+    it(`${method} ${path} without token should be unauthorized`, async () => {
+      const response = await request(app.getHttpServer())[method.toLowerCase()](
+        path,
+      );
+      expect(response.status).toBe(403);
+    });
   });
 
   // Test input validation
@@ -127,29 +140,6 @@ describe("LocationController (e2e)", () => {
       .get(`/locations/${locationId}`)
       .set("Authorization", `Bearer ${testTeamToken}`)
       .expect(200);
-  });
-
-  // Optional: Test PATCH, PUT, DELETE with unauthorized access
-  it("/locations/:id (PATCH) should not allow unauthorized access", async () => {
-    const updatedLocation = { name: "Unauthorized Update" };
-    await request(app.getHttpServer())
-      .patch(`/locations/${locationId}`)
-      .send(updatedLocation)
-      .expect(403);
-  });
-
-  it("/locations/:id (PUT) should not allow unauthorized access", async () => {
-    const replacedLocation = { name: "Unauthorized Replacement" };
-    await request(app.getHttpServer())
-      .put(`/locations/${locationId}`)
-      .send(replacedLocation)
-      .expect(403);
-  });
-
-  it("/locations/:id (DELETE) should not allow unauthorized access", async () => {
-    await request(app.getHttpServer())
-      .delete(`/locations/${locationId}`)
-      .expect(403);
   });
 
   // Optional: Test PATCH, PUT with invalid data
