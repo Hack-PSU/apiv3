@@ -6,7 +6,7 @@ describe("LocationController (e2e)", () => {
 
   // Test unauthorized access
   it("/locations (GET) without token should be unauthorized", async () => {
-    await request(app.getHttpServer()).get("/locations").expect(403); // Or 403, depending on your implementation
+    await request(app.getHttpServer()).get("/locations").expect(403);
   });
 
   // Test input validation
@@ -20,7 +20,7 @@ describe("LocationController (e2e)", () => {
 
   // Test creating a new location with valid token
   it("/locations (POST)", async () => {
-    const newLocation = { name: "Test Location" }; // Using diverse test data
+    const newLocation = { name: "Test Location" };
     const response = await request(app.getHttpServer())
       .post("/locations")
       .send(newLocation)
