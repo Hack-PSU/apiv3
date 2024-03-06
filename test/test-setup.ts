@@ -32,6 +32,7 @@ import { SocketModule } from "modules/socket/socket.module";
 import { SponsorModule } from "modules/sponsor/sponsor.module";
 import { UserModule } from "modules/user/user.module";
 import { createTestUser, deleteUser, fetchToken } from "./utils/auth-utils";
+import { AppModule } from "../src/app.module";
 
 export let app: INestApplication;
 export let testTeamToken: string;
@@ -46,72 +47,10 @@ jest.setTimeout(30000);
 async function initializeTestApp() {
   const moduleFixture: TestingModule = await Test.createTestingModule({
     imports: [
-      // Configs
       ConfigModule.forRoot({
-        isGlobal: true,
-        load: [
-          dbConfig,
-          firebaseConfig,
-          sendGridConfig,
-          appleConfig,
-          resumeBucketConfig,
-          firebaseWebConfig,
-        ],
+        load: [firebaseWebConfig],
       }),
-
-      // Database
-      ObjectionModule.forRoot({
-        imports: [ConfigModule],
-        useFactory: (configService: ConfigService) =>
-          configService.get(ConfigToken.DB),
-        inject: [ConfigService],
-      }),
-
-      // Google Cloud
-      GoogleCloudModule.forRoot({
-        imports: [ConfigModule],
-        useFactory: (configService: ConfigService) =>
-          configService.get(ConfigToken.GCP),
-        inject: [ConfigService],
-      }),
-
-      // Email and SendGrid
-      SendGridModule.forRoot({
-        imports: [ConfigModule],
-        useFactory: (configService: ConfigService) =>
-          configService.get(ConfigToken.SENDGRID),
-        inject: [ConfigService],
-      }),
-
-      // Apple
-      AppleAuthModule.forRoot({
-        imports: [ConfigModule],
-        useFactory: (configService: ConfigService) =>
-          configService.get(ConfigToken.APPLE),
-        inject: [ConfigService],
-      }),
-
-      // Endpoints
-      HackathonModule,
-      LocationModule,
-      EventModule,
-      UserModule,
-      OrganizerModule,
-      JudgingModule,
-      SponsorModule,
-      ScanModule,
-      ExtraCreditModule,
-      RegistrationModule,
-      AppleModule,
-      FlagModule,
-      NotificationModule,
-      AnalyticsModule,
-
-      // WebSocket
-      SocketModule,
-
-      // Mail
-      MailModule,
+      AppModule,
     ],
   }).compile();
 
