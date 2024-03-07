@@ -11,29 +11,32 @@ export enum Routes {
 export function prepareUnauthorizedRequestTests(
   basePath: string,
   resourceId = "1",
-  methodsWithId: string[],
+  methodsWithId: Routes[],
 ) {
   // Prepare test cases
-  return methodsWithId.map((method) => {
+  return Object.values(Routes).map((method) => {
     const path = `${basePath}${
       methodsWithId.includes(method) ? `/${resourceId}` : ""
     }`;
+    console.log(`Testing ${method} ${path}`);
     return { method, path };
   });
 }
 
 export function testInvalidData(
   app: any,
-  basePath: string,
-  method: Routes,
+  method: Routes[],
+  path: string,
   token: string,
   invalidData: any,
 ) {
-  it(`${basePath} (${method}) with invalid data should fail`, async () => {
-    await request(app.getHttpServer())
-      [method.toLowerCase()](basePath)
-      .send(invalidData)
-      .set("Authorization", `Bearer ${token}`)
-      .expect(400);
+  method.forEach(async (m) => {
+    it(`${m} ${path} with invalid data should fail`, async () => {
+      await request(app.getHttpServer())
+        [m.toLowerCase()](path)
+        .send(invalidData)
+        .set("Authorization", `Bearer ${token}`)
+        .expect(400);
+    });
   });
 }

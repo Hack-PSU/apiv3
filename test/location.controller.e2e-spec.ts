@@ -9,10 +9,10 @@ describe("LocationController (e2e)", () => {
   let locationId;
 
   prepareUnauthorizedRequestTests("/locations", "1", [
-    "GET",
-    "PATCH",
-    "PUT",
-    "DELETE",
+    Routes.GET,
+    Routes.PATCH,
+    Routes.PUT,
+    Routes.DELETE,
   ]).forEach(({ method, path }) => {
     it(`${method} ${path} without token should be unauthorized`, async () => {
       const response = await request(app.getHttpServer())[method.toLowerCase()](
