@@ -524,7 +524,7 @@ export class UserController {
 
     let newRegistration;
     try {
-      newRegistration = this.registrationRepo
+      newRegistration = await this.registrationRepo
         .createOne({
           userId: id,
           ...data,
