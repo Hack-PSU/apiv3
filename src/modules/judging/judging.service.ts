@@ -72,7 +72,7 @@ export class JudgingService {
 
     const awards = [
       {
-        name: "Social Impact",
+        name: "Sustainability",
         judgingLocation: "Room 126",
       },
       {
