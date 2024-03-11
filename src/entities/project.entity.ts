@@ -36,10 +36,17 @@ export class Project extends Entity {
   @IsString()
   @Column({ type: "string", required: false })
   hackathonId: string;
+
+  @ApiProperty({ required: false, description: "Categories" })
+  @IsOptional()
+  @IsString()
+  @Column({ type: "string", required: false })
+  categories: string;
 }
 
 export class ProjectEntity extends PickType(Project, [
   "id",
   "name",
   "hackathonId",
+  "categories",
 ] as const) {}
