@@ -96,6 +96,7 @@ export class OrganizerEntity extends PickType(Organizer, [
   "lastName",
   "email",
   "privilege",
+  "team",
   "award",
   "judgingLocation",
 ] as const) {}
