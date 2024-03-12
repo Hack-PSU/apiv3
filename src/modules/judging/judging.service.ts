@@ -122,11 +122,8 @@ export class JudgingService {
 
     // assign organizers to projects
     const projects = await this.projectRepo.findAll().byHackathon().execute();
-    //
-    console.log(projects);
-    //
 
-    // list containing projects for each challanage
+    // list containing projects for each challenge
     let challenge1  = [];
     let challenge2  = [];
     let challenge3  = [];
