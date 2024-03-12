@@ -6,22 +6,22 @@ import {
   UseFilters,
   ValidationPipe,
 } from "@nestjs/common";
-import { InjectRepository, Repository } from "common/objection";
-import { Project, ProjectEntity } from "entities/project.entity";
-import { Score, ScoreEntity } from "entities/score.entity";
 import {
   ApiExtraModels,
   ApiProperty,
   ApiTags,
   OmitType,
 } from "@nestjs/swagger";
-import { Role, Roles } from "common/gcp";
-import { OrganizerEntity } from "entities/organizer.entity";
+import { IsNumber, IsString } from "class-validator";
 import { ApiDoc } from "common/docs";
 import { DBExceptionFilter } from "common/filters";
+import { Role, Roles } from "common/gcp";
+import { InjectRepository, Repository } from "common/objection";
+import { OrganizerEntity } from "entities/organizer.entity";
+import { Project, ProjectEntity } from "entities/project.entity";
+import { Score, ScoreEntity } from "entities/score.entity";
 import * as _ from "lodash";
 import { JudgingService } from "modules/judging/judging.service";
-import { IsNumber, IsString } from "class-validator";
 
 class ScoreBreakdownJudgeEntity extends OmitType(OrganizerEntity, [
   "privilege",
@@ -165,7 +165,6 @@ export class JudgingController {
   ) {
     const assignments = await this.judgingService.createAssignments(
       data.users,
-      data.projects,
       data.projectsPerUser,
     );
 
