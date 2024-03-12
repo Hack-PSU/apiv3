@@ -16,7 +16,7 @@ export class OrganizerService {
   injectUserRoles(organizers: Organizer[]) {
     return from(organizers).pipe(
       mergeMap((organizer) =>
-        from(this.auth.getUserPrivilege(organizer.id)).pipe(
+        from(this.auth.getUserPrivilegeFromUid(organizer.id)).pipe(
           map((privilege) => {
             organizer.privilege = privilege;
             return organizer;

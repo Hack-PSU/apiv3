@@ -7,7 +7,7 @@ import { FirebaseAuthModule, FirebaseConfig, Role } from "common/gcp";
 import { initializeApp } from "@firebase/app";
 import { User as FirebaseUser } from "@firebase/auth";
 import {
-  createUser,
+  createTestUser,
   deleteUser,
   fetchToken,
   promoteUser,
@@ -44,7 +44,7 @@ describe("UsersController (e2e)", () => {
 
     admin.initializeApp(options, appName);
 
-    user = await createUser();
+    user = await createTestUser();
   });
 
   beforeEach(async () => {

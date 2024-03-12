@@ -81,7 +81,7 @@ export class JudgingService {
     // assign organizer to awards
     const awards = [
       {
-        name: "Social Impact",
+        name: "Sustainability",
         judgingLocation: "Room 126",
       },
       {

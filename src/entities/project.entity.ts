@@ -37,10 +37,10 @@ export class Project extends Entity {
   @Column({ type: "string", required: false })
   hackathonId: string;
 
-  @ApiProperty({required: false})
+  @ApiProperty({ required: false, description: "Categories" })
   @IsOptional()
   @IsString()
-  @Column({ type: "string", required: false})
+  @Column({ type: "string", required: false })
   categories: string;
 }
 
