@@ -9,7 +9,19 @@ import { nanoid } from "nanoid";
 
 import { Role } from "common/gcp";
 
-export async function createTestUser(privilege: Role = Role.TEAM) {
+import { getApps, getApp, initializeApp } from "firebase/app";
+
+export async function createTestUser(
+  firebaseConfig,
+  privilege: Role = Role.TEAM,
+) {
+  function ensureFirebaseApp() {
+    if (getApps().length === 0) {
+      return initializeApp(firebaseConfig);
+    }
+    return getApp();
+  }
+
   const email = `test-user-${nanoid()}@email.com`;
   const password = nanoid();
 
@@ -19,11 +31,14 @@ export async function createTestUser(privilege: Role = Role.TEAM) {
   });
 
   await admin.auth().setCustomUserClaims(user.uid, {
-    staging: Role.NONE
+    staging: privilege,
   });
 
+  const app = ensureFirebaseApp();
+  const auth = getAuth(app);
+
   const userCredential = await signInWithEmailAndPassword(
-    getAuth(),
+    auth,
     email,
     password,
   );
