@@ -430,7 +430,7 @@ export class EventController {
       .createOne({
         ...data,
         userId,
-        eventId: "abc456", // Hard-coded check-in ID. Be sure to change this later.
+        eventId: id,
       })
       .byHackathon(data.hackathonId);
 
