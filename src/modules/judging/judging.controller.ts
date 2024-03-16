@@ -169,6 +169,8 @@ export class JudgingController {
         data.projectsPerUser,
       );
 
+      console.log(assignments);
+
       await Promise.allSettled(
         assignments.map((a) => this.scoreRepo.createOne(a).byHackathon()),
       );
