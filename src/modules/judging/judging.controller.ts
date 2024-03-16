@@ -170,10 +170,15 @@ export class JudgingController {
       );
 
       console.log(assignments);
-
-      await Promise.allSettled(
-        assignments.map((a) => this.scoreRepo.createOne(a).byHackathon()),
-      );
+      for (const project of assignments) {
+        await this.scoreRepo
+          .createOne({
+            projectId: project.projectId,
+            judgeId: project.judgeId,
+            hackathonId: project.hackathonId,
+          })
+          .exec();
+      }
     } catch (e) {
       console.log(e);
     }

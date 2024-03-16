@@ -8,6 +8,7 @@ import * as _ from "lodash";
 interface JudgeAssignment {
   judgeId: string;
   projectId: number;
+  hackathonId: string;
 }
 
 @Injectable()
@@ -110,17 +111,29 @@ export class JudgingService {
     for (const project of projects) {
       let temp = project.categories;
       if (!temp) {
-        _challenge.push(project);
+        _challenge.push({
+          projectId: project.id,
+          hackathonId: project.hackathonId,
+        });
         continue;
       }
       temp = temp.split(",");
       for (const element of temp) {
         if (element == "challenge1") {
-          challenge1.push(project);
+          challenge1.push({
+            projectId: project.id,
+            hackathonId: project.hackathonId,
+          });
         } else if (element == "challenge2") {
-          challenge2.push(project);
+          challenge2.push({
+            projectId: project.id,
+            hackathonId: project.hackathonId,
+          });
         } else {
-          _challenge.push(project);
+          _challenge.push({
+            projectId: project.id,
+            hackathonId: project.hackathonId,
+          });
         }
       }
     }
@@ -133,23 +146,25 @@ export class JudgingService {
     const assignments: JudgeAssignment[] = [];
     let projectIdx = 0;
     for (const organizer of organizers.filter(
-      (judge) => judge.award === "challenge1",
+      (judge) => judge.award === "Sustainability",
     )) {
       for (let i = 0; i < projectsPerUser; i++, projectIdx++) {
         assignments.push({
           judgeId: organizer.id,
-          projectId: challenge1[projectIdx % challenge1.length],
+          projectId: challenge1[projectIdx % challenge1.length].projectId,
+          hackathonId: challenge1[projectIdx % challenge1.length].hackathonId,
         });
       }
     }
     projectIdx = 0;
     for (const organizer of organizers.filter(
-      (judge) => judge.award === "challenge2",
+      (judge) => judge.award === "Generative AI",
     )) {
       for (let i = 0; i < projectsPerUser; i++, projectIdx++) {
         assignments.push({
           judgeId: organizer.id,
-          projectId: challenge2[projectIdx % challenge2.length],
+          projectId: challenge2[projectIdx % challenge2.length].projectId,
+          hackathonId: challenge2[projectIdx % challenge2.length].hackathonId,
         });
       }
     }
