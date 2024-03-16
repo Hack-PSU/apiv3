@@ -109,6 +109,10 @@ export class JudgingService {
     // divides projects into challenges
     for (const project of projects) {
       let temp = project.categories;
+      if (!temp) {
+        _challenge.push(project);
+        continue;
+      }
       temp = temp.split(",");
       for (const element of temp) {
         if (element == "challenge1") {
