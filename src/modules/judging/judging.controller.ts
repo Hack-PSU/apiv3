@@ -163,13 +163,24 @@ export class JudgingController {
     )
     data: JudgingAssignmentEntity,
   ) {
-    const assignments = await this.judgingService.createAssignments(
-      data.users,
-      data.projectsPerUser,
-    );
+    try {
+      const assignments = await this.judgingService.createAssignments(
+        data.users,
+        data.projectsPerUser,
+      );
 
-    await Promise.allSettled(
-      assignments.map((a) => this.scoreRepo.createOne(a).byHackathon()),
-    );
+      console.log(assignments);
+      for (const project of assignments) {
+        await this.scoreRepo
+          .createOne({
+            projectId: project.projectId,
+            judgeId: project.judgeId,
+            hackathonId: project.hackathonId,
+          })
+          .exec();
+      }
+    } catch (e) {
+      console.log(e);
+    }
   }
 }
