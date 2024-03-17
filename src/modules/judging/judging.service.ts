@@ -65,7 +65,7 @@ export class JudgingService {
     const awards = [
       {
         name: "Sustainability",
-        judgingLocation: "Room 126",
+        judgingLocation: "Room 126 (War Room)",
       },
       {
         name: "Generative AI",
