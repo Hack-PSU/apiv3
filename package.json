@@ -38,6 +38,7 @@
     "firebase-admin": "^11.4.1",
     "handlebars": "^4.7.7",
     "jsonwebtoken": "^9.0.0",
+    "jstat": "^1.9.6",
     "jwt-decode": "^3.1.2",
     "knex": "^2.4.0",
     "lodash": "^4.17.21",
