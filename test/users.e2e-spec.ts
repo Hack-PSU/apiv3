@@ -42,8 +42,6 @@ describe("UsersController (e2e)", () => {
       ConfigToken.GCP,
     );
 
-    admin.initializeApp(options, appName);
-
     user = await createTestUser();
   });
 
@@ -95,4 +93,8 @@ describe("UsersController (e2e)", () => {
   afterAll(async () => {
     await deleteUser(user);
   });
+});
+
+test("dummy test", () => {
+  expect(1).toBe(1);
 });

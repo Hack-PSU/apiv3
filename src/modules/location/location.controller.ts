@@ -77,6 +77,7 @@ export class LocationController {
     return location;
   }
 
+  // Lol why doesn't this return a 404 if the location doesn't exist?
   @Get(":id")
   @Roles(Role.TEAM)
   @ApiDoc({
