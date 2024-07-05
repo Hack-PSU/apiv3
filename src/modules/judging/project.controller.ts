@@ -23,8 +23,8 @@ import { ApiDoc } from "common/docs";
 import { DBExceptionFilter } from "common/filters";
 import { UploadProjectCsv } from "./upload-project-csv.decorator";
 import { FileInterceptor } from "@nestjs/platform-express";
-import { parse } from "csv-parse/sync";
 import { Hackathon } from "entities/hackathon.entity";
+import { ProjectService } from "modules/judging/project.service";
 
 class ProjectCreateEntity extends OmitType(ProjectEntity, ["id"] as const) {}
 
@@ -39,6 +39,7 @@ export class ProjectController {
     private readonly projectRepo: Repository<Project>,
     @InjectRepository(Hackathon)
     private readonly hackathonRepo: Repository<Hackathon>,
+    private readonly projectService: ProjectService,
   ) {}
 
   @Get("/")
@@ -97,13 +98,18 @@ export class ProjectController {
     if (!csvFile) {
       throw new HttpException("CSV file is required", HttpStatus.BAD_REQUEST);
     }
+
     const activeHackathon = await Hackathon.query()
       .findOne({ active: true })
       .withGraphFetched("[events.location, sponsors]");
-    const projects = this.parseCsv(
+
+    const projects = this.projectService.parseCsv(
       csvFile.buffer.toString(),
       activeHackathon.id,
     );
+
+    console.log(projects);
+
     for (const project of projects) {
       try {
         await this.projectRepo.createOne(project).byHackathon();
@@ -117,68 +123,6 @@ export class ProjectController {
     }
 
     return projects;
-  }
-
-  private parseCsv(csv: string, hackathonId: string): ProjectCreateEntity[] {
-    const results: ProjectCreateEntity[] = [];
-    const requiredFields = [
-      "Project Title",
-      "Submission Url",
-      "Project Status",
-      "Judging Status",
-      "Highest Step Completed",
-      "Project Created At",
-      "About The Project",
-      '"Try it out" Links',
-      "Video Demo Link",
-      "Opt-In Prizes",
-      "Built With",
-      "Notes",
-      "Team Colleges/Universities",
-      "Additional Team Member Count",
-    ];
-
-    try {
-      const records = parse(csv, {
-        columns: true,
-        skip_empty_lines: true,
-        trim: true,
-      });
-
-      for (const record of records) {
-        if (this.isValidCsvFormat(record, requiredFields)) {
-          if (record["Highest Step Completed"] === "Submit") {
-            results.push(
-              this.mapDataToProjectCreateEntity(record, hackathonId),
-            );
-          }
-        } else {
-          throw new HttpException(
-            `CSV is missing required fields: ${requiredFields.join(", ")}`,
-            HttpStatus.BAD_REQUEST,
-          );
-        }
-      }
-    } catch (error) {
-      throw new HttpException("Failed to parse CSV", HttpStatus.BAD_REQUEST);
-    }
-
-    return results;
-  }
-
-  private isValidCsvFormat(data: any, requiredFields: string[]): boolean {
-    return requiredFields.every((field) => field in data);
-  }
-
-  private mapDataToProjectCreateEntity(
-    data: any,
-    hackathonId: string,
-  ): ProjectCreateEntity {
-    return {
-      name: data["Project Title"],
-      hackathonId: hackathonId,
-      categories: data["Opt-In Prizes"],
-    };
   }
 
   @Get(":id")
