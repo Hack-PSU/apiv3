@@ -7,7 +7,7 @@
   <mj-body>
     <mj-section>
       <mj-column>
-        <mj-image width="120px" align="center" src="https://firebasestorage.googleapis.com/v0/b/ninth-expanse-396918.appspot.com/o/assets%2Flogo.png?alt=media&token=b5e7ff3f-d80c-446c-9167-6f1d8bbdb15a" />
+        <mj-image width="120px" align="center" src="https://firebasestorage.googleapis.com/v0/b/hackpsu-408118.appspot.com/o/assets%2Flogo.png?alt=media&token=8e8b8954-67d8-49c5-ba53-f492d08f8bb9" />
         <mj-divider border-color="#E37051" border-width="1px" />
         <mj-divider border-color="#E37051" border-width="1px" padding-top="20px"/>
         <mj-text align="center" font-size="26px">
@@ -27,10 +27,10 @@
     <mj-section background-color="#193752">
       <mj-column>
         <mj-social inner-padding="8px" icon-size="25px">
-          <mj-social-element href="https://www.facebook.com/HackPSU" border-radius="100px" src="https://firebasestorage.googleapis.com/v0/b/ninth-expanse-396918.appspot.com/o/assets%2Ffacebook-outline.png?alt=media&token=13cfcea2-5d0a-4f3c-a0fa-171d741dc8ae" />
-          <mj-social-element href="https://twitter.com/hackpsu" border-radius="100px" src="https://firebasestorage.googleapis.com/v0/b/ninth-expanse-396918.appspot.com/o/assets%2Ftwitter-outline.png?alt=media&token=7c8d6441-3eb0-43f6-ad9b-c6b2cc34277b" />
-          <mj-social-element href="https://www.instagram.com/hack_psu/" border-radius="100px" src="https://firebasestorage.googleapis.com/v0/b/ninth-expanse-396918.appspot.com/o/assets%2Finstagram-outline.png?alt=media&token=63316082-f236-4213-a0a0-f5f4eff27976" />
-          <mj-social-element href="https://hackpsu.org/live" border-radius="100px" src="https://firebasestorage.googleapis.com/v0/b/ninth-expanse-396918.appspot.com/o/assets%2Foutline-link.png?alt=media&token=4d31fa2f-b0d7-4141-a1d0-111c41f3853e" />
+          <mj-social-element href="https://www.facebook.com/HackPSU" border-radius="100px" src="https://firebasestorage.googleapis.com/v0/b/hackpsu-408118.appspot.com/o/assets%2Ffacebook-outline.png?alt=media&token=f87ad839-f11f-4e75-914b-32016a3e6d9e" />
+          <mj-social-element href="https://twitter.com/hackpsu" border-radius="100px" src="https://firebasestorage.googleapis.com/v0/b/hackpsu-408118.appspot.com/o/assets%2Ftwitter-outline.png?alt=media&token=57386270-83b4-45fe-9c1d-6cdb3c7c1a79" />
+          <mj-social-element href="https://www.instagram.com/hack_psu/" border-radius="100px" src="https://firebasestorage.googleapis.com/v0/b/hackpsu-408118.appspot.com/o/assets%2Finstagram-outline.png?alt=media&token=5d7a9c7d-5dee-4ac0-bbe7-e9e893e5d150" />
+          <mj-social-element href="https://hackpsu.org/live" border-radius="100px" src="https://firebasestorage.googleapis.com/v0/b/hackpsu-408118.appspot.com/o/assets%2Foutline-link.png?alt=media&token=af9c4475-c006-46f1-a404-902d1b9466d3" />
         </mj-social>
 
         <mj-text align="center" color="white" font-size="10px">
