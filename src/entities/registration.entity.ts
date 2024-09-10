@@ -68,7 +68,7 @@ export class Registration extends Entity {
   @Type(() => Number)
   @IsNumber()
   @Column({ type: "number" })
-  age: boolean;
+  age: number;
 
   @ApiProperty()
   @IsBoolean()
