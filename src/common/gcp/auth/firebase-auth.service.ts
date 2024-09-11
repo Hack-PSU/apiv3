@@ -15,16 +15,21 @@ enum AuthEnvironment {
   STAGING = "staging",
 }
 
-type FirebaseJwtPayload = JwtPayload & { production?: number, staging?: number };
+type FirebaseJwtPayload = JwtPayload & {
+  production?: number;
+  staging?: number;
+};
 type ValidateFn = (user: any, role: Role) => boolean;
 type ValidateCmp = (role: Role) => boolean;
 
 @Injectable()
 export class FirebaseAuthService {
-  
   private authEnvironment: AuthEnvironment;
-  
-  constructor(private readonly httpService: HttpService, private readonly configService: ConfigService) {
+
+  constructor(
+    private readonly httpService: HttpService,
+    private readonly configService: ConfigService,
+  ) {
     const authEnv = configService.get<AuthEnvironment>("AUTH_ENVIRONMENT");
     if (!Object.values(AuthEnvironment).includes(authEnv)) {
       throw Error(`Unrecognized AUTH_ENVIRONMENT: ${authEnv}`);
@@ -36,7 +41,11 @@ export class FirebaseAuthService {
     return jwtDecode(token) as FirebaseJwtPayload;
   }
 
-  private validateAccess(user: any, access?: Role[], fn?: ValidateCmp): boolean {
+  private validateAccess(
+    user: any,
+    access?: Role[],
+    fn?: ValidateCmp,
+  ): boolean {
     // If no access roles exist, then the route does not require authorization.
     if (!access) {
       return true;
@@ -44,7 +53,7 @@ export class FirebaseAuthService {
 
     const privilege = this.extractUserPrivilege(user);
 
-    // Check that validation function passes for every role. 
+    // Check that validation function passes for every role.
     return access.every(
       fn ??
         // Default validation function: check that role is either 'NONE' or privilege >= role.
@@ -137,7 +146,7 @@ export class FirebaseAuthService {
 
   // Update a user's Firebase custom claims to include the given privilege level.
   async updateUserPrivilege(uid: string, privilege: Role): Promise<void> {
-    const privileges = ((await admin.auth().getUser(uid)).customClaims) ?? {};
+    const privileges = (await admin.auth().getUser(uid)).customClaims ?? {};
     privileges[this.authEnvironment] = privilege;
     await admin.auth().setCustomUserClaims(uid, privileges);
   }
