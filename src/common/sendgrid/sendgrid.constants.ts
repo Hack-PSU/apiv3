@@ -7,4 +7,5 @@ export const DefaultFromName = "HackPSU";
 
 export enum DefaultTemplate {
   registration = "registration",
+  organizerFirstLogin = "organizer-first-login",
 }
