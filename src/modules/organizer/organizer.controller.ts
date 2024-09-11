@@ -104,6 +104,7 @@ export class OrganizerController {
   }
 
   @Post("/")
+  @Roles(Role.EXEC)
   @ApiDoc({
     summary: "Create an Organizer",
     request: {
