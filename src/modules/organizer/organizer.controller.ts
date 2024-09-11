@@ -104,7 +104,6 @@ export class OrganizerController {
   }
 
   @Post("/")
-  @Roles(Role.EXEC)
   @ApiDoc({
     summary: "Create an Organizer",
     request: {
@@ -132,8 +131,10 @@ export class OrganizerController {
   ) {
     const { privilege, email, ...user } = data;
 
-    let UID = await this.auth.getUserByEmail(email).then((u) => u?.uid);
-    console.log(UID);
+    let UID = await this.auth
+      .getUserByEmail(email)
+      .then((u) => u?.uid)
+      .catch(() => null);
 
     if (UID) {
       await this.auth.updateUserPrivilege(UID, privilege);
