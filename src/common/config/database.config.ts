@@ -6,7 +6,10 @@ export const dbConfig = registerAs<Knex.StaticConnectionConfig>(
   ConfigToken.DB,
   () => {
     // Connect to the database via Unix socket if we are running on Cloud Run.
-    if (process.env.RUNTIME_INSTANCE === "production" || process.env.RUNTIME_INSTANCE === "staging") {
+    if (
+      process.env.RUNTIME_INSTANCE === "production" ||
+      process.env.RUNTIME_INSTANCE === "staging"
+    ) {
       return {
         user: process.env.MYSQL_USER,
         password: process.env.MYSQL_PASSWORD,
