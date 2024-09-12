@@ -150,4 +150,33 @@ export class FirebaseAuthService {
     privileges[this.authEnvironment] = privilege;
     await admin.auth().setCustomUserClaims(uid, privileges);
   }
+
+  // Create a new user in Firebase with the given privilege level.
+  async createUserWithPrivilege(
+    email: string,
+    password: string,
+    privilege: Role,
+  ): Promise<string> {
+    const user = await admin.auth().createUser({
+      email,
+      password,
+    });
+
+    await this.updateUserPrivilege(user.uid, privilege);
+
+    return user.uid;
+  }
+
+  async getUserByEmail(email: string): Promise<any> {
+    return admin.auth().getUserByEmail(email);
+  }
+
+  async generatePasswordResetLink(email: string): Promise<string> {
+    return admin.auth().generatePasswordResetLink(email);
+  }
+
+  // Delete a user from Firebase.
+  async deleteUser(uid: string): Promise<void> {
+    await admin.auth().deleteUser(uid);
+  }
 }
