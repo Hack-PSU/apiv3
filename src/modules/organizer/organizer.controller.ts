@@ -188,7 +188,7 @@ export class OrganizerController {
       message,
     });
 
-    return organizer;
+    return this.organizerService.injectUserRoles([organizer]).pipe(take(1));
   }
 
   @Get(":id")
