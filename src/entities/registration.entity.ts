@@ -65,10 +65,10 @@ export class Registration extends Entity {
   codingExperience?: string;
 
   @ApiProperty()
-  @IsBoolean()
-  @Type(() => Boolean)
-  @Column({ type: "boolean" })
-  eighteenBeforeEvent: boolean;
+  @Type(() => Number)
+  @IsNumber()
+  @Column({ type: "number" })
+  age: number;
 
   @ApiProperty()
   @IsBoolean()
@@ -164,7 +164,7 @@ export class Registration extends Entity {
       ...json,
       ...this.parseBoolean("travelReimbursement", json.travelReimbursement),
       ...this.parseBoolean("driving", json.driving),
-      ...this.parseBoolean("eighteenBeforeEvent", json.eighteenBeforeEvent),
+      ...this.parseBoolean("age", json.age),
       ...this.parseBoolean("mlhCoc", json.mlhCoc),
       ...this.parseBoolean("mlhDcp", json.mlhDcp),
       ...this.parseBoolean("shareAddressMlh", json.shareAddressMlh),
@@ -178,7 +178,7 @@ export class Registration extends Entity {
 export class RegistrationEntity extends PickType(Registration, [
   "id",
   "userId",
-  "eighteenBeforeEvent",
+  "age",
   "shareAddressSponsors",
   "travelReimbursement",
   "shareAddressMlh",
