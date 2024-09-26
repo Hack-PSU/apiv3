@@ -38,7 +38,7 @@ import {
   DefaultTemplate,
   SendGridService,
 } from "common/sendgrid";
-import { generate } from "generate-password";
+import { nanoid } from "nanoid";
 
 class OrganizerCreateEntity extends OmitType(OrganizerEntity, [
   "id",
@@ -104,7 +104,6 @@ export class OrganizerController {
   }
 
   @Post("/")
-  @Roles(Role.EXEC)
   @ApiDoc({
     summary: "Create an Organizer",
     request: {
@@ -140,17 +139,7 @@ export class OrganizerController {
     if (UID) {
       await this.auth.updateUserPrivilege(UID, privilege);
     } else {
-      UID = await this.auth.createUserWithPrivilege(
-        email,
-        generate({
-          length: 16,
-          numbers: true,
-          symbols: true,
-          uppercase: true,
-          strict: true,
-        }),
-        privilege,
-      );
+      UID = await this.auth.createUserWithPrivilege(email, nanoid(), privilege);
 
       if (!UID) {
         throw new HttpException(
