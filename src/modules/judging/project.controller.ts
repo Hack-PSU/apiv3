@@ -2,15 +2,20 @@ import {
   Body,
   Controller,
   Delete,
+  FileTypeValidator,
   Get,
   HttpCode,
   HttpStatus,
   Param,
+  ParseFilePipe,
+  ParseFilePipeBuilder,
   ParseIntPipe,
   Patch,
   Post,
   Put,
+  UploadedFile,
   UseFilters,
+  UseInterceptors,
   ValidationPipe,
 } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
@@ -19,6 +24,8 @@ import { ApiTags, OmitType, PartialType } from "@nestjs/swagger";
 import { Role, Roles } from "common/gcp";
 import { ApiDoc } from "common/docs";
 import { DBExceptionFilter } from "common/filters";
+import { ProjectService } from "modules/judging/project.service";
+import { FileInterceptor } from "@nestjs/platform-express";
 
 class ProjectCreateEntity extends OmitType(ProjectEntity, ["id"] as const) {}
 
@@ -31,6 +38,7 @@ export class ProjectController {
   constructor(
     @InjectRepository(Project)
     private readonly projectRepo: Repository<Project>,
+    private readonly projectService: ProjectService,
   ) {}
 
   @Get("/")
@@ -70,6 +78,38 @@ export class ProjectController {
     data: ProjectCreateEntity,
   ) {
     return this.projectRepo.createOne(data).byHackathon();
+  }
+
+
+  @Post("/upload")
+  @Roles(Role.TEAM)
+  @HttpCode(202)
+  @ApiDoc({
+    summary: "Upload a CVS file and parse it to the database",
+    params: [
+      {
+        name: "file",
+        description: "The file that will be parsed. Must be a CSV file or mime-type as text/csv",
+      },
+    ],
+    response: {
+      ok: { type: ProjectEntity },
+    }
+  })
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadCsv(
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new FileTypeValidator({
+            fileType: "text/csv"
+          })
+        ]
+      })
+    )
+    file: Express.Multer.File,
+  ) {
+    return this.projectService.parseProjectFile(file)
   }
 
   @Get(":id")
