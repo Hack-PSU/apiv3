@@ -8,7 +8,6 @@ import {
   HttpStatus,
   Param,
   ParseFilePipe,
-  ParseFilePipeBuilder,
   ParseIntPipe,
   Patch,
   Post,
@@ -82,13 +81,13 @@ export class ProjectController {
 
 
   @Post("/upload")
-  @Roles(Role.TEAM)
-  @HttpCode(202)
+  // @Roles(Role.TEAM)
+  // @HttpCode(202)
   @ApiDoc({
     summary: "Upload a CVS file and parse it to the database",
     params: [
       {
-        name: "file",
+        name: "csvfile",
         description: "The file that will be parsed. Must be a CSV file or mime-type as text/csv",
       },
     ],
@@ -96,19 +95,14 @@ export class ProjectController {
       ok: { type: ProjectEntity },
     }
   })
-  @UseInterceptors(FileInterceptor('file'))
-  async uploadCsv(
-    @UploadedFile(
-      new ParseFilePipe({
-        validators: [
-          new FileTypeValidator({
-            fileType: "text/csv"
-          })
-        ]
-      })
-    )
-    file: Express.Multer.File,
-  ) {
+  @UseInterceptors(FileInterceptor('csvfile'))
+  uploadCsv(@UploadedFile(
+    new ParseFilePipe({
+      validators: [
+        new FileTypeValidator({ fileType: "application/octet-stream" })
+      ]
+    })
+  ) file: Express.Multer.File) {
     return this.projectService.parseProjectFile(file)
   }
 

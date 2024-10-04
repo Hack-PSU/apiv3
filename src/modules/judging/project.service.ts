@@ -1,8 +1,11 @@
 import { Injectable } from "@nestjs/common";
-import multer, { Multer } from "multer";
+
+import fs from "fs"
+import { parse } from "csv-parse"
+
 @Injectable()
 export class ProjectService {
     async parseProjectFile(file: Express.Multer.File) {
-        // TODO
+        console.log(file.mimetype)
     }
 }
