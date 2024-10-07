@@ -79,6 +79,7 @@ export class ProjectController {
     return this.projectRepo.createOne(data).byHackathon();
   }
 
+  regex = /text\/csv | application\/octet-stream/;
 
   @Post("/upload")
   // @Roles(Role.TEAM)
@@ -95,11 +96,11 @@ export class ProjectController {
       ok: { type: ProjectEntity },
     }
   })
-  @UseInterceptors(FileInterceptor('csvfile'))
+  @UseInterceptors(FileInterceptor('file'))
   uploadCsv(@UploadedFile(
     new ParseFilePipe({
       validators: [
-        new FileTypeValidator({ fileType: "application/octet-stream" })
+        new FileTypeValidator({ fileType: "text\/csv|application\/octet-stream" })
       ]
     })
   ) file: Express.Multer.File) {
