@@ -102,72 +102,90 @@ export class JudgingService {
     // assign organizers to projects
     const projects = await this.projectRepo.findAll().byHackathon().execute();
 
-    // list containing projects for each challenge
-    const challenge1 = [];
-    const challenge2 = [];
-    const _challenge = [];
 
-    // divides projects into challenges
-    for (const project of projects) {
-      let temp = project.categories;
-      if (!temp) {
-        _challenge.push({
-          projectId: project.id,
-          hackathonId: project.hackathonId,
-        });
-        continue;
-      }
-      temp = temp.split(",");
-      for (const element of temp) {
-        if (element == "challenge1") {
-          challenge1.push({
-            projectId: project.id,
-            hackathonId: project.hackathonId,
-          });
-        } else if (element == "challenge2") {
-          challenge2.push({
-            projectId: project.id,
-            hackathonId: project.hackathonId,
-          });
-        } else {
-          _challenge.push({
-            projectId: project.id,
-            hackathonId: project.hackathonId,
-          });
-        }
-      }
-    }
-    for (const element of _challenge) {
-      const min = this.min_array(challenge1, challenge2);
-      min.push(element);
-    }
-
-    // assigns projects to organizers/etc
+    //FIXME: start of Jeremiah Changes 
+    // assigns projects to organizers in round robin format
     const assignments: JudgeAssignment[] = [];
-    let projectIdx = 0;
-    for (const organizer of organizers.filter(
-      (judge) => judge.award === "Sustainability",
-    )) {
-      for (let i = 0; i < projectsPerUser; i++, projectIdx++) {
-        assignments.push({
-          judgeId: organizer.id,
-          projectId: challenge1[projectIdx % challenge1.length].projectId,
-          hackathonId: challenge1[projectIdx % challenge1.length].hackathonId,
-        });
-      }
+
+    const num_of_judges = organizers.length;
+    const num_of_projects = projects.length;
+    
+    for(let projectIdx = 0; projectIdx < num_of_projects; projectIdx++){
+      assignments.push({
+        judgeId: organizers[projectIdx % num_of_judges].id,
+        projectId: projects[projectIdx].projectId,
+        hackathonId: projects[projectIdx].hackathonId,
+      });
     }
-    projectIdx = 0;
-    for (const organizer of organizers.filter(
-      (judge) => judge.award === "Generative AI",
-    )) {
-      for (let i = 0; i < projectsPerUser; i++, projectIdx++) {
-        assignments.push({
-          judgeId: organizer.id,
-          projectId: challenge2[projectIdx % challenge2.length].projectId,
-          hackathonId: challenge2[projectIdx % challenge2.length].hackathonId,
-        });
-      }
-    }
+    // FIXME: end of Jeremiah Changes
+
+
+
+    // // list containing projects for each challenge
+    // const challenge1 = [];
+    // const challenge2 = [];
+    // const _challenge = [];
+
+    // // divides projects into challenges
+    // for (const project of projects) {
+    //   let temp = project.categories;
+    //   if (!temp) {
+    //     _challenge.push({
+    //       projectId: project.id,
+    //       hackathonId: project.hackathonId,
+    //     });
+    //     continue;
+    //   }
+    //   temp = temp.split(",");
+    //   for (const element of temp) {
+    //     if (element == "challenge1") {
+    //       challenge1.push({
+    //         projectId: project.id,
+    //         hackathonId: project.hackathonId,
+    //       });
+    //     } else if (element == "challenge2") {
+    //       challenge2.push({
+    //         projectId: project.id,
+    //         hackathonId: project.hackathonId,
+    //       });
+    //     } else {
+    //       _challenge.push({
+    //         projectId: project.id,
+    //         hackathonId: project.hackathonId,
+    //       });
+    //     }
+    //   }
+    // }
+    // for (const element of _challenge) {
+    //   const min = this.min_array(challenge1, challenge2);
+    //   min.push(element);
+    // }
+    // // assigns projects to organizers in round robin format
+    //   const assignments: JudgeAssignment[] = [];
+    // let projectIdx = 0;
+    // for (const organizer of organizers.filter(
+    //   (judge) => judge.award === "Sustainability",
+    // )) {
+    //   for (let i = 0; i < projectsPerUser; i++, projectIdx++) {
+    //     assignments.push({
+    //       judgeId: organizer.id,
+    //       projectId: challenge1[projectIdx % challenge1.length].projectId,
+    //       hackathonId: challenge1[projectIdx % challenge1.length].hackathonId,
+    //     });
+    //   }
+    // }
+    // projectIdx = 0;
+    // for (const organizer of organizers.filter(
+    //   (judge) => judge.award === "Generative AI",
+    // )) {
+    //   for (let i = 0; i < projectsPerUser; i++, projectIdx++) {
+    //     assignments.push({
+    //       judgeId: organizer.id,
+    //       projectId: challenge2[projectIdx % challenge2.length].projectId,
+    //       hackathonId: challenge2[projectIdx % challenge2.length].hackathonId,
+    //     });
+    //   }
+    // }
     return assignments;
   }
 
