@@ -79,8 +79,6 @@ export class ProjectController {
     return this.projectRepo.createOne(data).byHackathon();
   }
 
-  regex = /text\/csv | application\/octet-stream/;
-
   @Post("/upload")
   // @Roles(Role.TEAM)
   // @HttpCode(202)
