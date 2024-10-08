@@ -3,7 +3,6 @@ import { InjectRepository, Repository } from "common/objection";
 import { Organizer } from "entities/organizer.entity";
 import { Project } from "entities/project.entity";
 import { Score } from "entities/score.entity";
-import * as _ from "lodash";
 
 interface JudgeAssignment {
   judgeId: string;
@@ -17,14 +16,10 @@ export class JudgingService {
     @InjectRepository(Score)
     private readonly scoreRepo: Repository<Score>,
     @InjectRepository(Organizer)
-    private readonly userRepo: Repository<Organizer>,
+    private readonly organizerRepo: Repository<Organizer>,
     @InjectRepository(Project)
     private readonly projectRepo: Repository<Project>,
   ) {}
-
-  private min_array<T>(...arrays: T[][]) {
-    return arrays.reduce((min, arr) => (arr.length < min.length ? arr : min));
-  }
 
   async getUnassignedProjects() {
     return this.projectRepo
@@ -58,117 +53,125 @@ export class JudgingService {
   }
 
   async createAssignments(users: string[], projectsPerUser: number) {
-    const organizers = (await this.userRepo.findAll().exec()).filter((user) =>
-      users.includes(user.id),
+    // Fetch and filter organizers based on provided user IDs
+    const organizers = (await this.organizerRepo.findAll().exec()).filter(
+      (user) => users.includes(user.id),
     );
-    // assign organizer to awards
-    const awards = [
-      {
-        name: "Sustainability",
-        judgingLocation: "Room 126 (War Room)",
-      },
-      {
-        name: "Generative AI",
-        judgingLocation: "Auditorium",
-      },
-    ];
 
-    // Asigns organizers/etc to an award
-    let awardNum = 0;
+    if (organizers.length === 0) {
+      throw new Error("No organizers available for assignment.");
+    }
+
+    // Categorize organizers by team
     const techMembers = organizers.filter((user) => user.team === "tech");
     const execMembers = organizers.filter((user) => user.team === "exec");
     const otherMembers = organizers.filter(
       (user) => user.team !== "tech" && user.team !== "exec",
     );
-    for (const judge of techMembers) {
-      judge.award = awards[awardNum % awards.length].name;
-      judge.judgingLocation = awards[awardNum % awards.length].judgingLocation;
-      awardNum += 1;
+
+    // Ensure there are enough tech and exec judges
+    if (techMembers.length === 0) {
+      throw new Error("No tech members available for assignment.");
     }
-    for (const judge of execMembers) {
-      judge.award = awards[awardNum % awards.length].name;
-      judge.judgingLocation = awards[awardNum % awards.length].judgingLocation;
-      awardNum += 1;
+    if (execMembers.length === 0) {
+      throw new Error("No exec members available for assignment.");
     }
-    for (const judge of otherMembers) {
-      judge.award = awards[awardNum % awards.length].name;
-      judge.judgingLocation = awards[awardNum % awards.length].judgingLocation;
-      awardNum += 1;
-    }
+
+    // Initialize assignment counts and project maps to prevent duplicates
+    const assignmentCounts: { [judgeId: string]: number } = {};
+    const organizerProjectMap: { [judgeId: string]: Set<number> } = {};
     organizers.forEach((organizer) => {
-      this.userRepo.patchOne(organizer.id, organizer).exec();
+      assignmentCounts[organizer.id] = 0;
+      organizerProjectMap[organizer.id] = new Set();
     });
 
-    // assign organizers to projects
+    // Fetch all projects
     const projects = await this.projectRepo.findAll().byHackathon().execute();
 
-    // list containing projects for each challenge
-    const challenge1 = [];
-    const challenge2 = [];
-    const _challenge = [];
-
-    // divides projects into challenges
-    for (const project of projects) {
-      let temp = project.categories;
-      if (!temp) {
-        _challenge.push({
-          projectId: project.id,
-          hackathonId: project.hackathonId,
-        });
-        continue;
-      }
-      temp = temp.split(",");
-      for (const element of temp) {
-        if (element == "challenge1") {
-          challenge1.push({
-            projectId: project.id,
-            hackathonId: project.hackathonId,
-          });
-        } else if (element == "challenge2") {
-          challenge2.push({
-            projectId: project.id,
-            hackathonId: project.hackathonId,
-          });
-        } else {
-          _challenge.push({
-            projectId: project.id,
-            hackathonId: project.hackathonId,
-          });
-        }
-      }
-    }
-    for (const element of _challenge) {
-      const min = this.min_array(challenge1, challenge2);
-      min.push(element);
+    if (projects.length === 0) {
+      throw new Error("No projects available for assignment.");
     }
 
-    // assigns projects to organizers/etc
     const assignments: JudgeAssignment[] = [];
-    let projectIdx = 0;
-    for (const organizer of organizers.filter(
-      (judge) => judge.award === "Sustainability",
-    )) {
-      for (let i = 0; i < projectsPerUser; i++, projectIdx++) {
-        assignments.push({
-          judgeId: organizer.id,
-          projectId: challenge1[projectIdx % challenge1.length].projectId,
-          hackathonId: challenge1[projectIdx % challenge1.length].hackathonId,
-        });
+
+    // Function to assign projects to a group of organizers
+    const assignProjectsToGroup = (
+      group: Organizer[],
+      projectsPerUser: number,
+      assignments: JudgeAssignment[],
+      assignmentCounts: { [judgeId: string]: number },
+      organizerProjectMap: { [judgeId: string]: Set<number> },
+      category: string,
+    ) => {
+      const numOrganizers = group.length;
+      const numProjects = projects.length;
+
+      if (numOrganizers === 0) return;
+
+      // Initialize counter for the group
+      let counter = 0;
+
+      group.forEach((organizer, index) => {
+        for (let i = 0; i < projectsPerUser; i++) {
+          const projectIndex = (counter + i) % numProjects;
+          const project = projects[projectIndex];
+
+          // Prevent duplicate assignments
+          if (!organizerProjectMap[organizer.id].has(project.id)) {
+            assignments.push({
+              judgeId: organizer.id,
+              projectId: project.id,
+              hackathonId: project.hackathonId,
+            });
+            assignmentCounts[organizer.id] += 1;
+            organizerProjectMap[organizer.id].add(project.id);
+          }
+        }
+        counter += projectsPerUser;
+      });
+    };
+
+    // Assign projects to tech members
+    assignProjectsToGroup(
+      techMembers,
+      projectsPerUser,
+      assignments,
+      assignmentCounts,
+      organizerProjectMap,
+      "tech",
+    );
+
+    // Assign projects to exec members
+    assignProjectsToGroup(
+      execMembers,
+      projectsPerUser,
+      assignments,
+      assignmentCounts,
+      organizerProjectMap,
+      "exec",
+    );
+
+    // Assign projects to other members
+    assignProjectsToGroup(
+      otherMembers,
+      projectsPerUser,
+      assignments,
+      assignmentCounts,
+      organizerProjectMap,
+      "other",
+    );
+
+    const uniqueAssignments: JudgeAssignment[] = [];
+    const seen: Set<string> = new Set();
+    for (const assignment of assignments) {
+      const key = `${assignment.judgeId}-${assignment.projectId}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        uniqueAssignments.push(assignment);
       }
     }
-    projectIdx = 0;
-    for (const organizer of organizers.filter(
-      (judge) => judge.award === "Generative AI",
-    )) {
-      for (let i = 0; i < projectsPerUser; i++, projectIdx++) {
-        assignments.push({
-          judgeId: organizer.id,
-          projectId: challenge2[projectIdx % challenge2.length].projectId,
-          hackathonId: challenge2[projectIdx % challenge2.length].hackathonId,
-        });
-      }
-    }
-    return assignments;
+
+    return uniqueAssignments;
   }
 
   async reassignJudge(judgeId: string, excludeProjects: number[]) {
@@ -178,7 +181,9 @@ export class JudgingService {
     );
 
     if (validUnassignedProjects.length > 0) {
-      const projectIdx = _.random(validUnassignedProjects.length - 1);
+      const projectIdx = Math.floor(
+        Math.random() * validUnassignedProjects.length,
+      );
       return { judgeId, projectId: validUnassignedProjects[projectIdx].id };
     } else {
       const minCountProjects = await this.getMinCountProjects(
@@ -187,7 +192,7 @@ export class JudgingService {
       );
 
       if (minCountProjects.length > 0) {
-        const projectIdx = _.random(minCountProjects.length - 1);
+        const projectIdx = Math.floor(Math.random() * minCountProjects.length);
         return { judgeId, projectId: minCountProjects[projectIdx] };
       } else {
         return null;
