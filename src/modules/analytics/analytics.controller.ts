@@ -179,7 +179,6 @@ export class AnalyticsController {
   }
 
   @Get("/scans")
-  @Roles(Role.TECH)
   async getOrganizerScans() {
     return this.organizerRepo
       .findAll()
@@ -188,6 +187,11 @@ export class AnalyticsController {
       .count("scans.organizerId", { as: "count" })
       .groupBy("organizers.id")
       .orderBy("count", "DESC")
-      .select("organizers.id", "organizers.firstName", "organizers.lastName");
+      .select("organizers.id", "organizers.firstName", "organizers.lastName")
+      .where(
+        "scans.hackathonId",
+        "=",
+        this.hackathonRepo.findAll().raw().where("active", true).select("id"),
+      );
   }
 }

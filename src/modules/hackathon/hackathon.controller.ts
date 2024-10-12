@@ -346,7 +346,9 @@ export class HackathonController {
     await Hackathon.query().patch({ active: false }).where("active", true);
 
     // mark new hackathon as active
-    const hackathon = await this.hackathonRepo.patchOne(id, { active: true }).exec();
+    const hackathon = await this.hackathonRepo
+      .patchOne(id, { active: true })
+      .exec();
 
     this.socket.emit("update:hackathon", hackathon);
 
