@@ -11,7 +11,7 @@ import { Role } from "common/gcp";
 
 export const ApiAuth = (privilege: Role, restricted = false) => {
   return applyDecorators(
-    ApiBearerAuth(),
+    ApiBearerAuth("firebase"),
     ApiOAuth2([Role[privilege]]),
     ApiUnauthorizedResponse({
       description: "Unauthorized",

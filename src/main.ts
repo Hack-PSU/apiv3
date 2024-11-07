@@ -10,13 +10,24 @@ async function bootstrap() {
     .setTitle("HackPSU Documentation")
     .setDescription("Official HackPSU API V3")
     .setVersion("3.0")
-    .addBearerAuth()
+    .addBearerAuth(
+      {
+        type: "http",
+        scheme: "bearer",
+        bearerFormat: "JWT",
+        description:
+          "Enter your Firebase JWT token in the format **token&gt;**",
+      },
+      "firebase",
+    )
     .addOAuth2()
     .build();
 
   const document = SwaggerModule.createDocument(app, options);
 
-  await DocsModule.setup("/docs", app, document);
+  SwaggerModule.setup("/docs", app, document);
+
+  await DocsModule.setup("/docs-legacy", app, document);
 
   const configService = await app.get<ConfigService>(ConfigService);
 
