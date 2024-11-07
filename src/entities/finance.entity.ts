@@ -63,7 +63,7 @@ export class Finance extends Entity {
   @ApiProperty()
   @IsString()
   @Column({ type: "string" })
-  hackathonID: string;
+  hackathonId: string;
 }
 
 export class FinanceEntity extends PickType(Finance, [
@@ -73,5 +73,5 @@ export class FinanceEntity extends PickType(Finance, [
   "userId",
   "organizerId",
   "linkAddress",
-  "hackathonID",
+  "hackathonId",
 ] as const) {}
