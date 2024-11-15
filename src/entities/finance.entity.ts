@@ -1,77 +1,161 @@
 import { ApiProperty, PickType } from "@nestjs/swagger";
-import { IsEnum, IsNumber, IsString } from "class-validator";
+import { IsEnum, IsNumber, IsString, IsOptional, IsUrl } from "class-validator";
 import { Entity } from "entities/base.entity";
 import { ID, Column, Table } from "common/objection";
 
-enum Status {
-  PENDING,
-  APPROVED,
-  REJECTED,
+export enum Status {
+  PENDING = "PENDING",
+  APPROVED = "APPROVED",
+  REJECTED = "REJECTED",
 }
+
+export enum SubmitterType {
+  USER = "USER",
+  ORGANIZER = "ORGANIZER",
+}
+
 @Table({
   name: "finances",
   relationMappings: {
-    user: {
+    users: {
       relation: Entity.BelongsToOneRelation,
       modelClass: "user.entity.js",
       join: {
-        from: "finances.userId",
+        from: "finances.submitterId",
         to: "users.id",
       },
     },
-    organizer: {
+    organizers: {
       relation: Entity.BelongsToOneRelation,
       modelClass: "organizer.entity.js",
       join: {
-        from: "finances.organizerId",
+        from: "finances.submitterId",
         to: "organizers.id",
+      },
+    },
+    hackathons: {
+      relation: Entity.BelongsToOneRelation,
+      modelClass: "hackathon.entity.js",
+      join: {
+        from: "finances.hackathonId",
+        to: "hackathons.id",
       },
     },
   },
 })
 export class Finance extends Entity {
-  @ApiProperty()
+  @ApiProperty({
+    description: "Unique identifier for the finance record",
+    example: "a1b2c3d4-e5f6-7890-abcd-1234567890ef",
+  })
   @IsString()
   @ID({ type: "string" })
   id: string;
 
-  @ApiProperty()
-  @IsNumber()
+  @ApiProperty({
+    description: "Amount to be reimbursed",
+    example: 150.75,
+  })
+  @IsNumber(
+    {
+      maxDecimalPlaces: 2,
+    },
+    { each: true },
+  )
   @Column({ type: "number" })
   amount: number;
 
-  @ApiProperty()
+  @ApiProperty({
+    description: "Status of the reimbursement request",
+    enum: Status,
+    example: Status.PENDING,
+  })
   @IsEnum(Status)
   @Column({ type: "string" })
   status: Status;
 
-  @ApiProperty()
+  @ApiProperty({
+    description: "Type of the submitter (USER or ORGANIZER)",
+    enum: SubmitterType,
+    example: SubmitterType.USER,
+  })
+  @IsEnum(SubmitterType)
+  @Column({ type: "string" })
+  submitterType: SubmitterType;
+
+  @ApiProperty({
+    description: "ID of the submitter (User or Organizer)",
+    example: "user123",
+  })
   @IsString()
   @Column({ type: "string" })
-  userId: string;
+  submitterId: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    description: "URL to the uploaded receipt",
+    example: "https://s3.amazonaws.com/bucket/receipts/a1b2c3d4.pdf",
+    required: false,
+  })
   @IsString()
-  @Column({ type: "string" })
-  organizerId: string;
+  @IsOptional()
+  @IsUrl()
+  @Column({ type: "string", nullable: true })
+  receiptUrl?: string;
 
-  @ApiProperty()
-  @IsString()
-  @Column({ type: "string" })
-  linkAddress: string;
-
-  @ApiProperty()
+  @ApiProperty({
+    description: "ID of the related hackathon",
+    example: "hack789",
+  })
   @IsString()
   @Column({ type: "string" })
   hackathonId: string;
+
+  @ApiProperty({
+    description: "Description of the expense",
+    example: "Travel expenses for attending the hackathon",
+  })
+  @IsString()
+  @Column({ type: "string" })
+  description: string;
+
+  // This needs to be an Enum
+  @ApiProperty({
+    description: "Category of the expense",
+    example: "Travel",
+  })
+  @IsString()
+  @Column({ type: "string" })
+  category: string;
+
+  @ApiProperty({
+    description: "Timestamp when the record was created in milliseconds",
+    example: 1620000000000,
+  })
+  @IsNumber()
+  @Column({ type: "integer" })
+  createdAt: number;
+
+  @ApiProperty({
+    description: "ID of the user who last updated the record",
+    example: "user123",
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  @Column({ type: "string", nullable: true })
+  updatedBy?: string;
 }
 
 export class FinanceEntity extends PickType(Finance, [
   "id",
   "amount",
   "status",
-  "userId",
-  "organizerId",
-  "linkAddress",
+  "submitterType",
+  "submitterId",
+  "receiptUrl",
   "hackathonId",
+  "description",
+  "category",
+  "createdAt",
+  "updatedBy",
 ] as const) {}
