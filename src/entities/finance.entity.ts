@@ -1,5 +1,15 @@
 import { ApiProperty, PickType } from "@nestjs/swagger";
-import { IsEnum, IsNumber, IsString, IsOptional, IsUrl } from "class-validator";
+import {
+  IsEnum,
+  IsNumber,
+  IsString,
+  IsOptional,
+  IsUrl,
+  IsNotEmpty,
+  Length,
+  IsPostalCode,
+} from "class-validator";
+import { Type } from "class-transformer";
 import { Entity } from "entities/base.entity";
 import { ID, Column, Table } from "common/objection";
 
@@ -12,6 +22,11 @@ export enum Status {
 export enum SubmitterType {
   USER = "USER",
   ORGANIZER = "ORGANIZER",
+}
+
+export enum Category {
+  FOOD = "50502",
+  TRAVEL = "70010",
 }
 
 @Table({
@@ -123,7 +138,7 @@ export class Finance extends Entity {
     description: "Category of the expense",
     example: "Travel",
   })
-  @IsString()
+  @IsEnum(Category)
   @Column({ type: "string" })
   category: string;
 
@@ -144,6 +159,35 @@ export class Finance extends Entity {
   @IsOptional()
   @Column({ type: "string", nullable: true })
   updatedBy?: string;
+
+  @ApiProperty({ example: "123 Main St" })
+  @IsNotEmpty({ message: "Street address is required" })
+  @IsString({ message: "Street address must be a string" })
+  @Length(5, 100, {
+    message: "Street address must be between 5 and 100 characters",
+  })
+  @Column({ type: "string" })
+  street: string;
+
+  @ApiProperty({ example: "Springfield" })
+  @IsNotEmpty({ message: "City is required" })
+  @IsString({ message: "City must be a string" })
+  @Length(2, 50, { message: "City must be between 2 and 50 characters" })
+  @Column({ type: "string" })
+  city: string;
+
+  @ApiProperty({ example: "IL" })
+  @IsNotEmpty({ message: "State is required" })
+  @IsString({ message: "State must be a string" })
+  @Length(2, 50, { message: "State must be between 2 and 50 characters" })
+  @Column({ type: "string" })
+  state: string;
+
+  @ApiProperty({ example: "62704" })
+  @IsNotEmpty({ message: "Postal code is required" })
+  @IsPostalCode("US", { message: "Postal code must be a valid US postal code" })
+  @Column({ type: "string" })
+  postalCode: string;
 }
 
 export class FinanceEntity extends PickType(Finance, [
@@ -158,4 +202,8 @@ export class FinanceEntity extends PickType(Finance, [
   "category",
   "createdAt",
   "updatedBy",
+  "street",
+  "city",
+  "state",
+  "postalCode",
 ] as const) {}

@@ -87,6 +87,7 @@ export class FinanceController {
       throw new NotFoundException("No active hackathon found");
     }
 
+    console.log(finance);
     // Create new finance entity
     const newFinance: Partial<Finance> = {
       id: nanoid(32),
