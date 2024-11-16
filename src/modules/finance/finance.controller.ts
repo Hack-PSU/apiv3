@@ -4,7 +4,6 @@ import {
   Controller,
   Get,
   NotFoundException,
-  Param,
   Post,
   ValidationPipe,
 } from "@nestjs/common";
@@ -21,8 +20,6 @@ import {
 import { Hackathon } from "entities/hackathon.entity";
 import { Organizer } from "entities/organizer.entity";
 import { User } from "entities/user.entity";
-import { request } from "http";
-import { update } from "lodash";
 import { nanoid } from "nanoid";
 
 class FinanceCreateEntity extends OmitType(FinanceEntity, [
@@ -44,8 +41,6 @@ export class FinanceController {
     private readonly userRepo: Repository<User>,
     @InjectRepository(Organizer)
     private readonly organizerRepo: Repository<Organizer>,
-    @InjectRepository(Hackathon)
-    private readonly hackathonRepo: Repository<Hackathon>,
   ) {}
 
   @Get("/")
