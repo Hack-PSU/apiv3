@@ -21,6 +21,7 @@ import {
 import { Hackathon } from "entities/hackathon.entity";
 import { Organizer } from "entities/organizer.entity";
 import { User } from "entities/user.entity";
+import { request } from "http";
 import { update } from "lodash";
 import { nanoid } from "nanoid";
 
@@ -57,9 +58,9 @@ export class FinanceController {
   @RestrictedRoles({
     predicate: (request) =>
       request.user && request.body.submitterId === request.user?.sub,
-    roles: [Role.NONE],
+    roles: [Role.NONE, Role.TEAM, Role.EXEC],
   })
-  @Roles(Role.TEAM)
+  @Roles(Role.TECH)
   async createFinance(
     @Body(
       new ValidationPipe({
