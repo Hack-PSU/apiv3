@@ -6,23 +6,23 @@ import { ConfigService } from "@nestjs/config";
 
 @Injectable()
 export class FinanceService {
-    private invoiceBucketName: string;
+  private invoiceBucketName: string;
 
-    constructor(private readonly configService: ConfigService) {
-        this.invoiceBucketName = configService.get<InvoiceBucketConfig>(
-            ConfigToken.INVOICE,
-        ).invoice_bucket;
-    }
+  constructor(private readonly configService: ConfigService) {
+    this.invoiceBucketName = configService.get<InvoiceBucketConfig>(
+      ConfigToken.INVOICE,
+    ).invoice_bucket;
+  }
 
-    private get invoiceBucket() {
-        return admin.storage().bucket(this.invoiceBucketName);
-    }
+  private get invoiceBucket() {
+    return admin.storage().bucket(this.invoiceBucketName);
+  }
 
-    private getInvoiceFileName(userId: string): string {
-        return `${userId}.pdf`;
-    }
+  private getInvoiceFileName(userId: string): string {
+    return `${userId}.pdf`;
+  }
 
-    private getAuthenticatedResumeUrl(filename: string): string {
-        return `https://storage.cloud.google.com/${this.invoiceBucketName}/${filename}`;
-    }
+  private getAuthenticatedResumeUrl(filename: string): string {
+    return `https://storage.cloud.google.com/${this.invoiceBucketName}/${filename}`;
+  }
 }

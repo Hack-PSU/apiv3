@@ -9,7 +9,6 @@ import {
   Length,
   IsPostalCode,
 } from "class-validator";
-import { Type } from "class-transformer";
 import { Entity } from "entities/base.entity";
 import { ID, Column, Table } from "common/objection";
 
