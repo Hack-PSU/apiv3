@@ -10,7 +10,7 @@ import {
 } from "@nestjs/common";
 import { ApiTags, OmitType } from "@nestjs/swagger";
 import { ApiDoc } from "common/docs";
-import { Role, Roles } from "common/gcp";
+import { RestrictedRoles, Role, Roles } from "common/gcp";
 import { InjectRepository, Repository } from "common/objection";
 import {
   Finance,
@@ -48,11 +48,18 @@ export class FinanceController {
   ) {}
 
   @Get("/")
+  @Roles(Role.EXEC)
   async getFinance(): Promise<Finance[]> {
     return this.financeRepo.findAll().exec();
   }
 
   @Post("/")
+  @RestrictedRoles({
+    predicate: (request) =>
+      request.user && request.body.submitterId === request.user?.sub,
+    roles: [Role.NONE],
+  })
+  @Roles(Role.TEAM)
   async createFinance(
     @Body(
       new ValidationPipe({
@@ -64,6 +71,7 @@ export class FinanceController {
     finance: FinanceCreateEntity,
   ): Promise<Finance> {
     // An Upload decorator still has to be implemented to handle file uploads
+
     // Validate submitter
     if (finance.submitterType === SubmitterType.USER) {
       const user = await this.userRepo.findOne(finance.submitterId).exec();
@@ -87,7 +95,6 @@ export class FinanceController {
       throw new NotFoundException("No active hackathon found");
     }
 
-    console.log(finance);
     // Create new finance entity
     const newFinance: Partial<Finance> = {
       id: nanoid(32),
