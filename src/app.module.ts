@@ -6,6 +6,7 @@ import {
   ConfigToken,
   dbConfig,
   firebaseConfig,
+  invoiceBucketConfig,
   resumeBucketConfig,
   sendGridConfig,
 } from "common/config";
@@ -41,6 +42,7 @@ import { FinanceModule } from "modules/finance/finance.module";
         sendGridConfig,
         appleConfig,
         resumeBucketConfig,
+        invoiceBucketConfig,
       ],
     }),
 

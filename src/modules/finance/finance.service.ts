@@ -61,7 +61,7 @@ export class FinanceService {
   constructor(private readonly configService: ConfigService) {
     this.invoiceBucketName = configService.get<InvoiceBucketConfig>(
       ConfigToken.INVOICE,
-    )?.invoice_bucket;
+    ).invoice_bucket;
   }
 
   private get invoiceBucket() {
