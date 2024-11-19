@@ -52,9 +52,36 @@ export class FinanceController {
 
   @Get("/")
   @Roles(Role.EXEC)
+  @ApiDoc({
+    summary: "Get Finance",
+    response: {
+      ok: { type: FinanceEntity},
+    },
+    auth: Role.NONE,
+  })
   async getFinance(): Promise<Finance[]> {
     return this.financeRepo.findAll().exec();
   }
+
+  @Get(":id")
+  @Roles(Role.EXEC)
+  @ApiDoc({
+    summary: "Get an Reimbursement",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to an reimbursement ID",
+      },
+    ],
+    response: {
+      ok: { type: FinanceEntity},
+    },
+    auth: Role.NONE,
+  })
+  async getOne(@Param("id") id: string) {
+    return this.financeRepo.findOne(id).exec();
+  }
+
 
   @Post("/")
   @RestrictedRoles({
