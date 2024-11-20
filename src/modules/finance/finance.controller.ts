@@ -6,6 +6,7 @@ import {
   Header,
   NotFoundException,
   Post,
+  UseInterceptors,
   ValidationPipe,
   StreamableFile,
   Param,
@@ -15,6 +16,7 @@ import { ApiTags, OmitType } from "@nestjs/swagger";
 import { ApiDoc } from "common/docs";
 import { RestrictedRoles, Role, Roles } from "common/gcp";
 import { InjectRepository, Repository } from "common/objection";
+import { FileInterceptor } from "@nestjs/platform-express";
 import {
   Finance,
   FinanceEntity,
@@ -27,6 +29,7 @@ import { User } from "entities/user.entity";
 import { nanoid } from "nanoid";
 import { FinanceService } from "./finance.service";
 import { Request } from "express";
+import { UploadedReceipt } from "./uploaded-receipt.decorator";
 
 class FinanceCreateEntity extends OmitType(FinanceEntity, [
   "id",
@@ -90,6 +93,18 @@ export class FinanceController {
     roles: [Role.NONE, Role.TEAM, Role.EXEC],
   })
   @Roles(Role.TECH)
+  @UseInterceptors(FileInterceptor("receipt"))
+  @ApiDoc({
+    summary: "Create a Finance Entry",
+    request: {
+      mimeTypes: ["multipart/form-data"],
+      body: { type: FinanceCreateEntity },
+      validate: true,
+    },
+    response: {
+      created: { type: FinanceEntity },
+    },
+  })
   async createFinance(
     @Body(
       new ValidationPipe({
@@ -99,9 +114,8 @@ export class FinanceController {
       }),
     )
     finance: FinanceCreateEntity,
+    @UploadedReceipt() receipt?: Express.Multer.File,
   ): Promise<Finance> {
-    // An Upload decorator still has to be implemented to handle file uploads
-
     // Validate submitter
     if (finance.submitterType === SubmitterType.USER) {
       const user = await this.userRepo.findOne(finance.submitterId).exec();
@@ -125,6 +139,12 @@ export class FinanceController {
       throw new NotFoundException("No active hackathon found");
     }
 
+    // Upload receipt file if provided
+    let receiptUrl = "";
+    if (receipt) {
+      receiptUrl = await this.financeService.uploadReceipt(finance.submitterId, receipt);
+    }
+
     // Create new finance entity
     const newFinance: Partial<Finance> = {
       id: nanoid(32),
@@ -132,7 +152,7 @@ export class FinanceController {
       createdAt: Date.now(),
       hackathonId: hackathon.id,
       updatedBy: finance.submitterId,
-      receiptUrl: "",
+      receiptUrl,
       ...finance,
     };
 

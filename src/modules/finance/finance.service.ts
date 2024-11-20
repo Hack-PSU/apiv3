@@ -72,8 +72,18 @@ export class FinanceService {
     return `${userId}.pdf`;
   }
 
-  private getAuthenticatedResumeUrl(filename: string): string {
+  private getAuthenticatedReceiptUrl(filename: string): string {
     return `https://storage.cloud.google.com/${this.invoiceBucketName}/${filename}`;
+  }
+
+  async uploadReceipt(
+    userId: string,
+    file: Express.Multer.File,
+  ): Promise<string> {
+    const filename = this.getInvoiceFileName(userId);
+    const blob = this.invoiceBucket.file(filename);
+    await blob.save(file.buffer);
+    return this.getAuthenticatedReceiptUrl(filename);
   }
 
   private file(filepath: string) {
