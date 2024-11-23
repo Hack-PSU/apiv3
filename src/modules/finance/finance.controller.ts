@@ -33,7 +33,6 @@ import { UploadedReceipt } from "./uploaded-receipt.decorator";
 
 class FinanceCreateEntity extends OmitType(FinanceEntity, [
   "id",
-  "status",
   "createdAt",
   "hackathonId",
   "updatedBy",
@@ -133,6 +132,13 @@ export class FinanceController {
       throw new BadRequestException("Invalid submitter type");
     }
 
+    // Validate Status
+    const hasStatus = finance.status? finance.status: Status.PENDING
+    if (hasStatus !== Status.PENDING && hasStatus !== Status.DEPOSIT) {
+      throw new BadRequestException("Invalid status type. Acceptable types are DEPOSIT, PENDING, or NULL")
+    }
+
+
     // Get Active Hackathon
     const hackathon = await Hackathon.query().findOne({ active: true });
     if (!hackathon) {
@@ -148,7 +154,7 @@ export class FinanceController {
     // Create new finance entity
     const newFinance: Partial<Finance> = {
       id: nanoid(32),
-      status: Status.PENDING,
+      status: hasStatus,
       createdAt: Date.now(),
       hackathonId: hackathon.id,
       updatedBy: finance.submitterId,
