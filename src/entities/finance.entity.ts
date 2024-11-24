@@ -16,6 +16,7 @@ export enum Status {
   PENDING = "PENDING",
   APPROVED = "APPROVED",
   REJECTED = "REJECTED",
+  DEPOSIT = "DEPOSIT",
 }
 
 export enum SubmitterType {

@@ -12,7 +12,13 @@ import {
   Param,
   Req,
 } from "@nestjs/common";
-import { ApiTags, OmitType } from "@nestjs/swagger";
+import {
+  ApiTags,
+  IntersectionType,
+  OmitType,
+  PartialType,
+  PickType,
+} from "@nestjs/swagger";
 import { ApiDoc } from "common/docs";
 import { RestrictedRoles, Role, Roles } from "common/gcp";
 import { InjectRepository, Repository } from "common/objection";
@@ -28,16 +34,24 @@ import { Organizer } from "entities/organizer.entity";
 import { User } from "entities/user.entity";
 import { nanoid } from "nanoid";
 import { FinanceService } from "./finance.service";
-import { Request } from "express";
 import { UploadedReceipt } from "./uploaded-receipt.decorator";
 
-class FinanceCreateEntity extends OmitType(FinanceEntity, [
+class BaseFinanceCreateEntity extends OmitType(FinanceEntity, [
   "id",
   "createdAt",
   "hackathonId",
   "updatedBy",
   "receiptUrl",
 ]) {}
+
+class OptionalStatus extends PartialType(
+  PickType(FinanceEntity, ["status"] as const),
+) {}
+
+export class FinanceCreateEntity extends IntersectionType(
+  BaseFinanceCreateEntity,
+  OptionalStatus,
+) {}
 
 @ApiTags("Finance")
 @Controller("finances")
@@ -57,7 +71,7 @@ export class FinanceController {
   @ApiDoc({
     summary: "Get Finance",
     response: {
-      ok: { type: FinanceEntity},
+      ok: { type: FinanceEntity },
     },
     auth: Role.NONE,
   })
@@ -76,7 +90,7 @@ export class FinanceController {
       },
     ],
     response: {
-      ok: { type: FinanceEntity},
+      ok: { type: FinanceEntity },
     },
     auth: Role.NONE,
   })
@@ -84,14 +98,12 @@ export class FinanceController {
     return this.financeRepo.findOne(id).exec();
   }
 
-
   @Post("/")
   @RestrictedRoles({
     predicate: (request) =>
       request.user && request.body.submitterId === request.user?.sub,
     roles: [Role.NONE, Role.TEAM, Role.EXEC],
   })
-  @Roles(Role.TECH)
   @UseInterceptors(FileInterceptor("receipt"))
   @ApiDoc({
     summary: "Create a Finance Entry",
@@ -132,13 +144,6 @@ export class FinanceController {
       throw new BadRequestException("Invalid submitter type");
     }
 
-    // Validate Status
-    const hasStatus = finance.status? finance.status: Status.PENDING
-    if (hasStatus !== Status.PENDING && hasStatus !== Status.DEPOSIT) {
-      throw new BadRequestException("Invalid status type. Acceptable types are DEPOSIT, PENDING, or NULL")
-    }
-
-
     // Get Active Hackathon
     const hackathon = await Hackathon.query().findOne({ active: true });
     if (!hackathon) {
@@ -148,13 +153,16 @@ export class FinanceController {
     // Upload receipt file if provided
     let receiptUrl = "";
     if (receipt) {
-      receiptUrl = await this.financeService.uploadReceipt(finance.submitterId, receipt);
+      receiptUrl = await this.financeService.uploadReceipt(
+        finance.submitterId,
+        receipt,
+      );
     }
 
     // Create new finance entity
     const newFinance: Partial<Finance> = {
       id: nanoid(32),
-      status: hasStatus,
+      status: finance.status || Status.PENDING,
       createdAt: Date.now(),
       hackathonId: hackathon.id,
       updatedBy: finance.submitterId,
