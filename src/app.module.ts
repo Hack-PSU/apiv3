@@ -6,6 +6,7 @@ import {
   ConfigToken,
   dbConfig,
   firebaseConfig,
+  invoiceBucketConfig,
   resumeBucketConfig,
   sendGridConfig,
 } from "common/config";
@@ -29,6 +30,7 @@ import { SendGridModule } from "common/sendgrid";
 import { SocketModule } from "modules/socket/socket.module";
 import { SponsorModule } from "modules/sponsor/sponsor.module";
 import { UserModule } from "modules/user/user.module";
+import { FinanceModule } from "modules/finance/finance.module";
 
 @Module({
   imports: [
@@ -40,6 +42,7 @@ import { UserModule } from "modules/user/user.module";
         sendGridConfig,
         appleConfig,
         resumeBucketConfig,
+        invoiceBucketConfig,
       ],
     }),
 
@@ -90,6 +93,7 @@ import { UserModule } from "modules/user/user.module";
     FlagModule,
     NotificationModule,
     AnalyticsModule,
+    FinanceModule,
 
     // WebSocket
     SocketModule,

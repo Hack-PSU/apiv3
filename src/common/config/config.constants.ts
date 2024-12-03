@@ -6,4 +6,5 @@ export enum ConfigToken {
   SENDGRID = "SENDGRID",
   APPLE = "Apple",
   RESUME = "Resume",
+  INVOICE = "Invoice",
 }
