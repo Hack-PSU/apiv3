@@ -4,6 +4,10 @@
 
 FROM node:23-alpine AS dev
 
+RUN apk add --no-cache corepack
+RUN corepack enable
+RUN yarn set version berry
+
 # Create app directory
 WORKDIR /app
 
@@ -41,7 +45,7 @@ RUN yarn build
 # (even though this may actually be building the staging version)
 ENV NODE_ENV production
 
-RUN yarn install --prod && yarn cache clean
+RUN yarn workspaces focus --all --production && yarn cache clean
 
 USER node
 
