@@ -35,6 +35,7 @@ import { User } from "entities/user.entity";
 import { nanoid } from "nanoid";
 import { FinanceService } from "./finance.service";
 import { UploadedReceipt } from "./uploaded-receipt.decorator";
+import { ReimbursementForm, ReimbursementFormName } from "./reimbursement-form";
 
 class BaseFinanceCreateEntity extends OmitType(FinanceEntity, [
   "id",
@@ -177,60 +178,55 @@ export class FinanceController {
   @Header("Content-Type", "application/pdf")
   async getCheque(@Param("id") id: string): Promise<StreamableFile> {
     const finance = await this.financeRepo.findOne(id).exec();
-
     if (!finance) {
       throw new NotFoundException("Financial record not found");
     }
-
     if (finance.status !== Status.APPROVED) {
       throw new BadRequestException("Financial record not approved");
     }
 
     let payee: string;
-
     if (finance.submitterType === SubmitterType.USER) {
       const user = await this.userRepo.findOne(finance.submitterId).exec();
       if (!user) {
         throw new NotFoundException("User not found");
       }
-
       payee = user.firstName + " " + user.lastName;
     } else if (finance.submitterType === SubmitterType.ORGANIZER) {
       const organizer = await this.organizerRepo
         .findOne(finance.submitterId)
         .exec();
-
       if (!organizer) {
         throw new NotFoundException("Organizer not found");
       }
       payee = organizer.firstName + " " + organizer.lastName;
     }
 
-    // Call the service method to generate the PDF bytes
-    const pdfBytes = await this.financeService.populateTemplate(
-      "cheque-request-form",
-      {
-        "UNRESTRICTED  30": true,
-        ORGACCT: 1657,
-        FS1: 30,
-        "Amount 1": finance.amount,
-        TOTAL: finance.amount,
-        ORGANIZATION: "HackPSU",
-        "PAYEE please print clearly": payee,
-        "MAILING ADDRESS If applicable 1": finance.street,
-        "MAILING ADDRESS If applicable 2":
-          finance.city + ", " + finance.state + " " + finance.postalCode,
-        EMAIL: "finance@hackpsu.org",
-        "Description 1": finance.description,
-        "Object Code 1": finance.category,
-        "Today's Date 1_af_date": new Date().toLocaleDateString(),
-        Group1: "Choice2",
-      },
+    const formData: ReimbursementForm = {
+      unrestricted30: true,
+      orgAcct: 1657,
+      fs1: 30,
+      amount1: finance.amount,
+      total: finance.amount,
+      organization: "HackPSU",
+      payeeName: payee,
+      mailingAddress1: finance.street,
+      mailingAddress2:
+        finance.city + ", " + finance.state + " " + finance.postalCode,
+      email: "finance@hackpsu.org",
+      description1: finance.description,
+      objectCode1: finance.category,
+      Date: new Date().toLocaleDateString(),
+      Group1: "Choice1",
+    };
+
+    const pdfBytes = await this.financeService.populateReimbursementForm(
+      ReimbursementFormName,
+      formData,
       finance.id,
     );
 
     const pdfBuffer = Buffer.from(pdfBytes);
-
     return new StreamableFile(pdfBuffer);
   }
 }
