@@ -494,6 +494,12 @@ export class UserController {
     )
     data: CreateUserRegistrationEntity,
   ) {
+    if (data.age < 18) {
+      throw new HttpException(
+        "User must be 18 years or older to register",
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     let user;
     try {
       user = await this.userRepo.findOne(id).exec();
@@ -544,8 +550,8 @@ export class UserController {
       const message = await this.sendGridService.populateTemplate(
         DefaultTemplate.registration,
         {
-          previewText: "HackPSU Spring 2024 Registration",
-          date: "March 16th-17th",
+          previewText: "HackPSU Fall 2024 Registration",
+          date: "October 12th - 13th 2024",
           address: "Business Building, University Park PA",
           firstName: user.firstName,
         },

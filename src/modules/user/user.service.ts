@@ -50,6 +50,7 @@ export class UserService {
       .file(this.getResumeFileName(userId))
       .delete({ ignoreNotFound: true });
   }
+
   async downloadAllResumes(): Promise<any> {
     const bucket = admin.storage().bucket(this.resumeBucketName);
     const [files] = await bucket.getFiles();

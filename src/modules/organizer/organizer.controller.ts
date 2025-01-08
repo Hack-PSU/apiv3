@@ -22,7 +22,7 @@ import { Organizer, OrganizerEntity } from "entities/organizer.entity";
 import { SocketGateway } from "modules/socket/socket.gateway";
 import { ApiProperty, ApiTags, OmitType, PartialType } from "@nestjs/swagger";
 import { FirebaseAuthService, RestrictedRoles, Role, Roles } from "common/gcp";
-import { take, toArray } from "rxjs";
+import { first, take, toArray } from "rxjs";
 import { OrganizerService } from "modules/organizer/organizer.service";
 import { SocketRoom } from "common/socket";
 import { ControllerMethod } from "common/validation";
@@ -33,15 +33,20 @@ import { Score, ScoreEntity } from "entities/score.entity";
 import { JudgingService } from "modules/judging/judging.service";
 import { IsNumber, IsOptional } from "class-validator";
 import { Hackathon } from "entities/hackathon.entity";
+import {
+  DefaultFromEmail,
+  DefaultTemplate,
+  SendGridService,
+} from "common/sendgrid";
+import { nanoid } from "nanoid";
 
 class OrganizerCreateEntity extends OmitType(OrganizerEntity, [
+  "id",
   "award",
   "judgingLocation",
 ] as const) {}
 
-class OrganizerReplaceEntity extends OmitType(OrganizerCreateEntity, [
-  "id",
-] as const) {}
+class OrganizerReplaceEntity extends OrganizerCreateEntity {}
 
 class OrganizerUpdateEntity extends PartialType(OrganizerReplaceEntity) {}
 
@@ -78,6 +83,7 @@ export class OrganizerController {
     private readonly scoreRepo: Repository<Score>,
     private readonly socket: SocketGateway,
     private readonly auth: FirebaseAuthService,
+    private readonly sendGridService: SendGridService,
     private readonly organizerService: OrganizerService,
     private readonly judgingService: JudgingService,
   ) {}
@@ -98,7 +104,6 @@ export class OrganizerController {
   }
 
   @Post("/")
-  @Roles(Role.EXEC)
   @ApiDoc({
     summary: "Create an Organizer",
     request: {
@@ -124,20 +129,55 @@ export class OrganizerController {
     )
     data: OrganizerCreateEntity,
   ) {
-    const userExists = await this.auth.validateUser(data.id);
+    const { privilege, email, ...user } = data;
 
-    if (!userExists) {
-      throw new HttpException("user not found", HttpStatus.BAD_REQUEST);
+    let UID = await this.auth
+      .getUserByEmail(email)
+      .then((u) => u?.uid)
+      .catch(() => null);
+
+    if (UID) {
+      await this.auth.updateUserPrivilege(UID, privilege);
+    } else {
+      UID = await this.auth.createUserWithPrivilege(email, nanoid(), privilege);
+
+      if (!UID) {
+        throw new HttpException(
+          "Failed to create user",
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
     }
 
-    const { privilege, ...user } = data;
+    const organizer = await this.organizerRepo
+      .createOne({
+        id: UID,
+        email: email,
+        ...user,
+      })
+      .exec();
 
-    const organizer = await this.organizerRepo.createOne(user).exec();
-
-    await this.auth.updateUserPrivilege(data.id, privilege);
     this.socket.emit("create:organizer", organizer, SocketRoom.ADMIN);
 
-    return organizer;
+    const passwordResetLink = await this.auth.generatePasswordResetLink(email);
+
+    const message = await this.sendGridService.populateTemplate(
+      DefaultTemplate.organizerFirstLogin,
+      {
+        previewText: "HackPSU Fall 2024 Organizer Account",
+        passwordResetLink: passwordResetLink,
+        firstName: organizer.firstName,
+      },
+    );
+
+    this.sendGridService.send({
+      to: email,
+      from: DefaultFromEmail,
+      subject: "HackPSU Organizer Account",
+      message,
+    });
+
+    return this.organizerService.injectUserRoles([organizer]).pipe(take(1));
   }
 
   @Get(":id")
