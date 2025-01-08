@@ -34,10 +34,13 @@ export class FeatureFlagService {
 
   async patch(flags: FeatureFlag[]) {
     const flagDocs = await this.allFlags();
-    const flagsByName = flagDocs.reduce((acc, curr) => {
-      acc[curr.name] = curr;
-      return acc;
-    }, {} as { [name: string]: FeatureFlag & { id: string } });
+    const flagsByName = flagDocs.reduce(
+      (acc, curr) => {
+        acc[curr.name] = curr;
+        return acc;
+      },
+      {} as { [name: string]: FeatureFlag & { id: string } },
+    );
 
     await Promise.all(
       flags.map((flag) =>

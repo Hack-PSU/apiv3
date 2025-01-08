@@ -37,10 +37,10 @@ class DBExceptionStagingData {
 
 export class DBExceptionStagingResponse extends DBExceptionProductionResponse {
   @ApiProperty({ example: 409 })
-  statusCode: number;
+  declare statusCode: number;
 
   @ApiProperty()
-  message: string;
+  declare message: string;
 
   @ApiProperty({ type: DBExceptionStagingData })
   data: DBExceptionStagingData;
