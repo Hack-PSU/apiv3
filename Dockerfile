@@ -2,7 +2,7 @@
 # Local Development Build
 #########################
 
-FROM node:18-alpine AS dev
+FROM node:23-alpine AS dev
 
 # Create app directory
 WORKDIR /app
