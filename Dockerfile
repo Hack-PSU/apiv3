@@ -23,7 +23,7 @@ USER node
 # Build for Production
 ######################
 
-FROM node:18-alpine AS build
+FROM node:23-alpine AS build
 
 WORKDIR /app
 
@@ -49,7 +49,7 @@ USER node
 # Deployment
 ############
 
-FROM node:18-alpine AS production
+FROM node:23-alpine AS production
 
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
