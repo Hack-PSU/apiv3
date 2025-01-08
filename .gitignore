@@ -48,3 +48,6 @@ hackpsu18*.json
 
 # GCP
 cloud-sql-proxy
+
+# Yarn
+.yarn/*
