@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 import { ExtractJwt, Strategy } from "passport-jwt";
 import { FirebaseAuthService } from "./firebase-auth.service";
-import jwtDecode, { JwtHeader } from "jwt-decode";
+import { jwtDecode, JwtHeader } from "jwt-decode";
 import { map } from "rxjs";
 import { ConfigService } from "@nestjs/config";
 

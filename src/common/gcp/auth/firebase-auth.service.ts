@@ -2,7 +2,7 @@ import { HttpService } from "@nestjs/axios";
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import * as admin from "firebase-admin";
-import jwtDecode, { JwtPayload } from "jwt-decode";
+import { jwtDecode, JwtPayload } from "jwt-decode";
 
 import {
   FirebaseAuthJWTKeySets,
