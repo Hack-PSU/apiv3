@@ -4,7 +4,6 @@
 
 FROM node:23-alpine AS dev
 
-RUN apk add --no-cache corepack
 RUN corepack enable
 RUN yarn set version berry
 
