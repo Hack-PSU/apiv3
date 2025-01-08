@@ -70,11 +70,11 @@ export class FinanceController {
   @Get("/")
   @Roles(Role.EXEC)
   @ApiDoc({
-    summary: "Get Finance",
+    summary: "Get all Reimbursements",
     response: {
-      ok: { type: FinanceEntity },
+      ok: { type: FinanceEntity, isArray: true },
     },
-    auth: Role.NONE,
+    auth: Role.EXEC,
   })
   async getFinance(): Promise<Finance[]> {
     return this.financeRepo.findAll().exec();
@@ -83,7 +83,7 @@ export class FinanceController {
   @Get(":id")
   @Roles(Role.EXEC)
   @ApiDoc({
-    summary: "Get an Reimbursement",
+    summary: "Get a Reimbursement",
     params: [
       {
         name: "id",
@@ -176,6 +176,20 @@ export class FinanceController {
 
   @Get("/:id/cheque")
   @Header("Content-Type", "application/pdf")
+  @Roles(Role.TECH)
+  @ApiDoc({
+    summary: "Returns a cheque request form as a PDF",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to an reimbursement ID",
+      },
+    ],
+    response: {
+      ok: { type: StreamableFile },
+    },
+    auth: Role.TECH,
+  })
   async getCheque(@Param("id") id: string): Promise<StreamableFile> {
     const finance = await this.financeRepo.findOne(id).exec();
     if (!finance) {
