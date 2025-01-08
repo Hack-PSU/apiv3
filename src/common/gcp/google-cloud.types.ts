@@ -8,6 +8,10 @@ export type ResumeBucketConfig = {
   resume_bucket?: string;
 };
 
+export type InvoiceBucketConfig = {
+  invoice_bucket?: string;
+};
+
 export type GoogleCloudCoreModuleOptions = {
   imports?: any[];
   useFactory: (...args: any[]) => FirebaseConfig;

@@ -19,7 +19,7 @@ export async function createTestUser(privilege: Role = Role.TEAM) {
   });
 
   await admin.auth().setCustomUserClaims(user.uid, {
-    staging: Role.NONE
+    staging: Role.NONE,
   });
 
   const userCredential = await signInWithEmailAndPassword(

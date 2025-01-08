@@ -4,9 +4,9 @@ export class QueryBuilder<
   M extends Model,
   R = M[],
 > extends ObjectionQueryBuilder<M, R> {
-  ArrayQueryBuilderType: QueryBuilder<M, M[]>;
-  SingleQueryBuilderType: QueryBuilder<M, M>;
-  MaybeSingleQueryBuilderType: QueryBuilder<M, M | undefined>;
-  NumberQueryBuilderType: QueryBuilder<M, number>;
-  PageQueryBuilderType: QueryBuilder<M, Page<M>>;
+  declare ArrayQueryBuilderType: QueryBuilder<M, M[]>;
+  declare SingleQueryBuilderType: QueryBuilder<M, M>;
+  declare MaybeSingleQueryBuilderType: QueryBuilder<M, M | undefined>;
+  declare NumberQueryBuilderType: QueryBuilder<M, number>;
+  declare PageQueryBuilderType: QueryBuilder<M, Page<M>>;
 }

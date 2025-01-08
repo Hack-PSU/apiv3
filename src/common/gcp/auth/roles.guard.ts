@@ -95,7 +95,12 @@ export class RolesGuard extends AuthGuard("jwt") {
 
       // super.canActivate() will throw a 401 error if no auth token is provided instead of returning false,
       // so this allows for checking a restriction on Role.NONE that does not depend on the user.
-      if (restricted && restricted.roles && restricted.roles.includes(Role.NONE) && restricted.predicate) {
+      if (
+        restricted &&
+        restricted.roles &&
+        restricted.roles.includes(Role.NONE) &&
+        restricted.predicate
+      ) {
         try {
           const request = context.switchToHttp().getRequest();
           if (restricted.predicate(request)) {
@@ -114,7 +119,8 @@ export class RolesGuard extends AuthGuard("jwt") {
     if (context.getType() === "ws") {
       // WS User is not injected into request so FirebaseAuthService will
       // decode the token to find for permissions
-      const token = context.switchToWs().getClient().handshake.headers.authorization;
+      const token = context.switchToWs().getClient().handshake
+        .headers.authorization;
       return this.authService.validateWsUser(token, rolesList);
     } else if (context.getType() === "http") {
       // HTTP requests are checked against possible restricted roles
@@ -136,7 +142,6 @@ export class RolesGuard extends AuthGuard("jwt") {
 
       // Otherwise, block the request.
       return false;
-
     } else {
       // Return false on unrecognized context.
       return false;

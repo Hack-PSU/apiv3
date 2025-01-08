@@ -12,7 +12,6 @@ export const firebaseConfig = registerAs<FirebaseConfig>(
     // at the time, so we have opted to keep it like this for now.
     // TODO: Figure out how to pass system application default credentials to this for local testing.
     if (process.env.GOOGLE_CERT) {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const serviceAccount = require(process.env.GOOGLE_CERT);
       return {
         credential: admin.credential.cert(serviceAccount),
