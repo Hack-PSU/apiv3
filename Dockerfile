@@ -1,17 +1,20 @@
 #########################
 # Local Development Build
 #########################
-
 FROM node:23-alpine AS dev
+
+RUN corepack enable
 
 # Create app directory
 WORKDIR /app
 
-# Copy dependencies
-COPY package.json ./
-COPY yarn.lock ./
 
-# Install dependencies to cache step
+COPY .yarnrc.yml ./
+
+# Copy dependencies
+COPY package.json yarn.lock ./
+
+# Install dependencies (this will install rimraf if it's in devDependencies)
 RUN yarn install
 
 # Copy Project
@@ -19,37 +22,41 @@ COPY . .
 
 USER node
 
+
 ######################
 # Build for Production
 ######################
-
 FROM node:23-alpine AS build
+
+RUN corepack enable
 
 WORKDIR /app
 
-COPY package.json ./
-COPY yarn.lock ./
+COPY .yarnrc.yml ./
 
-# Copy over dependencies from previous step
-COPY --from=dev /app/node_modules ./node_modules
+COPY package.json yarn.lock ./
+RUN yarn install
 
 COPY . .
 
+# If rimraf is in devDependencies, it should be installed at this point.
 RUN yarn build
 
-# Set NODE_ENV to production to tell yarn to consider it a production installation with production dependencies.
-# (even though this may actually be building the staging version)
-ENV NODE_ENV production
+# Set NODE_ENV to production (only AFTER building, so devDependencies don’t get removed prematurely)
+ENV NODE_ENV=production
 
-RUN yarn install --prod && yarn cache clean
+# Prune dev dependencies, focusing only on what's needed for production
+RUN yarn workspaces focus --all --production && yarn cache clean
 
 USER node
+
 
 ############
 # Deployment
 ############
-
 FROM node:23-alpine AS production
+
+WORKDIR /app
 
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
