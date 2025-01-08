@@ -45,7 +45,7 @@ RUN yarn build
 # (even though this may actually be building the staging version)
 ENV NODE_ENV production
 
-RUN yarn workspaces focus --all --production&& yarn cache clean
+RUN yarn workspaces focus --all --production && yarn cache clean
 
 USER node
 
