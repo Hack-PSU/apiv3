@@ -4,55 +4,12 @@ import * as admin from "firebase-admin";
 import { ConfigToken } from "common/config";
 import { ConfigService } from "@nestjs/config";
 import { PDFDocument } from "pdf-lib";
-import { writeFile } from "fs/promises";
+import {
+  ReimbursementForm,
+  ReimbursementFormMappings,
+} from "./reimbursement-form";
 
 const CloudStorageFinance = "finance-template";
-
-type BoolKeys =
-  | "UNRESTRICTED  30"
-  | "UPAC allocated Funds 10"
-  | "ACTIVITY FEE  40"
-  | "Summer Allocation";
-
-type IntKeys =
-  | "ORGACCT"
-  | "TOTAL"
-  | "FS1"
-  | "FS2"
-  | "FS3"
-  | "FS4"
-  | "Amount 1"
-  | "Amount 2"
-  | "Amount 3"
-  | "Amount 4";
-
-type StringKeys =
-  | "ACTIVITY CODE if applicable"
-  | "ORGANIZATION"
-  | "PAYEE please print clearly"
-  | "MAILING ADDRESS If applicable 1"
-  | "MAILING ADDRESS If applicable 2"
-  | "MAILING ADDRESS If applicable 3"
-  | "EMAIL"
-  | "Description 1"
-  | "Description 2"
-  | "Description 3"
-  | "Description 4"
-  | "Object Code 1"
-  | "Object Code 2"
-  | "Object code 3"
-  | "Object Code 4"
-  | "Clear"
-  | "Print"
-  | "Today's Date 1_af_date";
-
-type RadioKeys = "Group1";
-
-interface PDFEntity
-  extends Partial<Record<BoolKeys, boolean>>,
-    Partial<Record<IntKeys, number>>,
-    Partial<Record<StringKeys, string>>,
-    Partial<Record<RadioKeys, string>> {}
 
 @Injectable()
 export class FinanceService {
@@ -94,47 +51,63 @@ export class FinanceService {
     return this.file(`/${template}.pdf`).download();
   }
 
-  async populateTemplate(
-    filename: string,
-    data: PDFEntity,
-    id: string,
+  async populateReimbursementForm(
+    templateName: string,
+    data: ReimbursementForm,
+    newTitle: string,
   ): Promise<Uint8Array> {
-    const pdfDocBytes = await this.fetchTemplate(filename);
+    const [templateBytes] = await this.fetchTemplate(templateName);
+    const pdfDoc = await PDFDocument.load(templateBytes);
 
-    const pdfDoc = await PDFDocument.load(pdfDocBytes[0]);
+    await this.populatePdfDocument(pdfDoc, data, ReimbursementFormMappings);
 
+    pdfDoc.setTitle(newTitle);
+    return pdfDoc.save();
+  }
+
+  async populatePdfDocument<T extends object>(
+    pdfDoc: PDFDocument,
+    data: T,
+    fieldMappings: Record<keyof T, string>,
+  ): Promise<void> {
     const form = pdfDoc.getForm();
 
-    const fields = form.getFields();
+    for (const key of Object.keys(data) as (keyof T)[]) {
+      const pdfValue = data[key];
 
-    fields.forEach((field) => {
-      console.log(field.getName());
-    });
+      // If we don’t have a mapping for this field, skip
+      if (!fieldMappings[key]) {
+        continue;
+      }
 
-    for (const key in data) {
-      if (key === "Group1") {
-        if (form.getRadioGroup(key)) {
-          form.getRadioGroup(key).select(data[key]);
+      const pdfFieldName = fieldMappings[key];
+
+      // Then fill out the PDF form, depending on the type of the `pdfValue`.
+      if (typeof pdfValue === "boolean") {
+        const checkBox = form.getCheckBox(pdfFieldName);
+        if (checkBox && pdfValue === true) {
+          checkBox.check();
         }
-      } else if (typeof data[key] === "string") {
-        if (form.getTextField(key)) {
-          form.getTextField(key).setText(data[key]);
+      } else if (typeof pdfValue === "number") {
+        const textField = form.getTextField(pdfFieldName);
+        if (textField) {
+          textField.setText(String(pdfValue));
         }
-      } else if (typeof data[key] === "number") {
-        if (form.getTextField(key)) {
-          form.getTextField(key).setText(data[key].toString());
-        }
-      } else if (typeof data[key] === "boolean") {
-        if (form.getCheckBox(key)) {
-          form.getCheckBox(key).check();
+      } else if (typeof pdfValue === "string") {
+        // Try to find a radio group with the same name as the key
+        // if we get an error of type "UnexpectedFieldTypeError" then we know it's a text field
+        try {
+          const radioGroup = form.getRadioGroup(pdfFieldName);
+          if (radioGroup) {
+            radioGroup.select(pdfValue);
+          }
+        } catch (e) {
+          const textField = form.getTextField(pdfFieldName);
+          if (textField) {
+            textField.setText(pdfValue);
+          }
         }
       }
     }
-
-    // rename the file
-    pdfDoc.setTitle(id);
-    const pdfBytes = await pdfDoc.save();
-
-    return pdfBytes;
   }
 }
