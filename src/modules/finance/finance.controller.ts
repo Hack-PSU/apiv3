@@ -10,7 +10,6 @@ import {
   ValidationPipe,
   StreamableFile,
   Param,
-  Req,
 } from "@nestjs/common";
 import {
   ApiTags,
@@ -43,6 +42,7 @@ class BaseFinanceCreateEntity extends OmitType(FinanceEntity, [
   "hackathonId",
   "updatedBy",
   "receiptUrl",
+  "status",
 ]) {}
 
 class OptionalStatus extends PartialType(
@@ -123,6 +123,9 @@ export class FinanceController {
         transform: true,
         forbidNonWhitelisted: true,
         whitelist: true,
+        transformOptions: {
+          enableImplicitConversion: true,
+        },
       }),
     )
     finance: FinanceCreateEntity,
@@ -163,7 +166,7 @@ export class FinanceController {
     // Create new finance entity
     const newFinance: Partial<Finance> = {
       id: nanoid(32),
-      status: finance.status || Status.PENDING,
+      status: Status.PENDING,
       createdAt: Date.now(),
       hackathonId: hackathon.id,
       updatedBy: finance.submitterId,
