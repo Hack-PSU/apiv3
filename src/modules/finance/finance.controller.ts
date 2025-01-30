@@ -9,6 +9,7 @@ import {
   ValidationPipe,
   Param,
   Patch,
+  InternalServerErrorException,
 } from "@nestjs/common";
 import {
   ApiTags,
@@ -88,7 +89,7 @@ export class FinanceController {
     params: [
       {
         name: "id",
-        description: "ID must be set to an reimbursement ID",
+        description: "ID must be a valid reimbursement ID",
       },
     ],
     response: {
@@ -135,35 +136,29 @@ export class FinanceController {
     // Validate submitter
     if (finance.submitterType === SubmitterType.USER) {
       const user = await this.userRepo.findOne(finance.submitterId).exec();
-      if (!user) {
-        throw new NotFoundException("User not found");
-      }
+      if (!user) throw new NotFoundException("User not found");
     } else if (finance.submitterType === SubmitterType.ORGANIZER) {
       const organizer = await this.organizerRepo
         .findOne(finance.submitterId)
         .exec();
-      if (!organizer) {
-        throw new NotFoundException("Organizer not found");
-      }
+      if (!organizer) throw new NotFoundException("Organizer not found");
     } else {
       throw new BadRequestException("Invalid submitter type");
     }
 
-    // Get Active Hackathon
+    // Get active hackathon
     const hackathon = await Hackathon.query().findOne({ active: true });
-    if (!hackathon) {
-      throw new NotFoundException("No active hackathon found");
-    }
+    if (!hackathon) throw new NotFoundException("No active hackathon found");
 
     const financeId = nanoid(32);
 
-    // Upload receipt file if provided
+    // Upload receipt if provided
     let receiptUrl = "";
     if (receipt) {
       receiptUrl = await this.financeService.uploadReceipt(financeId, receipt);
     }
 
-    // Create new finance entity
+    // Create new finance entry
     const newFinance: Partial<Finance> = {
       id: financeId,
       status: Status.PENDING,
@@ -183,7 +178,7 @@ export class FinanceController {
     params: [
       {
         name: "id",
-        description: "ID must be set to an reimbursement ID",
+        description: "ID must be a valid reimbursement ID",
       },
     ],
     request: {
@@ -204,64 +199,65 @@ export class FinanceController {
         whitelist: true,
       }),
     )
-    status: OptionalStatus,
-  ) {
+    statusData: OptionalStatus,
+  ): Promise<Finance> {
     const finance = await this.financeRepo.findOne(id).exec();
     if (!finance) {
       throw new NotFoundException("Financial record not found");
     }
 
-    /* if (finance.status !== Status.PENDING) {
+    if (finance.status !== Status.PENDING) {
       throw new BadRequestException(
         "Cannot update status of non-pending record",
       );
-    } */
-
-    if (status.status) {
-      finance.status = status.status;
+    }
+    if (statusData.status) {
+      finance.status = statusData.status;
     }
 
+    let updatedFinance: Finance;
     try {
-      const _newFinance = await this.financeRepo.patchOne(id, finance).exec();
+      updatedFinance = await this.financeRepo.patchOne(id, finance).exec();
     } catch (err) {
       console.error("PatchOne threw an error:", err);
+      throw new InternalServerErrorException("Failed to update record");
     }
 
     let payee: string;
     let email: string;
+
     if (finance.submitterType === SubmitterType.USER) {
       const user = await this.userRepo.findOne(finance.submitterId).exec();
       if (!user) {
         throw new NotFoundException("User not found");
       }
-      payee = user.firstName + " " + user.lastName;
+      payee = `${user.firstName} ${user.lastName}`;
       email = user.email;
-    } else if (finance.submitterType === SubmitterType.ORGANIZER) {
+    } else {
       const organizer = await this.organizerRepo
         .findOne(finance.submitterId)
         .exec();
       if (!organizer) {
         throw new NotFoundException("Organizer not found");
       }
-      payee = organizer.firstName + " " + organizer.lastName;
+      payee = `${organizer.firstName} ${organizer.lastName}`;
       email = organizer.email;
     }
 
-    if (finance.status === Status.APPROVED) {
+    if (updatedFinance.status === Status.APPROVED) {
       const formData: ReimbursementForm = {
         unrestricted30: true,
         orgAcct: 1657,
         fs1: 30,
-        amount1: finance.amount,
-        total: finance.amount,
+        amount1: updatedFinance.amount,
+        total: updatedFinance.amount,
         organization: "HackPSU",
         payeeName: payee,
-        mailingAddress1: finance.street,
-        mailingAddress2:
-          finance.city + ", " + finance.state + " " + finance.postalCode,
+        mailingAddress1: updatedFinance.street,
+        mailingAddress2: `${updatedFinance.city}, ${updatedFinance.state} ${updatedFinance.postalCode}`,
         email: "finance@hackpsu.org",
-        description1: finance.description,
-        objectCode1: finance.category,
+        description1: updatedFinance.description,
+        objectCode1: updatedFinance.category,
         Date: new Date().toLocaleDateString(),
         Group1: "Choice2",
       };
@@ -269,32 +265,32 @@ export class FinanceController {
       const pdfBytes = await this.financeService.populateReimbursementForm(
         ReimbursementFormName,
         formData,
-        finance.id,
+        updatedFinance.id,
       );
-
       const pdfBuffer = Buffer.from(pdfBytes);
       const reimbursementFormUrl =
         await this.financeService.uploadReimbursementForm(
-          finance.id,
+          updatedFinance.id,
           pdfBuffer,
         );
-      // email a link of the pdf to the finance team
 
       const reimbursementFormMessage =
         await this.sendGridService.populateTemplate(
           DefaultTemplate.reimbursementFormCompleted,
           {
             name: payee,
-            amount: finance.amount,
-            description: finance.description,
+            amount: updatedFinance.amount,
+            description: updatedFinance.description,
             formLink: reimbursementFormUrl,
           },
         );
 
-      const receipt = await this.financeService
-        .getInvoiceFile(finance.id)
+      // Download receipt
+      const [receiptFile] = await this.financeService
+        .getInvoiceFile(updatedFinance.id)
         .download();
 
+      // Send to finance team
       await this.sendGridService
         .send({
           from: "team@hackpsu.org",
@@ -304,14 +300,13 @@ export class FinanceController {
           attachments: [
             {
               content: pdfBuffer.toString("base64"),
-              filename: finance.id + "_reimbursementForm.pdf",
+              filename: `${updatedFinance.id}_reimbursementForm.pdf`,
               type: "application/pdf",
               disposition: "attachment",
             },
             {
-              // convert the receipt to base64
-              content: receipt[0].toString("base64"),
-              filename: finance.id + "_receipt.pdf",
+              content: receiptFile.toString("base64"),
+              filename: `${updatedFinance.id}_receipt.pdf`,
               type: "application/pdf",
               disposition: "attachment",
             },
@@ -319,16 +314,16 @@ export class FinanceController {
         })
         .catch((err) => {
           console.error("Error sending email", err);
-          console.error("error body", err.response.body);
+          console.error("Error body", err.response.body);
         });
 
-      // Let the user know that their reimbursement was approved
+      // Notify payee of approval
       const reimbursementApprovedMessage =
         await this.sendGridService.populateTemplate(
           DefaultTemplate.reimbursementApproved,
           {
             firstName: payee,
-            amount: finance.amount,
+            amount: updatedFinance.amount,
           },
         );
 
@@ -338,8 +333,7 @@ export class FinanceController {
         subject: "HackPSU Reimbursement Approved",
         message: reimbursementApprovedMessage,
       });
-    } else if (finance.status === Status.REJECTED) {
-      // Email user that their reimbursement was rejected
+    } else if (updatedFinance.status === Status.REJECTED) {
       const reimbursementRejectedMessage =
         await this.sendGridService.populateTemplate(
           DefaultTemplate.reimbursementRejected,
@@ -347,6 +341,7 @@ export class FinanceController {
             firstName: payee,
           },
         );
+
       await this.sendGridService.send({
         from: "finance@hackpsu.org",
         to: email,
@@ -354,5 +349,7 @@ export class FinanceController {
         message: reimbursementRejectedMessage,
       });
     }
+
+    return updatedFinance;
   }
 }
