@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { InvoiceBucketConfig } from "common/gcp";
+import { InvoiceBucketConfig, ReimbursementFormBucketConfig } from "common/gcp";
 import * as admin from "firebase-admin";
 import { ConfigToken } from "common/config";
 import { ConfigService } from "@nestjs/config";
@@ -14,33 +14,64 @@ const CloudStorageFinance = "finance-template";
 @Injectable()
 export class FinanceService {
   private invoiceBucketName: string;
+  private reimbursementFormBucketName: string;
 
   constructor(private readonly configService: ConfigService) {
     this.invoiceBucketName = configService.get<InvoiceBucketConfig>(
       ConfigToken.INVOICE,
     ).invoice_bucket;
+    this.reimbursementFormBucketName =
+      configService.get<ReimbursementFormBucketConfig>(
+        ConfigToken.REIMBURSEMENT_FORM,
+      ).reimbursement_form_bucket;
   }
 
   private get invoiceBucket() {
     return admin.storage().bucket(this.invoiceBucketName);
   }
 
-  private getInvoiceFileName(userId: string): string {
-    return `${userId}.pdf`;
+  private get reimbursementFormBucket() {
+    return admin.storage().bucket(this.reimbursementFormBucketName);
+  }
+
+  private getInvoiceFileName(financeId: string): string {
+    return `${financeId}.pdf`;
+  }
+
+  getInvoiceFile(financeId: string) {
+    return this.invoiceBucket.file(this.getInvoiceFileName(financeId));
   }
 
   private getAuthenticatedReceiptUrl(filename: string): string {
     return `https://storage.cloud.google.com/${this.invoiceBucketName}/${filename}`;
   }
 
+  private getReimbursementFormFileName(financeId: string): string {
+    return `${financeId}.pdf`;
+  }
+
+  private getAuthenticatedReimbursementFormUrl(filename: string): string {
+    return `https://storage.cloud.google.com/${this.reimbursementFormBucketName}/${filename}`;
+  }
+
   async uploadReceipt(
-    userId: string,
+    financeId: string,
     file: Express.Multer.File,
   ): Promise<string> {
-    const filename = this.getInvoiceFileName(userId);
+    const filename = this.getInvoiceFileName(financeId);
     const blob = this.invoiceBucket.file(filename);
     await blob.save(file.buffer);
     return this.getAuthenticatedReceiptUrl(filename);
+  }
+
+  async uploadReimbursementForm(
+    financeId: string,
+    data: Buffer<Uint8Array<ArrayBufferLike>>,
+  ): Promise<string> {
+    const filename = `${financeId}.pdf`;
+    const blob = this.reimbursementFormBucket.file(filename);
+    await blob.save(data);
+    return this.getAuthenticatedReimbursementFormUrl(filename);
   }
 
   private file(filepath: string) {

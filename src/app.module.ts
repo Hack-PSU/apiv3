@@ -8,6 +8,7 @@ import {
   firebaseConfig,
   invoiceBucketConfig,
   resumeBucketConfig,
+  reimbursementFormBucketConfig,
   sendGridConfig,
 } from "common/config";
 import { AnalyticsModule } from "modules/analytics/analytics.module";
@@ -43,6 +44,7 @@ import { FinanceModule } from "modules/finance/finance.module";
         appleConfig,
         resumeBucketConfig,
         invoiceBucketConfig,
+        reimbursementFormBucketConfig,
       ],
     }),
 

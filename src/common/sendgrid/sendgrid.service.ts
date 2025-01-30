@@ -25,7 +25,8 @@ export class SendGridService {
   }
 
   async send(options: SendEmailOptions) {
-    const { from, fromName, to, subject, reply, message } = options;
+    const { from, fromName, to, subject, reply, message, attachments } =
+      options;
 
     return this.sendGrid.send({
       from: {
@@ -36,6 +37,12 @@ export class SendGridService {
       subject,
       replyTo: reply ?? from,
       html: message,
+      attachments: attachments?.map((attachment) => ({
+        content: attachment.content,
+        filename: attachment.filename,
+        type: attachment.type,
+        disposition: attachment.disposition,
+      })),
     });
   }
 
