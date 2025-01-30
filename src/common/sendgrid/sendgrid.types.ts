@@ -15,4 +15,10 @@ export type SendEmailOptions = {
   subject: string;
   message: string;
   reply?: string;
+  attachments?: {
+    content: string;
+    filename: string;
+    type: string;
+    disposition: string;
+  }[];
 };
