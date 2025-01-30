@@ -23,6 +23,7 @@ import { RestrictedRoles, Role, Roles } from "common/gcp";
 import { InjectRepository, Repository } from "common/objection";
 import { FileInterceptor } from "@nestjs/platform-express";
 import {
+  CategoryMap,
   Finance,
   FinanceEntity,
   Status,
@@ -173,6 +174,7 @@ export class FinanceController {
   }
 
   @Patch(":id/status")
+  @Roles(Role.TECH) // TODO: Change to Role.FINANCE after testing
   @ApiDoc({
     summary: "Update a Reimbursement's status",
     params: [
@@ -257,7 +259,7 @@ export class FinanceController {
         mailingAddress2: `${updatedFinance.city}, ${updatedFinance.state} ${updatedFinance.postalCode}`,
         email: "finance@hackpsu.org",
         description1: updatedFinance.description,
-        objectCode1: updatedFinance.category,
+        objectCode1: CategoryMap[updatedFinance.category],
         Date: new Date().toLocaleDateString(),
         Group1: "Choice2",
       };
