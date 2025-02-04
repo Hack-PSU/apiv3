@@ -296,7 +296,7 @@ export class FinanceController {
       await this.sendGridService
         .send({
           from: "team@hackpsu.org",
-          to: "technology@hackpsu.org",
+          to: "finance@hackpsu.org",
           subject: "Reimbursement Form Completed",
           message: reimbursementFormMessage,
           attachments: [
