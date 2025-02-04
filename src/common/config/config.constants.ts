@@ -7,4 +7,5 @@ export enum ConfigToken {
   APPLE = "Apple",
   RESUME = "Resume",
   INVOICE = "Invoice",
+  REIMBURSEMENT_FORM = "ReimbursementForm",
 }

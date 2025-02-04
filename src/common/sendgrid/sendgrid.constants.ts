@@ -8,4 +8,7 @@ export const DefaultFromName = "HackPSU";
 export enum DefaultTemplate {
   registration = "registration",
   organizerFirstLogin = "organizer-first-login",
+  reimbursementApproved = "reimbursement-approved",
+  reimbursementRejected = "reimbursement-rejected",
+  reimbursementFormCompleted = "reimbursement-form-completed",
 }
