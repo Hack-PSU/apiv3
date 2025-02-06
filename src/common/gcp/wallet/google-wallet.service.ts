@@ -54,10 +54,13 @@ export class GoogleWalletService {
     }
 
     if (this.credentials && this.credentials.private_key) {
-      this.credentials.private_key = this.credentials.private_key.replace(/\\n/g, "\n");
+      this.credentials.private_key = this.credentials.private_key.replace(
+        /\\n/g,
+        "\n",
+      );
     } else {
       throw new Error(
-        "No private key available for signing JWTs. Ensure that your credentials include a private_key."
+        "No private key available for signing JWTs. Ensure that your credentials include a private_key.",
       );
     }
 
