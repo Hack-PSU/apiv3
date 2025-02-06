@@ -12,40 +12,60 @@ export class GoogleWalletService {
   private keyFilePath: string;
 
   constructor(private readonly configService: ConfigService) {
-    // GOOGLE_APPLICATION_CREDENTIALS should point to your service account key file.
+    // GOOGLE_APPLICATION_CREDENTIALS should point to your service account key file for local testing.
     this.keyFilePath = this.configService.get<string>(
       "GOOGLE_APPLICATION_CREDENTIALS",
     );
     this.init();
   }
 
+  /**
+   * Initialize the Google Wallet API client.
+   *
+   * For local testing, if process.env.GOOGLE_CERT is defined, we load the key file.
+   * On Cloud Run (when GOOGLE_CERT is not set), we use Application Default Credentials.
+   * If the resulting credentials do not include a private_key (required for JWT signing),
+   * then we fall back to environment variables.
+   */
   private async init() {
-    // Build the auth options.
     const authOptions: any = {
       scopes: ["https://www.googleapis.com/auth/wallet_object.issuer"],
     };
 
-    // If a service account key file is specified (e.g. for local testing),
-    // include it in the options. Otherwise (on Cloud Run), omit the keyFile
-    // so that Application Default Credentials are used.
+    // When testing locally, we expect a service account key file.
     if (process.env.GOOGLE_CERT) {
       authOptions.keyFile = this.keyFilePath;
     }
 
     const auth = new google.auth.GoogleAuth(authOptions);
 
-    // If using a key file, load credentials from it.
-    // Otherwise, retrieve credentials via Application Default Credentials.
     if (process.env.GOOGLE_CERT) {
+      // Load credentials from key file.
       this.credentials = require(this.keyFilePath);
     } else {
+      // Use Application Default Credentials.
       this.credentials = await auth.getCredentials();
+      // On Cloud Run these credentials may not include a private key,
+      // so fall back to environment variables.
+      if (!this.credentials.private_key) {
+        this.credentials.private_key = process.env.GOOGLE_PRIVATE_KEY;
+        this.credentials.client_email = process.env.GOOGLE_CLIENT_EMAIL;
+      }
+    }
+
+    if (!this.credentials.private_key) {
+      throw new Error(
+        "No private key available for signing JWTs. " +
+          "Ensure that GOOGLE_CERT is set locally or that GOOGLE_PRIVATE_KEY and GOOGLE_CLIENT_EMAIL are defined in your Cloud Run environment.",
+      );
     }
 
     this.walletClient = google.walletobjects({
       version: "v1",
       auth,
     });
+
+    this.logger.log("Google Wallet client initialized");
   }
 
   /**
@@ -54,9 +74,8 @@ export class GoogleWalletService {
    * Minimal fields:
    * - Header from passData.eventName
    * - Logo from passData.logoUrl
-   * - Venue hardcoded as "Penn State University"
-   * - Date/time information from passData.startDateTime and passData.endDateTime
-   * - A links module that shows a Google Maps link if location data is available.
+   * - Date/time info from passData.startDateTime and passData.endDateTime
+   * - Optionally a links module if location data is provided.
    *
    * @param issuerId The issuer ID.
    * @param classSuffix A unique class suffix.
@@ -109,7 +128,6 @@ export class GoogleWalletService {
     };
 
     try {
-      // Check if the class exists.
       await this.walletClient.eventticketclass.get({ resourceId });
       this.logger.log(`Class ${resourceId} already exists. Updating it.`);
       await this.walletClient.eventticketclass.update({
@@ -120,14 +138,13 @@ export class GoogleWalletService {
     } catch (err: any) {
       if (!(err.response && err.response.status === 404)) {
         this.logger.error("Error checking class existence", err);
-        // Fall through to insert.
+        // Proceed to insert even if we got an unexpected error.
       }
     }
 
     const response = await this.walletClient.eventticketclass.insert({
       requestBody: newClass,
     });
-
     this.logger.log(
       `Created class: ${resourceId}`,
       JSON.stringify(response.data),
@@ -140,8 +157,7 @@ export class GoogleWalletService {
    *
    * Minimal fields:
    * - Barcode (formatted as "HACKPSU_" + userId)
-   * - Valid time interval (using passData.startDateTime and passData.endDateTime)
-   * - Optionally, include a links module with a Google Maps link (if location data is available)
+   * - Optionally, a links module if location data is provided.
    *
    * @param issuerId The issuer ID.
    * @param classSuffix The pass class suffix.
@@ -182,7 +198,6 @@ export class GoogleWalletService {
     };
 
     try {
-      // Check if the object exists.
       await this.walletClient.eventticketobject.get({ resourceId });
       this.logger.log(`Object ${resourceId} already exists. Updating it.`);
       await this.walletClient.eventticketobject.update({
@@ -200,7 +215,6 @@ export class GoogleWalletService {
     const response = await this.walletClient.eventticketobject.insert({
       requestBody: newObject,
     });
-
     this.logger.log(
       `Created object: ${resourceId}`,
       JSON.stringify(response.data),
@@ -237,7 +251,7 @@ export class GoogleWalletService {
       },
       logo: {
         sourceUri: {
-          uri: passData.logoUrl || "",
+          uri: passData.logoUrl || "https://example.com/default-logo.jpg",
         },
         contentDescription: {
           defaultValue: {
