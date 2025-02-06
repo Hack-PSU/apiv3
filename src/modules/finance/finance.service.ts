@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { InvoiceBucketConfig } from "common/gcp";
+import { InvoiceBucketConfig, ReimbursementFormBucketConfig } from "common/gcp";
 import * as admin from "firebase-admin";
 import { ConfigToken } from "common/config";
 import { ConfigService } from "@nestjs/config";
@@ -14,33 +14,65 @@ const CloudStorageFinance = "finance-template";
 @Injectable()
 export class FinanceService {
   private invoiceBucketName: string;
+  private reimbursementFormBucketName: string;
 
   constructor(private readonly configService: ConfigService) {
-    this.invoiceBucketName = configService.get<InvoiceBucketConfig>(
+    this.invoiceBucketName = this.configService.get<InvoiceBucketConfig>(
       ConfigToken.INVOICE,
     ).invoice_bucket;
+
+    this.reimbursementFormBucketName =
+      this.configService.get<ReimbursementFormBucketConfig>(
+        ConfigToken.REIMBURSEMENT_FORM,
+      ).reimbursement_form_bucket;
   }
 
   private get invoiceBucket() {
     return admin.storage().bucket(this.invoiceBucketName);
   }
 
-  private getInvoiceFileName(userId: string): string {
-    return `${userId}.pdf`;
+  private get reimbursementFormBucket() {
+    return admin.storage().bucket(this.reimbursementFormBucketName);
+  }
+
+  private getInvoiceFileName(financeId: string): string {
+    return `${financeId}.pdf`;
+  }
+
+  getInvoiceFile(financeId: string) {
+    return this.invoiceBucket.file(this.getInvoiceFileName(financeId));
   }
 
   private getAuthenticatedReceiptUrl(filename: string): string {
     return `https://storage.cloud.google.com/${this.invoiceBucketName}/${filename}`;
   }
 
+  private getReimbursementFormFileName(financeId: string): string {
+    return `${financeId}.pdf`;
+  }
+
+  private getAuthenticatedReimbursementFormUrl(filename: string): string {
+    return `https://storage.cloud.google.com/${this.reimbursementFormBucketName}/${filename}`;
+  }
+
   async uploadReceipt(
-    userId: string,
+    financeId: string,
     file: Express.Multer.File,
   ): Promise<string> {
-    const filename = this.getInvoiceFileName(userId);
+    const filename = this.getInvoiceFileName(financeId);
     const blob = this.invoiceBucket.file(filename);
     await blob.save(file.buffer);
     return this.getAuthenticatedReceiptUrl(filename);
+  }
+
+  async uploadReimbursementForm(
+    financeId: string,
+    data: Buffer,
+  ): Promise<string> {
+    const filename = this.getReimbursementFormFileName(financeId);
+    const blob = this.reimbursementFormBucket.file(filename);
+    await blob.save(data);
+    return this.getAuthenticatedReimbursementFormUrl(filename);
   }
 
   private file(filepath: string) {
@@ -51,6 +83,9 @@ export class FinanceService {
     return this.file(`/${template}.pdf`).download();
   }
 
+  /**
+   * Populates the reimbursement form PDF with given data.
+   */
   async populateReimbursementForm(
     templateName: string,
     data: ReimbursementForm,
@@ -58,13 +93,14 @@ export class FinanceService {
   ): Promise<Uint8Array> {
     const [templateBytes] = await this.fetchTemplate(templateName);
     const pdfDoc = await PDFDocument.load(templateBytes);
-
     await this.populatePdfDocument(pdfDoc, data, ReimbursementFormMappings);
-
     pdfDoc.setTitle(newTitle);
     return pdfDoc.save();
   }
 
+  /**
+   * Fills a PDF's form fields given a data object and a field-mapping record.
+   */
   async populatePdfDocument<T extends object>(
     pdfDoc: PDFDocument,
     data: T,
@@ -74,28 +110,16 @@ export class FinanceService {
 
     for (const key of Object.keys(data) as (keyof T)[]) {
       const pdfValue = data[key];
+      const fieldName = fieldMappings[key];
+      if (!fieldName) continue;
 
-      // If we don’t have a mapping for this field, skip
-      if (!fieldMappings[key]) {
-        continue;
-      }
-
-      const pdfFieldName = fieldMappings[key];
-
-      // Then fill out the PDF form, depending on the type of the `pdfValue`.
       if (typeof pdfValue === "boolean") {
-        const checkBox = form.getCheckBox(pdfFieldName);
-        if (checkBox && pdfValue === true) {
-          checkBox.check();
-        }
+        const checkBox = form.getCheckBox(fieldName);
+        if (checkBox && pdfValue) checkBox.check();
       } else if (typeof pdfValue === "number") {
-        const textField = form.getTextField(pdfFieldName);
-        if (textField) {
-          textField.setText(String(pdfValue));
-        }
+        const textField = form.getTextField(fieldName);
+        if (textField) textField.setText(String(pdfValue));
       } else if (typeof pdfValue === "string") {
-        // Try to find a radio group with the same name as the key
-        // if we get an error of type "UnexpectedFieldTypeError" then we know it's a text field
         try {
           const radioGroup = form.getRadioGroup(pdfFieldName);
           if (radioGroup) {

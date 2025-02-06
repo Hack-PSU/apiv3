@@ -3,12 +3,10 @@ import {
   Body,
   Controller,
   Get,
-  Header,
   NotFoundException,
   Post,
   UseInterceptors,
   ValidationPipe,
-  StreamableFile,
   Param,
 } from "@nestjs/common";
 import {
@@ -23,6 +21,7 @@ import { RestrictedRoles, Role, Roles } from "common/gcp";
 import { InjectRepository, Repository } from "common/objection";
 import { FileInterceptor } from "@nestjs/platform-express";
 import {
+  CategoryMap,
   Finance,
   FinanceEntity,
   Status,
@@ -35,6 +34,7 @@ import { nanoid } from "nanoid";
 import { FinanceService } from "./finance.service";
 import { UploadedReceipt } from "./uploaded-receipt.decorator";
 import { ReimbursementForm, ReimbursementFormName } from "./reimbursement-form";
+import { DefaultTemplate, SendGridService } from "common/sendgrid";
 
 class BaseFinanceCreateEntity extends OmitType(FinanceEntity, [
   "id",
@@ -42,6 +42,7 @@ class BaseFinanceCreateEntity extends OmitType(FinanceEntity, [
   "hackathonId",
   "updatedBy",
   "receiptUrl",
+  "status",
 ]) {}
 
 class OptionalStatus extends PartialType(
@@ -64,6 +65,7 @@ export class FinanceController {
     @InjectRepository(Organizer)
     private readonly organizerRepo: Repository<Organizer>,
     private readonly financeService: FinanceService,
+    private readonly sendGridService: SendGridService,
   ) {}
 
   @Get("/")
@@ -86,7 +88,7 @@ export class FinanceController {
     params: [
       {
         name: "id",
-        description: "ID must be set to an reimbursement ID",
+        description: "ID must be a valid reimbursement ID",
       },
     ],
     response: {
@@ -122,6 +124,9 @@ export class FinanceController {
         transform: true,
         forbidNonWhitelisted: true,
         whitelist: true,
+        transformOptions: {
+          enableImplicitConversion: true,
+        },
       }),
     )
     finance: FinanceCreateEntity,
@@ -130,39 +135,32 @@ export class FinanceController {
     // Validate submitter
     if (finance.submitterType === SubmitterType.USER) {
       const user = await this.userRepo.findOne(finance.submitterId).exec();
-      if (!user) {
-        throw new NotFoundException("User not found");
-      }
+      if (!user) throw new NotFoundException("User not found");
     } else if (finance.submitterType === SubmitterType.ORGANIZER) {
       const organizer = await this.organizerRepo
         .findOne(finance.submitterId)
         .exec();
-      if (!organizer) {
-        throw new NotFoundException("Organizer not found");
-      }
+      if (!organizer) throw new NotFoundException("Organizer not found");
     } else {
       throw new BadRequestException("Invalid submitter type");
     }
 
-    // Get Active Hackathon
+    // Get active hackathon
     const hackathon = await Hackathon.query().findOne({ active: true });
-    if (!hackathon) {
-      throw new NotFoundException("No active hackathon found");
-    }
+    if (!hackathon) throw new NotFoundException("No active hackathon found");
 
-    // Upload receipt file if provided
+    const financeId = nanoid(32);
+
+    // Upload receipt if provided
     let receiptUrl = "";
     if (receipt) {
-      receiptUrl = await this.financeService.uploadReceipt(
-        finance.submitterId,
-        receipt,
-      );
+      receiptUrl = await this.financeService.uploadReceipt(financeId, receipt);
     }
 
-    // Create new finance entity
+    // Create new finance entry
     const newFinance: Partial<Finance> = {
-      id: nanoid(32),
-      status: finance.status || Status.PENDING,
+      id: financeId,
+      status: Status.PENDING,
       createdAt: Date.now(),
       hackathonId: hackathon.id,
       updatedBy: finance.submitterId,
@@ -173,73 +171,185 @@ export class FinanceController {
     return this.financeRepo.createOne(newFinance).exec();
   }
 
-  @Get("/:id/cheque")
-  @Header("Content-Type", "application/pdf")
-  @Roles(Role.TECH)
+  @Patch(":id/status")
+  @Roles(Role.TECH) // TODO: Change to Role.FINANCE after testing
   @ApiDoc({
-    summary: "Returns a cheque request form as a PDF",
+    summary: "Update a Reimbursement's status",
     params: [
       {
         name: "id",
-        description: "ID must be set to an reimbursement ID",
+        description: "ID must be a valid reimbursement ID",
       },
     ],
-    response: {
-      ok: { type: StreamableFile },
+    request: {
+      body: { type: OptionalStatus },
+      validate: true,
     },
-    auth: Role.TECH,
+    response: {
+      ok: { type: FinanceEntity },
+    },
+    auth: Role.FINANCE,
   })
-  async getCheque(@Param("id") id: string): Promise<StreamableFile> {
+  async updateStatus(
+    @Param("id") id: string,
+    @Body(
+      new ValidationPipe({
+        transform: true,
+        forbidNonWhitelisted: true,
+        whitelist: true,
+      }),
+    )
+    statusData: OptionalStatus,
+  ): Promise<Finance> {
     const finance = await this.financeRepo.findOne(id).exec();
     if (!finance) {
       throw new NotFoundException("Financial record not found");
     }
-    if (finance.status !== Status.APPROVED) {
-      throw new BadRequestException("Financial record not approved");
+
+    if (finance.status !== Status.PENDING) {
+      throw new BadRequestException(
+        "Cannot update status of non-pending record",
+      );
+    }
+    if (statusData.status) {
+      finance.status = statusData.status;
+    }
+
+    let updatedFinance: Finance;
+    try {
+      updatedFinance = await this.financeRepo.patchOne(id, finance).exec();
+    } catch (err) {
+      console.error("PatchOne threw an error:", err);
+      throw new InternalServerErrorException("Failed to update record");
     }
 
     let payee: string;
+    let email: string;
+
     if (finance.submitterType === SubmitterType.USER) {
       const user = await this.userRepo.findOne(finance.submitterId).exec();
       if (!user) {
         throw new NotFoundException("User not found");
       }
-      payee = user.firstName + " " + user.lastName;
-    } else if (finance.submitterType === SubmitterType.ORGANIZER) {
+      payee = `${user.firstName} ${user.lastName}`;
+      email = user.email;
+    } else {
       const organizer = await this.organizerRepo
         .findOne(finance.submitterId)
         .exec();
       if (!organizer) {
         throw new NotFoundException("Organizer not found");
       }
-      payee = organizer.firstName + " " + organizer.lastName;
+      payee = `${organizer.firstName} ${organizer.lastName}`;
+      email = organizer.email;
     }
 
-    const formData: ReimbursementForm = {
-      unrestricted30: true,
-      orgAcct: 1657,
-      fs1: 30,
-      amount1: finance.amount,
-      total: finance.amount,
-      organization: "HackPSU",
-      payeeName: payee,
-      mailingAddress1: finance.street,
-      mailingAddress2:
-        finance.city + ", " + finance.state + " " + finance.postalCode,
-      email: "finance@hackpsu.org",
-      description1: finance.description,
-      objectCode1: finance.category,
-      Date: new Date().toLocaleDateString(),
-      Group1: "Choice1",
-    };
+    if (updatedFinance.status === Status.APPROVED) {
+      const formData: ReimbursementForm = {
+        unrestricted30: true,
+        orgAcct: 1657,
+        fs1: 30,
+        amount1: updatedFinance.amount,
+        total: updatedFinance.amount,
+        organization: "HackPSU",
+        payeeName: payee,
+        mailingAddress1: updatedFinance.street,
+        mailingAddress2: `${updatedFinance.city}, ${updatedFinance.state} ${updatedFinance.postalCode}`,
+        email: "finance@hackpsu.org",
+        description1: updatedFinance.description,
+        objectCode1: CategoryMap[updatedFinance.category],
+        Date: new Date().toLocaleDateString(),
+        Group1: "Choice2",
+      };
 
-    const pdfBytes = await this.financeService.populateReimbursementForm(
-      ReimbursementFormName,
-      formData,
-      finance.id,
-    );
+      const pdfBytes = await this.financeService.populateReimbursementForm(
+        ReimbursementFormName,
+        formData,
+        updatedFinance.id,
+      );
+      const pdfBuffer = Buffer.from(pdfBytes);
+      const reimbursementFormUrl =
+        await this.financeService.uploadReimbursementForm(
+          updatedFinance.id,
+          pdfBuffer,
+        );
 
-    const pdfBuffer = Buffer.from(pdfBytes);
-    return new StreamableFile(pdfBuffer);
+      const reimbursementFormMessage =
+        await this.sendGridService.populateTemplate(
+          DefaultTemplate.reimbursementFormCompleted,
+          {
+            name: payee,
+            amount: updatedFinance.amount,
+            description: updatedFinance.description,
+            formLink: reimbursementFormUrl,
+          },
+        );
+
+      // Download receipt
+      const [receiptFile] = await this.financeService
+        .getInvoiceFile(updatedFinance.id)
+        .download();
+
+      // Send to finance team
+      await this.sendGridService
+        .send({
+          from: "team@hackpsu.org",
+          to: "finance@hackpsu.org",
+          subject: "Reimbursement Form Completed",
+          message: reimbursementFormMessage,
+          attachments: [
+            {
+              content: pdfBuffer.toString("base64"),
+              filename: `${updatedFinance.id}_reimbursementForm.pdf`,
+              type: "application/pdf",
+              disposition: "attachment",
+            },
+            {
+              content: receiptFile.toString("base64"),
+              filename: `${updatedFinance.id}_receipt.pdf`,
+              type: "application/pdf",
+              disposition: "attachment",
+            },
+          ],
+        })
+        .catch((err) => {
+          console.error("Error sending email", err);
+          console.error("Error body", err.response.body);
+        });
+
+      // Notify payee of approval
+      const reimbursementApprovedMessage =
+        await this.sendGridService.populateTemplate(
+          DefaultTemplate.reimbursementApproved,
+          {
+            firstName: payee,
+            amount: updatedFinance.amount,
+          },
+        );
+
+      await this.sendGridService.send({
+        from: "finance@hackpsu.org",
+        to: email,
+        subject: "HackPSU Reimbursement Approved",
+        message: reimbursementApprovedMessage,
+      });
+    } else if (updatedFinance.status === Status.REJECTED) {
+      const reimbursementRejectedMessage =
+        await this.sendGridService.populateTemplate(
+          DefaultTemplate.reimbursementRejected,
+          {
+            firstName: payee,
+          },
+        );
+
+      await this.sendGridService.send({
+        from: "finance@hackpsu.org",
+        to: email,
+        subject: "HackPSU Reimbursement Rejected",
+        message: reimbursementRejectedMessage,
+      });
+    }
+
+    return updatedFinance;
   }
 }
