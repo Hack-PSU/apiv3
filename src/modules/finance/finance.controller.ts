@@ -8,6 +8,8 @@ import {
   UseInterceptors,
   ValidationPipe,
   Param,
+  Patch,
+  InternalServerErrorException,
 } from "@nestjs/common";
 import {
   ApiTags,

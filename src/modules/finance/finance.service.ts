@@ -121,12 +121,12 @@ export class FinanceService {
         if (textField) textField.setText(String(pdfValue));
       } else if (typeof pdfValue === "string") {
         try {
-          const radioGroup = form.getRadioGroup(pdfFieldName);
+          const radioGroup = form.getRadioGroup(fieldName);
           if (radioGroup) {
             radioGroup.select(pdfValue);
           }
         } catch {
-          const textField = form.getTextField(pdfFieldName);
+          const textField = form.getTextField(fieldName);
           if (textField) {
             textField.setText(pdfValue);
           }
