@@ -20,12 +20,27 @@ export class GoogleWalletService {
   }
 
   private async init() {
-    const auth = new google.auth.GoogleAuth({
-      keyFile: this.keyFilePath,
+    // Build the auth options.
+    const authOptions: any = {
       scopes: ["https://www.googleapis.com/auth/wallet_object.issuer"],
-    });
+    };
 
-    this.credentials = require(this.keyFilePath);
+    // If a service account key file is specified (e.g. for local testing),
+    // include it in the options. Otherwise (on Cloud Run), omit the keyFile
+    // so that Application Default Credentials are used.
+    if (process.env.GOOGLE_CERT) {
+      authOptions.keyFile = this.keyFilePath;
+    }
+
+    const auth = new google.auth.GoogleAuth(authOptions);
+
+    // If using a key file, load credentials from it.
+    // Otherwise, retrieve credentials via Application Default Credentials.
+    if (process.env.GOOGLE_CERT) {
+      this.credentials = require(this.keyFilePath);
+    } else {
+      this.credentials = await auth.getCredentials();
+    }
 
     this.walletClient = google.walletobjects({
       version: "v1",
