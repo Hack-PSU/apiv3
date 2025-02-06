@@ -96,7 +96,6 @@ export class FirebaseAuthService {
     }
 
     // Block the request if the user doesn't meet any of the predicated roles.
-    const user = await this.getUserPrivilegeFromRequest(request);
     if (!access.includes(await this.getUserPrivilegeFromRequest(request))) {
       return false;
     }

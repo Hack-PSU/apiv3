@@ -101,7 +101,7 @@ export class FinanceService {
           if (radioGroup) {
             radioGroup.select(pdfValue);
           }
-        } catch (e) {
+        } catch {
           const textField = form.getTextField(pdfFieldName);
           if (textField) {
             textField.setText(pdfValue);

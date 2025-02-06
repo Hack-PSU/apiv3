@@ -12,8 +12,6 @@ import {
   Patch,
   Post,
   Put,
-  Req,
-  Res,
   UseFilters,
   ValidationPipe,
 } from "@nestjs/common";
@@ -22,7 +20,7 @@ import { Organizer, OrganizerEntity } from "entities/organizer.entity";
 import { SocketGateway } from "modules/socket/socket.gateway";
 import { ApiProperty, ApiTags, OmitType, PartialType } from "@nestjs/swagger";
 import { FirebaseAuthService, RestrictedRoles, Role, Roles } from "common/gcp";
-import { first, take, toArray } from "rxjs";
+import { take, toArray } from "rxjs";
 import { OrganizerService } from "modules/organizer/organizer.service";
 import { SocketRoom } from "common/socket";
 import { ControllerMethod } from "common/validation";

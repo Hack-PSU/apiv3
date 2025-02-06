@@ -1,4 +1,4 @@
-import { Column, ID, Table } from "common/objection";
+import { ID, Table } from "common/objection";
 import { Entity } from "entities/base.entity";
 import { ApiProperty, PickType } from "@nestjs/swagger";
 

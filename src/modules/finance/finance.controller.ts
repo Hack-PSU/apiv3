@@ -10,7 +10,6 @@ import {
   ValidationPipe,
   StreamableFile,
   Param,
-  Req,
 } from "@nestjs/common";
 import {
   ApiTags,
