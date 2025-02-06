@@ -53,10 +53,11 @@ export class GoogleWalletService {
       }
     }
 
-    if (!this.credentials.private_key) {
+    if (this.credentials && this.credentials.private_key) {
+      this.credentials.private_key = this.credentials.private_key.replace(/\\n/g, "\n");
+    } else {
       throw new Error(
-        "No private key available for signing JWTs. " +
-          "Ensure that GOOGLE_CERT is set locally or that GOOGLE_PRIVATE_KEY and GOOGLE_CLIENT_EMAIL are defined in your Cloud Run environment.",
+        "No private key available for signing JWTs. Ensure that your credentials include a private_key."
       );
     }
 
