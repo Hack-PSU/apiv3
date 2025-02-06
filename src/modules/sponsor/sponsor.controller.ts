@@ -36,7 +36,6 @@ import { RestrictedRoles, Role, Roles } from "common/gcp";
 import { ApiDoc } from "common/docs";
 import { ControllerMethod } from "common/validation";
 import { DBExceptionFilter } from "common/filters";
-import { Hackathon } from "entities/hackathon.entity";
 
 class SponsorCreateEntity extends OmitType(SponsorEntity, [
   "id",

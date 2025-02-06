@@ -1,7 +1,7 @@
 import { Column, ID, Table } from "common/objection";
 import { Entity } from "entities/base.entity";
 import Objection from "objection";
-import { ApiProperty, OmitType, PickType } from "@nestjs/swagger";
+import { ApiProperty, PickType } from "@nestjs/swagger";
 import { IsBoolean, IsNumber, IsString } from "class-validator";
 
 @Table({

@@ -116,6 +116,7 @@ export class MailController {
             message,
           });
         } catch (e) {
+          console.error(e);
           throw email;
         }
       }),
