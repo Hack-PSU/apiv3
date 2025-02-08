@@ -4,7 +4,7 @@ import { Organizer } from "entities/organizer.entity";
 import { Project } from "entities/project.entity";
 import { Score } from "entities/score.entity";
 
-interface JudgeAssignment {
+export interface JudgeAssignment {
   judgeId: string;
   projectId: number;
   hackathonId: string;
@@ -20,6 +20,133 @@ export class JudgingService {
     @InjectRepository(Project)
     private readonly projectRepo: Repository<Project>,
   ) {}
+
+  async createAssignmentsByCategory(
+    users: string[],
+    reviewsPerProject: number,
+  ): Promise<JudgeAssignment[]> {
+    if (reviewsPerProject < 3) {
+      throw new Error(
+        "Each project must be reviewed by at least one exec, one tech, and one regular judge (minimum 3 reviews).",
+      );
+    }
+
+    // Get all organizers filtered by the provided user IDs.
+    const organizers: Organizer[] = (
+      await this.organizerRepo.findAll().exec()
+    ).filter((user) => users.includes(user.id));
+
+    // Categorize judges
+    const execMembers = organizers.filter((user) => user.team === "exec");
+    const techMembers = organizers.filter((user) => user.team === "tech");
+    const regularMembers = organizers.filter(
+      (user) => user.team !== "exec" && user.team !== "tech",
+    );
+
+    if (execMembers.length === 0) {
+      throw new Error("No exec judges available for assignment.");
+    }
+    if (techMembers.length === 0) {
+      throw new Error("No tech judges available for assignment.");
+    }
+    if (regularMembers.length === 0) {
+      throw new Error("No regular judges available for assignment.");
+    }
+
+    // Get all projects (using your hackathon filter)
+    const projects = await this.projectRepo.findAll().byHackathon().execute();
+    if (projects.length === 0) {
+      throw new Error("No projects available for assignment.");
+    }
+
+    // Initialize assignment counts for load balancing.
+    const assignmentCounts: { [judgeId: string]: number } = {};
+    organizers.forEach((organizer) => (assignmentCounts[organizer.id] = 0));
+
+    const assignments: JudgeAssignment[] = [];
+
+    // For each project, we will guarantee one judge per category.
+    for (const project of projects) {
+      // Track judges already assigned to the project (to prevent duplicates).
+      const projectAssigned = new Set<string>();
+
+      // Helper function to select the judge from a group with the lowest assignment count.
+      const selectJudgeFromGroup = (group: Organizer[]): Organizer => {
+        // Create a shallow copy and sort by the current assignment count.
+        const sorted = group
+          .slice()
+          .sort((a, b) => assignmentCounts[a.id] - assignmentCounts[b.id]);
+        for (const judge of sorted) {
+          if (!projectAssigned.has(judge.id)) {
+            return judge;
+          }
+        }
+        throw new Error(
+          `Unable to assign a judge from the group for project ${project.id}`,
+        );
+      };
+
+      // --- First: assign one judge from each required category ---
+      const execJudge = selectJudgeFromGroup(execMembers);
+      assignments.push({
+        judgeId: execJudge.id,
+        projectId: project.id,
+        hackathonId: project.hackathonId,
+      });
+      assignmentCounts[execJudge.id]++;
+      projectAssigned.add(execJudge.id);
+
+      const techJudge = selectJudgeFromGroup(techMembers);
+      assignments.push({
+        judgeId: techJudge.id,
+        projectId: project.id,
+        hackathonId: project.hackathonId,
+      });
+      assignmentCounts[techJudge.id]++;
+      projectAssigned.add(techJudge.id);
+
+      const regJudge = selectJudgeFromGroup(regularMembers);
+      assignments.push({
+        judgeId: regJudge.id,
+        projectId: project.id,
+        hackathonId: project.hackathonId,
+      });
+      assignmentCounts[regJudge.id]++;
+      projectAssigned.add(regJudge.id);
+
+      // --- Second: assign any additional judges if reviewsPerProject > 3 ---
+      const extraReviews = reviewsPerProject - 3;
+      if (extraReviews > 0) {
+        // Combine all judges and select from those with the fewest assignments.
+        const allJudges = organizers;
+        for (let i = 0; i < extraReviews; i++) {
+          // Sort all judges by assignment count.
+          const sortedAll = allJudges
+            .slice()
+            .sort((a, b) => assignmentCounts[a.id] - assignmentCounts[b.id]);
+          let selectedJudge: Organizer | undefined = undefined;
+          for (const judge of sortedAll) {
+            if (!projectAssigned.has(judge.id)) {
+              selectedJudge = judge;
+              break;
+            }
+          }
+          if (!selectedJudge) {
+            // If all judges are already assigned to the project, you can choose to break or continue.
+            break;
+          }
+          assignments.push({
+            judgeId: selectedJudge.id,
+            projectId: project.id,
+            hackathonId: project.hackathonId,
+          });
+          assignmentCounts[selectedJudge.id]++;
+          projectAssigned.add(selectedJudge.id);
+        }
+      }
+    }
+    return assignments;
+  }
 
   async getUnassignedProjects() {
     return this.projectRepo
@@ -50,128 +177,6 @@ export class JudgingService {
       .select("projects.id");
 
     return minCountProjects.map((c) => c.id);
-  }
-
-  async createAssignments(users: string[], projectsPerUser: number) {
-    // Fetch and filter organizers based on provided user IDs
-    const organizers = (await this.organizerRepo.findAll().exec()).filter(
-      (user) => users.includes(user.id),
-    );
-
-    if (organizers.length === 0) {
-      throw new Error("No organizers available for assignment.");
-    }
-
-    // Categorize organizers by team
-    const techMembers = organizers.filter((user) => user.team === "tech");
-    const execMembers = organizers.filter((user) => user.team === "exec");
-    const otherMembers = organizers.filter(
-      (user) => user.team !== "tech" && user.team !== "exec",
-    );
-
-    // Ensure there are enough tech and exec judges
-    if (techMembers.length === 0) {
-      throw new Error("No tech members available for assignment.");
-    }
-    if (execMembers.length === 0) {
-      throw new Error("No exec members available for assignment.");
-    }
-
-    // Initialize assignment counts and project maps to prevent duplicates
-    const assignmentCounts: { [judgeId: string]: number } = {};
-    const organizerProjectMap: { [judgeId: string]: Set<number> } = {};
-    organizers.forEach((organizer) => {
-      assignmentCounts[organizer.id] = 0;
-      organizerProjectMap[organizer.id] = new Set();
-    });
-
-    // Fetch all projects
-    const projects = await this.projectRepo.findAll().byHackathon().execute();
-
-    if (projects.length === 0) {
-      throw new Error("No projects available for assignment.");
-    }
-
-    const assignments: JudgeAssignment[] = [];
-
-    // Function to assign projects to a group of organizers
-    const assignProjectsToGroup = (
-      group: Organizer[],
-      projectsPerUser: number,
-      assignments: JudgeAssignment[],
-      assignmentCounts: { [judgeId: string]: number },
-      organizerProjectMap: { [judgeId: string]: Set<number> },
-      category: string,
-    ) => {
-      const numOrganizers = group.length;
-      const numProjects = projects.length;
-
-      if (numOrganizers === 0) return;
-
-      // Initialize counter for the group
-      let counter = 0;
-
-      group.forEach((organizer, index) => {
-        for (let i = 0; i < projectsPerUser; i++) {
-          const projectIndex = (counter + i) % numProjects;
-          const project = projects[projectIndex];
-
-          // Prevent duplicate assignments
-          if (!organizerProjectMap[organizer.id].has(project.id)) {
-            assignments.push({
-              judgeId: organizer.id,
-              projectId: project.id,
-              hackathonId: project.hackathonId,
-            });
-            assignmentCounts[organizer.id] += 1;
-            organizerProjectMap[organizer.id].add(project.id);
-          }
-        }
-        counter += projectsPerUser;
-      });
-    };
-
-    // Assign projects to tech members
-    assignProjectsToGroup(
-      techMembers,
-      projectsPerUser,
-      assignments,
-      assignmentCounts,
-      organizerProjectMap,
-      "tech",
-    );
-
-    // Assign projects to exec members
-    assignProjectsToGroup(
-      execMembers,
-      projectsPerUser,
-      assignments,
-      assignmentCounts,
-      organizerProjectMap,
-      "exec",
-    );
-
-    // Assign projects to other members
-    assignProjectsToGroup(
-      otherMembers,
-      projectsPerUser,
-      assignments,
-      assignmentCounts,
-      organizerProjectMap,
-      "other",
-    );
-
-    const uniqueAssignments: JudgeAssignment[] = [];
-    const seen: Set<string> = new Set();
-    for (const assignment of assignments) {
-      const key = `${assignment.judgeId}-${assignment.projectId}`;
-      if (!seen.has(key)) {
-        seen.add(key);
-        uniqueAssignments.push(assignment);
-      }
-    }
-
-    return uniqueAssignments;
   }
 
   async reassignJudge(judgeId: string, excludeProjects: number[]) {

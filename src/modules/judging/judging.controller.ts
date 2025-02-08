@@ -152,7 +152,7 @@ export class JudgingController {
   }
 
   @Post("/assign")
-  @Roles(Role.EXEC)
+  //@Roles(Role.EXEC)
   async assignJudging(
     @Body(
       new ValidationPipe({
@@ -164,23 +164,27 @@ export class JudgingController {
     data: JudgingAssignmentEntity,
   ) {
     try {
-      const assignments = await this.judgingService.createAssignments(
+      // Call the new assignment method.
+      const assignments = await this.judgingService.createAssignmentsByCategory(
         data.users,
         data.projectsPerUser,
       );
 
-      console.log(assignments);
-      for (const project of assignments) {
+      // Create Score entries for each assignment.
+      for (const assignment of assignments) {
         await this.scoreRepo
           .createOne({
-            projectId: project.projectId,
-            judgeId: project.judgeId,
-            hackathonId: project.hackathonId,
+            projectId: assignment.projectId,
+            judgeId: assignment.judgeId,
+            hackathonId: assignment.hackathonId,
           })
           .exec();
       }
+
+      return { message: "Assignments created", assignments };
     } catch (e) {
-      console.log(e);
+      console.error(e);
+      throw e;
     }
   }
 }
