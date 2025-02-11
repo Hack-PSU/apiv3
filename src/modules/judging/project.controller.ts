@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -10,7 +11,9 @@ import {
   Patch,
   Post,
   Put,
+  UploadedFile,
   UseFilters,
+  UseInterceptors,
   ValidationPipe,
 } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
@@ -19,6 +22,9 @@ import { ApiTags, OmitType, PartialType } from "@nestjs/swagger";
 import { Role, Roles } from "common/gcp";
 import { ApiDoc } from "common/docs";
 import { DBExceptionFilter } from "common/filters";
+import { Hackathon } from "entities/hackathon.entity";
+import { FileInterceptor } from "@nestjs/platform-express";
+import * as csv from "csvtojson";
 
 class ProjectCreateEntity extends OmitType(ProjectEntity, ["id"] as const) {}
 
@@ -31,6 +37,8 @@ export class ProjectController {
   constructor(
     @InjectRepository(Project)
     private readonly projectRepo: Repository<Project>,
+    @InjectRepository(Hackathon)
+    private readonly hackathonRepo: Repository<Hackathon>,
   ) {}
 
   @Get("/")
@@ -175,5 +183,32 @@ export class ProjectController {
   })
   async deleteOne(@Param("id", ParseIntPipe) id: number) {
     return this.projectRepo.deleteOne(id).exec();
+  }
+
+  @Post("upload-csv")
+  @Roles(Role.TECH)
+  @UseInterceptors(FileInterceptor("file"))
+  async uploadCsv(@UploadedFile() file: Express.Multer.File) {
+    if (!file) {
+      throw new BadRequestException("CSV file is required");
+    }
+
+    const hackathon = await Hackathon.query().findOne({ active: true });
+    const csvStr = file.buffer.toString("utf-8");
+    const rows = await csv().fromString(csvStr);
+
+    const projects = await Promise.all(
+      rows.map((row, index) => {
+        const projectData: ProjectCreateEntity = {
+          name: `(${index + 1}) ${row["Project Title"] || "Untitled"}`,
+          categories: row["Opt-In Prizes"] || "",
+          hackathonId: hackathon.id,
+        };
+
+        return this.projectRepo.createOne(projectData).byHackathon();
+      }),
+    );
+
+    return projects;
   }
 }
