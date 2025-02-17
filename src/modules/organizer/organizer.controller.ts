@@ -178,6 +178,42 @@ export class OrganizerController {
     return this.organizerService.injectUserRoles([organizer]).pipe(take(1));
   }
 
+  @Post("/resend-verification")
+  async resendAllVerificationEmails(){
+    const allOrganizers = await this.organizerRepo.findAll().exec();
+
+    if(!allOrganizers || allOrganizers.length === 0)
+      throw new HttpException("No organizer email found", HttpStatus.NOT_FOUND);
+
+    for(const organizer of allOrganizers){
+      try{
+        const passwordResetLink = await this.auth.generatePasswordResetLink(organizer.email);
+
+        const message = await this.sendGridService.populateTemplate(
+          DefaultTemplate.organizerFirstLogin,
+          {
+            previewText: "HackPSU Spring 2025 Organizer Account",
+            passwordResetLink: passwordResetLink,
+            firstName: organizer.firstName
+          },
+        );
+
+        await this.sendGridService.send({
+          to: organizer.email,
+          from: DefaultFromEmail, 
+          subject: "HackPSU Organizer Account Password Reset",
+          message,
+        });
+        
+      }
+      catch(error){
+        console.error("Email could not be sent to ${organizer.email}",error);
+      }
+    }
+
+    return {message: "All verification emails have been sent to organizers"};
+  }
+
   @Get(":id")
   @RestrictedRoles({
     roles: [Role.TEAM],
