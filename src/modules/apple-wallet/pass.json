@@ -1,0 +1,16 @@
+{
+  "formatVersion": 1,
+  "passTypeIdentifier": "pass.hackpsu.wallet",
+  "serialNumber": "123456",
+  "teamIdentifier": "ABCDE12345",
+  "barcode": {
+    "message": "123456789",
+    "format": "PKBarcodeFormatQR",
+    "messageEncoding": "iso-8859-1"
+  },
+  "organizationName": "Example Organization",
+  "description": "Example Pass",
+  "logoText": "Example",
+  "foregroundColor": "rgb(255, 255, 255)",
+  "backgroundColor": "rgb(0, 0, 0)"
+}
