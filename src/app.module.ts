@@ -33,6 +33,7 @@ import { SponsorModule } from "modules/sponsor/sponsor.module";
 import { UserModule } from "modules/user/user.module";
 import { FinanceModule } from "modules/finance/finance.module";
 import { WalletModule } from "modules/wallet/wallet.module";
+import { AppleWalletModule } from "modules/apple-wallet/apple-wallet.module"; // Add this import
 
 @Module({
   imports: [
@@ -98,6 +99,7 @@ import { WalletModule } from "modules/wallet/wallet.module";
     AnalyticsModule,
     FinanceModule,
     WalletModule,
+    AppleWalletModule, // Add this module
 
     // WebSocket
     SocketModule,

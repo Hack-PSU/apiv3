@@ -51,6 +51,8 @@
     "mysql": "^2.18.1",
     "nanoid": "^5.0.9",
     "objection": "^3.1.5",
+    "passbook": "^2.3.0",
+    "passkit-generator": "^3.3.1",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "pdf-lib": "^1.17.1",
