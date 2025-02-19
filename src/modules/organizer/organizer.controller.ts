@@ -179,11 +179,16 @@ export class OrganizerController {
   }
 
   @Post("/resend-verification")
+  @ApiDoc({
+    summary: "Resend Verification Email to all Organizers",
+    auth: Role.EXEC,
+    response: {
+      noContent: true,
+    },
+  })
+  @Roles(Role.EXEC)
   async resendAllVerificationEmails() {
     const allOrganizers = await this.organizerRepo.findAll().exec();
-
-    if (!allOrganizers || allOrganizers.length === 0)
-      throw new HttpException("No organizer email found", HttpStatus.NOT_FOUND);
 
     for (const organizer of allOrganizers) {
       try {
