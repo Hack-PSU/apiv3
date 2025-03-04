@@ -6,7 +6,11 @@ import { ObjectionModule } from "common/objection";
 import { Hackathon } from "entities/hackathon.entity";
 
 @Module({
-  imports: [ObjectionModule.forFeature([Hackathon]), GoogleWalletModule, AppleWalletModule],
+  imports: [
+    ObjectionModule.forFeature([Hackathon]),
+    GoogleWalletModule,
+    AppleWalletModule,
+  ],
   controllers: [WalletController],
 })
 export class WalletModule {}

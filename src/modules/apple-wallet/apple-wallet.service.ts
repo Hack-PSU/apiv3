@@ -1,60 +1,127 @@
-import { Injectable } from '@nestjs/common';
-import * as fs from 'fs';
-import * as path from 'path';
-import * as Passbook from 'passbook';
-import { HackathonPassData } from 'common/gcp/wallet/google-wallet.types';
+// modules/apple-wallet/apple-wallet.service.ts
+import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { Template, Pass } from "@walletpass/pass-js";
+import { HackathonPassData } from "common/gcp/wallet/google-wallet.types";
+import * as admZip from "adm-zip";
 
 @Injectable()
-export class AppleWalletService {
-  private passCertificate: Buffer;
-  private appleWWDRCA: Buffer;
+export class AppleWalletService implements OnModuleInit {
+  private readonly logger = new Logger(AppleWalletService.name);
+  private template: Template;
 
-  constructor() {
-    this.passCertificate = fs.readFileSync(
-      path.resolve(__dirname, 'pass.pem')
-    );
-    this.appleWWDRCA = fs.readFileSync(
-      path.resolve(__dirname, 'applewwdrcag6.pem')
-    );
+  constructor(private readonly configService: ConfigService) {}
+
+  // OnModuleInit is used to perform asynchronous initialization.
+  async onModuleInit(): Promise<void> {
+    await this.initTemplate();
   }
 
-  async createPass(userId: string, passData: HackathonPassData): Promise<Buffer> {
-    const passDetails = JSON.parse(
-      fs.readFileSync(path.resolve(__dirname, 'pass.json'), 'utf8')
+  /**
+   * Initializes the Apple Wallet template.
+   *
+   * This creates a base Template (of style “eventTicket” in this example) with default fields,
+   * sets up certificate and key data, and adds any common images.
+   */
+  private async initTemplate(): Promise<void> {
+    // Load certificate and key from environment variables.
+    // (These should be set in your .env file or via your deployment environment.)
+    const passCert = this.configService.get<string>("APPLE_PASS_CERT");
+    const passKey = this.configService.get<string>("APPLE_PASS_KEY");
+    const keyPassword = this.configService.get<string>(
+      "APPLE_PASS_KEY_PASSWORD",
+    ); // optional
+    const passTypeIdentifier = this.configService.get<string>(
+      "APPLE_PASS_TYPE_IDENTIFIER",
+    );
+    const teamIdentifier = this.configService.get<string>(
+      "APPLE_TEAM_IDENTIFIER",
     );
 
-    passDetails.serialNumber = userId;
-    passDetails.barcode.message = `HACKPSU_${userId}`;
-    passDetails.organizationName = passData.issuerName;
-    passDetails.description = passData.eventName;
-    passDetails.logoText = passData.eventName;
+    if (!passCert || !passKey || !passTypeIdentifier || !teamIdentifier) {
+      throw new Error("Missing required Apple Wallet configuration.");
+    }
 
-    const pass = new Passbook({
-      model: passDetails,
-      certificates: {
-        wwdr: this.appleWWDRCA,
-        signerCert: this.passCertificate,
-        signerKey: {
-          keyFile: path.resolve(__dirname, 'pass.pem')
-        }
-      }
+    // Create a new Template manually.
+    // Here we choose the “eventTicket” style. Adjust the style (or default fields) as needed.
+    this.template = new Template("eventTicket", {
+      passTypeIdentifier,
+      teamIdentifier,
+      backgroundColor: "rgb(0, 0, 0)",
+      foregroundColor: "rgb(255, 255, 255)",
+      logoText: "HackPSU",
+      description: "Hackathon Pass",
+      organizationName: "HackPSU",
     });
 
-    pass.setBarcode({
-      message: `HACKPSU_${userId}`,
-      format: 'PKBarcodeFormatQR',
-      messageEncoding: 'iso-8859-1'
+    // Set the certificate and private key so that the passes are signed.
+    this.template.setCertificate(passCert);
+    this.template.setPrivateKey(passKey, keyPassword);
+
+    try {
+      const iconBuffer = await fetch(
+        "https://storage.googleapis.com/hackpsu-408118.appspot.com/sponsor-logos/6-Test%20Sponsor-light.png",
+      ).then((res) => res.bytes().then((buf) => Buffer.from(buf)));
+      await this.template.images.add("icon", iconBuffer);
+      const logoBuffer = await fetch(
+        "https://storage.googleapis.com/hackpsu-408118.appspot.com/sponsor-logos/output-onlinepngtools.png",
+      ).then((res) => res.bytes().then((buf) => Buffer.from(buf)));
+
+      await this.template.images.add("logo", logoBuffer);
+    } catch (err) {
+      this.logger.error("Error loading Apple logo image", err);
+    }
+
+    this.logger.log("Apple Wallet template initialized");
+  }
+
+  /**
+   * Creates an Apple Wallet pass from the template.
+   *
+   * @param userId The user ID to be used as the pass serial number.
+   * @param passData The dynamic data for the pass (event name, issuer name, dates, etc).
+   * @returns A Buffer containing the generated .pkpass file.
+   */
+  async createPass(
+    userId: string,
+    passData: HackathonPassData,
+  ): Promise<Buffer> {
+    // Create a new pass from the template.
+    // You can set default/dynamic values in the object passed to createPass.
+    const pass: Pass = this.template.createPass({
+      serialNumber: userId,
+      description: passData.eventName,
+      organizationName: passData.issuerName,
+      logoText: passData.eventName,
+      // You can add more default fields here if needed.
+      barcodes: [
+        {
+          message: `HACKPSU_${userId}`,
+          format: "PKBarcodeFormatQR",
+          messageEncoding: "iso-8859-1",
+        },
+      ],
     });
 
-    pass.setImages('logo', path.resolve(__dirname, 'https://storage.googleapis.com/hackpsu-408118.appspot.com/sponsor-logos/6-Test%20Sponsor-light.png'));
+    // (Optional) Add additional fields to the pass.
+    // For example, you could add header or primary fields:
+    // pass.primaryFields.add({ key: 'event', label: 'Event', value: passData.eventName });
 
-    return new Promise((resolve, reject) => {
-      pass.generate((error, buffer) => {
-        if (error) {
-          return reject(error);
-        }
-        resolve(buffer);
-      });
-    });
+    // (Optional) Set a relevant date.
+    // pass.relevantDate = new Date(passData.startDateTime);
+
+    try {
+      // Generate the final pass as a Buffer.
+      const buffer = await pass.asBuffer();
+      // compress the buffer as a zip file
+      const zip = new admZip();
+      zip.addFile("pass.pkpass", buffer);
+      const zipBuffer = zip.toBuffer();
+      return zipBuffer;
+      return buffer;
+    } catch (err) {
+      this.logger.error("Error generating Apple Wallet pass", err);
+      throw err;
+    }
   }
 }

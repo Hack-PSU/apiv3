@@ -46,6 +46,8 @@ db/local/
 ninth-expanse-396918*.json
 hackpsu18*.json
 
+*.pem
+
 # GCP
 cloud-sql-proxy
 
