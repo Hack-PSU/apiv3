@@ -203,11 +203,13 @@ export class JudgingController {
       }
 
       // Create Score entries for each assignment.
-      this.scoreRepo.createOne({
-        projectId: assignment.projectId,
-        judgeId: assignment.judgeId,
-        hackathonId: assignment.hackathonId,
-      });
+      this.scoreRepo
+        .createOne({
+          projectId: assignment.projectId,
+          judgeId: assignment.judgeId,
+          hackathonId: assignment.hackathonId,
+        })
+        .exec();
 
       return { message: "Assignments created", assignment };
     } catch (e) {
