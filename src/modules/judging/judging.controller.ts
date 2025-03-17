@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
   UseFilters,
   ValidationPipe,
@@ -182,6 +183,33 @@ export class JudgingController {
       }
 
       return { message: "Assignments created", assignments };
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
+  }
+
+  // Route to assign additional projects to judges
+  @Post("/assign/:judgeId")
+  @Roles(Role.TEAM)
+  async assignAdditionalProjects(@Param("judgeId") judgeId: string) {
+    try {
+      // Call the new assignment method.
+      const assignment =
+        await this.judgingService.getNewJudgingAssignment(judgeId);
+
+      if (!assignment) {
+        throw new Error("No projects available for assignment.");
+      }
+
+      // Create Score entries for each assignment.
+      this.scoreRepo.createOne({
+        projectId: assignment.projectId,
+        judgeId: assignment.judgeId,
+        hackathonId: assignment.hackathonId,
+      });
+
+      return { message: "Assignments created", assignment };
     } catch (e) {
       console.error(e);
       throw e;

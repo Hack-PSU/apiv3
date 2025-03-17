@@ -204,4 +204,51 @@ export class JudgingService {
       }
     }
   }
+  async getNewJudgingAssignment(
+    judgeId: string,
+  ): Promise<JudgeAssignment | null> {
+    // ensure that the judge exists
+    const judge = await this.organizerRepo.findOne(judgeId).exec();
+    if (!judge) {
+      throw new Error(`Judge with ID ${judgeId} does not exist.`);
+    }
+
+    // Get all projects for the current hackathon.
+    const projects = await this.projectRepo.findAll().byHackathon().execute();
+
+    // Get all scores submitted by the given judge.
+    // This will help determine which projects the judge has already reviewed.
+    const judgeScores = await this.scoreRepo
+      .findAll()
+      .raw()
+      .where("judgeId", judgeId)
+      .select("projectId")
+      .execute();
+    console.log(judgeScores);
+    const reviewedProjectIds: [number] = judgeScores.map((score) =>
+      Number(score.projectId),
+    );
+
+    // Exclude projects that have already been reviewed by this judge.
+    const availableProjects = projects.filter(
+      (project) => !reviewedProjectIds.includes(project.id),
+    );
+
+    console.log(availableProjects);
+
+    if (availableProjects.length > 0) {
+      // Randomly pick one project from the available projects.
+      const randomIndex = Math.floor(Math.random() * availableProjects.length);
+      const selectedProject = availableProjects[randomIndex];
+
+      return {
+        judgeId,
+        projectId: selectedProject.id,
+        hackathonId: selectedProject.hackathonId,
+      };
+    } else {
+      // Return null if the judge has reviewed all projects.
+      return null;
+    }
+  }
 }
