@@ -11,7 +11,7 @@ import {
 } from "class-validator";
 import Objection from "objection";
 
-enum EventType {
+export enum EventType {
   activity = "activity",
   food = "food",
   workshop = "workshop",
