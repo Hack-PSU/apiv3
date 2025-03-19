@@ -18,7 +18,7 @@ import {
   ValidationPipe,
 } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
-import { Event, EventEntity } from "entities/event.entity";
+import { Event, EventEntity, EventType } from "entities/event.entity";
 import {
   ApiExtraModels,
   ApiProperty,
@@ -424,6 +424,36 @@ export class EventController {
 
     if (!user) {
       throw new HttpException("user not found", HttpStatus.BAD_REQUEST);
+    }
+
+    if (event.type != EventType.checkIn) {
+      console.log("event type is not check-in");
+      // Find check-in event
+      const checkInEvent = await (await this.eventRepo.findAll().exec())
+        .filter((e) => e.type == EventType.checkIn)
+        .filter((e) => e.hackathonId == data.hackathonId)[0];
+
+      if (!checkInEvent) {
+        throw new HttpException(
+          "Check-in event not found",
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      const events = await this.scanRepo.findAll().exec();
+      const checkInScan = events.filter(
+        (e) =>
+          e.eventId == checkInEvent.id &&
+          e.userId == userId &&
+          e.hackathonId == data.hackathonId,
+      )[0];
+
+      if (!checkInScan) {
+        throw new HttpException(
+          "User has not checked-in to the hackathon",
+          HttpStatus.BAD_REQUEST,
+        );
+      }
     }
 
     await this.scanRepo
