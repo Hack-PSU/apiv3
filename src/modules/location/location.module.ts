@@ -1,6 +1,6 @@
 import { Module } from "@nestjs/common";
 import { ObjectionModule } from "common/objection";
-import { Location } from "entities/location.entity";
+import { Location } from "@entities/location.entity";
 import { LocationController } from "./location.controller";
 
 @Module({

@@ -14,7 +14,7 @@ import {
   ValidationPipe,
 } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
-import { Hackathon, HackathonEntity } from "entities/hackathon.entity";
+import { Hackathon, HackathonEntity } from "@entities/hackathon.entity";
 import {
   ApiExtraModels,
   ApiProperty,
@@ -25,11 +25,11 @@ import {
 } from "@nestjs/swagger";
 import { Role, Roles } from "common/gcp";
 import { SocketGateway } from "modules/socket/socket.gateway";
-import { Event, EventEntity } from "entities/event.entity";
+import { Event, EventEntity } from "@entities/event.entity";
 import { nanoid } from "nanoid";
 import { IsOptional } from "class-validator";
 import { Transform } from "class-transformer";
-import { SponsorEntity } from "entities/sponsor.entity";
+import { SponsorEntity } from "@entities/sponsor.entity";
 import { ApiDoc } from "common/docs";
 import { DBExceptionFilter } from "common/filters";
 

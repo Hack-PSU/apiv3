@@ -1,5 +1,5 @@
 import { Knex } from "knex";
-import { Entity } from "entities/base.entity";
+import { Entity } from "@entities/base.entity";
 import { ModelClass } from "objection";
 
 export type DBConnection =

@@ -1,6 +1,6 @@
 import { ApiProperty, PickType } from "@nestjs/swagger";
 import { Column, ID, Table } from "common/objection";
-import { Entity } from "entities/base.entity";
+import { Entity } from "@entities/base.entity";
 import { Type } from "class-transformer";
 import {
   IsEnum,

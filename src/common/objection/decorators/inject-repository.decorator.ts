@@ -1,4 +1,4 @@
-import { Entity } from "entities/base.entity";
+import { Entity } from "@entities/base.entity";
 import { Inject } from "@nestjs/common";
 import { ObjectionBaseEntityProvider } from "../objection.constants";
 import { ModelClass } from "objection";

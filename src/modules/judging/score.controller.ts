@@ -13,7 +13,7 @@ import {
   ValidationPipe,
 } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
-import { Score, ScoreEntity } from "entities/score.entity";
+import { Score, ScoreEntity } from "@entities/score.entity";
 import {
   ApiExtraModels,
   ApiProperty,
@@ -21,8 +21,8 @@ import {
   OmitType,
   PartialType,
 } from "@nestjs/swagger";
-import { OrganizerEntity } from "entities/organizer.entity";
-import { ProjectEntity } from "entities/project.entity";
+import { OrganizerEntity } from "@entities/organizer.entity";
+import { ProjectEntity } from "@entities/project.entity";
 import { Role, Roles } from "common/gcp";
 import { ApiDoc } from "common/docs";
 import { IsBoolean, IsNumber, IsOptional } from "class-validator";

@@ -1,5 +1,5 @@
 import { Column, ID, Table } from "common/objection";
-import { Entity } from "entities/base.entity";
+import { Entity } from "@entities/base.entity";
 import { ApiProperty, PickType } from "@nestjs/swagger";
 import { Expose, Type } from "class-transformer";
 import { IsNumber, IsOptional, IsString, IsUrl } from "class-validator";

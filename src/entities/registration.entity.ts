@@ -1,10 +1,10 @@
-import { Entity } from "entities/base.entity";
+import { Entity } from "@entities/base.entity";
 import { Column, ID, Table } from "common/objection";
 import { ApiProperty, PickType } from "@nestjs/swagger";
 import { IsBoolean, IsNumber, IsOptional, IsString } from "class-validator";
 import { Type } from "class-transformer";
 import Objection from "objection";
-import { Hackathon } from "entities/hackathon.entity";
+import { Hackathon } from "@entities/hackathon.entity";
 
 @Table({
   name: "registrations",

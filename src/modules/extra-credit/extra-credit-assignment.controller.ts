@@ -4,7 +4,7 @@ import { ApiTags } from "@nestjs/swagger";
 import { Role, Roles } from "common/gcp";
 import { ApiDoc } from "common/docs";
 import { DBExceptionFilter } from "common/filters";
-import { ExtraCreditClass } from "entities/extra-credit-class.entity";
+import { ExtraCreditClass } from "@entities/extra-credit-class.entity";
 import { ECClassResponse } from "./extra-credit-class.controller";
 
 @ApiTags("Extra Credit")

@@ -17,12 +17,12 @@ import {
   ValidationPipe,
 } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
-import { Project, ProjectEntity } from "entities/project.entity";
+import { Project, ProjectEntity } from "@entities/project.entity";
 import { ApiTags, OmitType, PartialType } from "@nestjs/swagger";
 import { Role, Roles } from "common/gcp";
 import { ApiDoc } from "common/docs";
 import { DBExceptionFilter } from "common/filters";
-import { Hackathon } from "entities/hackathon.entity";
+import { Hackathon } from "@entities/hackathon.entity";
 import { FileInterceptor } from "@nestjs/platform-express";
 import * as csv from "csvtojson";
 

@@ -9,7 +9,7 @@ import {
   Length,
   IsPostalCode,
 } from "class-validator";
-import { Entity } from "entities/base.entity";
+import { Entity } from "@entities/base.entity";
 import { ID, Column, Table } from "common/objection";
 
 export enum Status {
