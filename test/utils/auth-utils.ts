@@ -38,6 +38,7 @@ export async function fetchToken(user: User) {
 export async function promoteUser(user: User, privilege: Role) {
   await admin.auth().setCustomUserClaims(user.uid, {
     staging: privilege,
+    production: privilege,
   });
 }
 

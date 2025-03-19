@@ -3,7 +3,12 @@ import { User } from "@entities/user.entity";
 import { Scan } from "@entities/scan.entity";
 import { ExtraCreditClass } from "@entities/extra-credit-class.entity";
 import { ExtraCreditAssignment } from "@entities/extra-credit-assignment.entity";
-import { FirebaseAuthModule, FirebaseConfig, Role } from "common/gcp";
+import {
+  FirebaseAuthModule,
+  FirebaseConfig,
+  GoogleCloudModule,
+  Role,
+} from "common/gcp";
 import { initializeApp } from "@firebase/app";
 import { User as FirebaseUser } from "@firebase/auth";
 import {
@@ -13,13 +18,20 @@ import {
   promoteUser,
 } from "./utils/auth-utils";
 import { ConfigModule, ConfigService } from "@nestjs/config";
-import { ConfigToken, firebaseConfig, firebaseWebConfig } from "common/config";
+import {
+  ConfigToken,
+  firebaseConfig,
+  firebaseWebConfig,
+  resumeBucketConfig,
+  sendGridConfig,
+} from "common/config";
 import { Client, getClient } from "./utils/request-utils";
 import { ObjectionTestingModule } from "test/objection";
 import * as admin from "firebase-admin";
 import { UserModule } from "modules/user/user.module";
 import { SocketModule } from "modules/socket/socket.module";
 import { SocketGateway } from "modules/socket/socket.gateway";
+import { SendGridModule } from "common/sendgrid";
 
 describe("UsersController (e2e)", () => {
   let client: Client;
@@ -29,7 +41,7 @@ describe("UsersController (e2e)", () => {
     const modules = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({
-          load: [firebaseWebConfig, firebaseConfig],
+          load: [firebaseWebConfig, firebaseConfig, resumeBucketConfig],
         }),
       ],
     }).compile();
@@ -51,7 +63,7 @@ describe("UsersController (e2e)", () => {
     const moduleFixture = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({
-          load: [firebaseConfig],
+          load: [firebaseConfig, resumeBucketConfig, sendGridConfig],
         }),
 
         ObjectionTestingModule.forFeature([
@@ -64,6 +76,18 @@ describe("UsersController (e2e)", () => {
         FirebaseAuthModule,
         UserModule,
         SocketModule,
+        SendGridModule.forRoot({
+          imports: [ConfigModule],
+          useFactory: (configService: ConfigService) =>
+            configService.get(ConfigToken.SENDGRID),
+          inject: [ConfigService],
+        }),
+        GoogleCloudModule.forRoot({
+          imports: [ConfigModule],
+          useFactory: (configService: ConfigService) =>
+            configService.get(ConfigToken.GCP),
+          inject: [ConfigService],
+        }),
       ],
     })
       .overrideProvider(SocketGateway)
