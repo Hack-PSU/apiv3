@@ -18,7 +18,7 @@ import {
   ValidationPipe,
 } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
-import { Event, EventEntity } from "entities/event.entity";
+import { Event, EventEntity } from "@entities/event.entity";
 import {
   ApiExtraModels,
   ApiProperty,
@@ -33,13 +33,13 @@ import { FileInterceptor } from "@nestjs/platform-express";
 import { UploadedIcon } from "modules/event/uploaded-icon.decorator";
 import { Express, Request } from "express";
 import { EventService } from "modules/event/event.service";
-import { Scan, ScanEntity } from "entities/scan.entity";
+import { Scan, ScanEntity } from "@entities/scan.entity";
 import { Role, Roles } from "common/gcp";
 import { ApiDoc, BadRequestExceptionResponse } from "common/docs";
 import { DBExceptionFilter } from "common/filters";
 import { FirebaseMessagingService } from "common/gcp/messaging";
-import { User } from "entities/user.entity";
-import { LocationEntity } from "entities/location.entity";
+import { User } from "@entities/user.entity";
+import { LocationEntity } from "@entities/location.entity";
 
 class EventEntityResponse extends OmitType(EventEntity, ["wsUrls"] as const) {
   @ApiProperty({ type: [String] })

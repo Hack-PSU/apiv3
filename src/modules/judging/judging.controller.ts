@@ -17,9 +17,9 @@ import { ApiDoc } from "common/docs";
 import { DBExceptionFilter } from "common/filters";
 import { Role, Roles } from "common/gcp";
 import { InjectRepository, Repository } from "common/objection";
-import { OrganizerEntity } from "entities/organizer.entity";
-import { Project, ProjectEntity } from "entities/project.entity";
-import { Score, ScoreEntity } from "entities/score.entity";
+import { OrganizerEntity } from "@entities/organizer.entity";
+import { Project, ProjectEntity } from "@entities/project.entity";
+import { Score, ScoreEntity } from "@entities/score.entity";
 import * as _ from "lodash";
 import { JudgingService } from "modules/judging/judging.service";
 

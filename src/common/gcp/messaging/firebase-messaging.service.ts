@@ -5,7 +5,7 @@ import {
   Payload,
 } from "common/gcp/messaging/firebase-messaging.types";
 import { FirestoreModel } from "common/gcp/firestore";
-import { FirestoreUser } from "entities/firestore-user.entity";
+import { FirestoreUser } from "@entities/firestore-user.entity";
 import { DateTime } from "luxon";
 
 @Injectable()

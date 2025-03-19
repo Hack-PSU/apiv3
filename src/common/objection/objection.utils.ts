@@ -1,9 +1,9 @@
 import { ObjectionBaseEntityProvider } from "common/objection/objection.constants";
 import { Repository } from "common/objection/objection.repository";
 import { Provider } from "@nestjs/common";
-import { Hackathon } from "entities/hackathon.entity";
+import { Hackathon } from "@entities/hackathon.entity";
 import { CustomEntity, EntityOrCustom } from "common/objection/objection.types";
-import { Entity } from "entities/base.entity";
+import { Entity } from "@entities/base.entity";
 
 const isCustomEntity = <TEntity extends Entity>(
   entity: EntityOrCustom<TEntity>,

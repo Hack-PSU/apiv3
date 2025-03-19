@@ -1,7 +1,7 @@
 import { Test } from "@nestjs/testing";
 import { LocationController } from "modules/location/location.controller";
 import { ObjectionTestingModule } from "test/objection";
-import { Location } from "entities/location.entity";
+import { Location } from "@entities/location.entity";
 import { SocketModule } from "modules/socket/socket.module";
 import * as mock from "mock-knex";
 

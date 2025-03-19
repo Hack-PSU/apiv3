@@ -1,6 +1,6 @@
 import { Controller, Get, Query, ValidationPipe } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
-import { Registration, RegistrationEntity } from "entities/registration.entity";
+import { Registration, RegistrationEntity } from "@entities/registration.entity";
 import { ApiProperty, ApiTags } from "@nestjs/swagger";
 import { Role, Roles } from "common/gcp";
 import { ApiDoc } from "common/docs";

@@ -3,7 +3,7 @@ import { ApiTags } from "@nestjs/swagger";
 import { GoogleWalletService } from "common/gcp/wallet/google-wallet.service";
 import { HackathonPassData } from "common/gcp/wallet/google-wallet.types";
 import { InjectRepository, Repository } from "common/objection";
-import { Hackathon } from "entities/hackathon.entity";
+import { Hackathon } from "@entities/hackathon.entity";
 import { RestrictedRoles, Role } from "common/gcp";
 
 @ApiTags("Wallet")

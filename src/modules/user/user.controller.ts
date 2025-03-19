@@ -21,7 +21,7 @@ import {
   ValidationPipe,
 } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
-import { User, UserEntity } from "entities/user.entity";
+import { User, UserEntity } from "@entities/user.entity";
 import {
   ApiExtraModels,
   ApiProperty,
@@ -35,15 +35,15 @@ import { FileInterceptor } from "@nestjs/platform-express";
 import { UserService } from "modules/user/user.service";
 import { UploadedResume } from "modules/user/uploaded-resume.decorator";
 import { Express, Request } from "express";
-import { Scan, ScanEntity } from "entities/scan.entity";
+import { Scan, ScanEntity } from "@entities/scan.entity";
 import {
   ExtraCreditClass,
   ExtraCreditClassEntity,
-} from "entities/extra-credit-class.entity";
+} from "@entities/extra-credit-class.entity";
 import {
   ExtraCreditAssignment,
   ExtraCreditAssignmentEntity,
-} from "entities/extra-credit-assignment.entity";
+} from "@entities/extra-credit-assignment.entity";
 import { ApiDoc, BadRequestExceptionResponse } from "common/docs";
 import { DBExceptionFilter } from "common/filters";
 import {
@@ -51,12 +51,12 @@ import {
   DefaultTemplate,
   SendGridService,
 } from "common/sendgrid";
-import { Registration, RegistrationEntity } from "entities/registration.entity";
+import { Registration, RegistrationEntity } from "@entities/registration.entity";
 import * as admin from "firebase-admin";
 import { IsOptional } from "class-validator";
 import { Transform } from "class-transformer";
 import { FirebaseMessagingService } from "common/gcp/messaging";
-import { Event } from "entities/event.entity";
+import { Event } from "@entities/event.entity";
 
 class UserCreateEntity extends OmitType(UserEntity, ["resume"] as const) {
   @ApiProperty({

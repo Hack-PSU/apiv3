@@ -18,7 +18,7 @@ import {
   ValidationPipe,
 } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
-import { Sponsor, SponsorEntity } from "entities/sponsor.entity";
+import { Sponsor, SponsorEntity } from "@entities/sponsor.entity";
 import { SocketGateway } from "modules/socket/socket.gateway";
 import {
   ApiProperty,

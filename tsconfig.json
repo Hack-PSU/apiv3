@@ -20,7 +20,7 @@
     "resolveJsonModule": true,
     "paths": {
       "common/*": ["./src/common/*"],
-      "entities/*": ["./src/entities/*"],
+      "@entities/*": ["./src/entities/*"],
       "modules/*": ["./src/modules/*"],
       "test/*": ["./test/*"]
     }

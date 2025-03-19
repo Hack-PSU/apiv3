@@ -1,8 +1,8 @@
 import { Controller, Get } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
-import { Hackathon } from "entities/hackathon.entity";
-import { User } from "entities/user.entity";
-import { Registration } from "entities/registration.entity";
+import { Hackathon } from "@entities/hackathon.entity";
+import { User } from "@entities/user.entity";
+import { Registration } from "@entities/registration.entity";
 import {
   ApiExtraModels,
   ApiProperty,
@@ -11,8 +11,8 @@ import {
 } from "@nestjs/swagger";
 import { ApiDoc } from "common/docs";
 import { Role, Roles } from "common/gcp";
-import { Organizer, OrganizerEntity } from "entities/organizer.entity";
-import { Event, EventEntity } from "entities/event.entity";
+import { Organizer, OrganizerEntity } from "@entities/organizer.entity";
+import { Event, EventEntity } from "@entities/event.entity";
 
 class CountsResponse {
   @ApiProperty()

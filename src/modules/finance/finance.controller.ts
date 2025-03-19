@@ -28,10 +28,10 @@ import {
   FinanceEntity,
   Status,
   SubmitterType,
-} from "entities/finance.entity";
-import { Hackathon } from "entities/hackathon.entity";
-import { Organizer } from "entities/organizer.entity";
-import { User } from "entities/user.entity";
+} from "@entities/finance.entity";
+import { Hackathon } from "@entities/hackathon.entity";
+import { Organizer } from "@entities/organizer.entity";
+import { User } from "@entities/user.entity";
 import { nanoid } from "nanoid";
 import { FinanceService } from "./finance.service";
 import { UploadedReceipt } from "./uploaded-receipt.decorator";

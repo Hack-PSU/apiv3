@@ -1,10 +1,10 @@
 import { Module } from "@nestjs/common";
 import { ObjectionModule } from "common/objection";
-import { Registration } from "entities/registration.entity";
-import { User } from "entities/user.entity";
-import { Event } from "entities/event.entity";
-import { Scan } from "entities/scan.entity";
-import { Organizer } from "entities/organizer.entity";
+import { Registration } from "@entities/registration.entity";
+import { User } from "@entities/user.entity";
+import { Event } from "@entities/event.entity";
+import { Scan } from "@entities/scan.entity";
+import { Organizer } from "@entities/organizer.entity";
 import { AnalyticsService } from "modules/analytics/analytics.service";
 import { AnalyticsController } from "modules/analytics/analytics.controller";
 

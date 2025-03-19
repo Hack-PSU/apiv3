@@ -16,7 +16,7 @@ import {
   ValidationPipe,
 } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
-import { Organizer, OrganizerEntity } from "entities/organizer.entity";
+import { Organizer, OrganizerEntity } from "@entities/organizer.entity";
 import { SocketGateway } from "modules/socket/socket.gateway";
 import { ApiProperty, ApiTags, OmitType, PartialType } from "@nestjs/swagger";
 import { FirebaseAuthService, RestrictedRoles, Role, Roles } from "common/gcp";
@@ -26,11 +26,11 @@ import { SocketRoom } from "common/socket";
 import { ControllerMethod } from "common/validation";
 import { ApiDoc, BadRequestExceptionResponse } from "common/docs";
 import { DBExceptionFilter } from "common/filters";
-import { Project, ProjectEntity } from "entities/project.entity";
-import { Score, ScoreEntity } from "entities/score.entity";
+import { Project, ProjectEntity } from "@entities/project.entity";
+import { Score, ScoreEntity } from "@entities/score.entity";
 import { JudgingService } from "modules/judging/judging.service";
 import { IsNumber, IsOptional } from "class-validator";
-import { Hackathon } from "entities/hackathon.entity";
+import { Hackathon } from "@entities/hackathon.entity";
 import {
   DefaultFromEmail,
   DefaultTemplate,

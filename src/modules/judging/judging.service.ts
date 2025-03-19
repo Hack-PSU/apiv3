@@ -1,8 +1,8 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
-import { Organizer } from "entities/organizer.entity";
-import { Project } from "entities/project.entity";
-import { Score } from "entities/score.entity";
+import { Organizer } from "@entities/organizer.entity";
+import { Project } from "@entities/project.entity";
+import { Score } from "@entities/score.entity";
 
 export interface JudgeAssignment {
   judgeId: string;

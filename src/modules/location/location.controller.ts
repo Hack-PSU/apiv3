@@ -14,7 +14,7 @@ import {
   ValidationPipe,
 } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
-import { Location, LocationEntity } from "entities/location.entity";
+import { Location, LocationEntity } from "@entities/location.entity";
 import { ApiTags, OmitType, PartialType } from "@nestjs/swagger";
 import { SocketGateway } from "modules/socket/socket.gateway";
 import { Role, Roles } from "common/gcp";

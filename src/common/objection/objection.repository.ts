@@ -1,8 +1,8 @@
-import { Entity } from "entities/base.entity";
+import { Entity } from "@entities/base.entity";
 import { MaybeCompositeId, ModelClass } from "objection";
 import { Injectable } from "@nestjs/common";
 import { QueryBuilder } from "common/objection/query-builder";
-import { Hackathon } from "entities/hackathon.entity";
+import { Hackathon } from "@entities/hackathon.entity";
 import { TableMetadataKey } from "common/objection/decorators/decorator.constants";
 
 type StagedQuery<TResponse> = {

@@ -1,8 +1,8 @@
 import { Test } from "@nestjs/testing";
-import { User } from "entities/user.entity";
-import { Scan } from "entities/scan.entity";
-import { ExtraCreditClass } from "entities/extra-credit-class.entity";
-import { ExtraCreditAssignment } from "entities/extra-credit-assignment.entity";
+import { User } from "@entities/user.entity";
+import { Scan } from "@entities/scan.entity";
+import { ExtraCreditClass } from "@entities/extra-credit-class.entity";
+import { ExtraCreditAssignment } from "@entities/extra-credit-assignment.entity";
 import { FirebaseAuthModule, FirebaseConfig, Role } from "common/gcp";
 import { initializeApp } from "@firebase/app";
 import { User as FirebaseUser } from "@firebase/auth";

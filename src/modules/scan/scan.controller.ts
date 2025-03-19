@@ -1,11 +1,11 @@
 import { Controller, Get, Param, Query, UseFilters } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
-import { Scan, ScanEntity } from "entities/scan.entity";
+import { Scan, ScanEntity } from "@entities/scan.entity";
 import { ApiExtraModels, ApiProperty, ApiTags } from "@nestjs/swagger";
 import { RestrictedRoles, Role, Roles } from "common/gcp";
-import { Event, EventEntity } from "entities/event.entity";
-import { Organizer } from "entities/organizer.entity";
-import { Hackathon } from "entities/hackathon.entity";
+import { Event, EventEntity } from "@entities/event.entity";
+import { Organizer } from "@entities/organizer.entity";
+import { Hackathon } from "@entities/hackathon.entity";
 import { ApiDoc } from "common/docs";
 import { DBExceptionFilter } from "common/filters";
 

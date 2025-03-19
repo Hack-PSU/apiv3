@@ -17,7 +17,7 @@ import { InjectRepository, Repository } from "common/objection";
 import {
   ExtraCreditClass,
   ExtraCreditClassEntity,
-} from "entities/extra-credit-class.entity";
+} from "@entities/extra-credit-class.entity";
 import {
   ApiExtraModels,
   ApiProperty,

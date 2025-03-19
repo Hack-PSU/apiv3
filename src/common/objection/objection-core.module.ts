@@ -5,7 +5,7 @@ import {
   ObjectionDBConnectionProvider,
 } from "./objection.constants";
 import { DBConnection, ObjectionCoreModuleOptions } from "./objection.types";
-import { Entity } from "entities/base.entity";
+import { Entity } from "@entities/base.entity";
 import { knexSnakeCaseMappers } from "objection";
 
 // Used to avoid edge-case where 2 instances are no longer singletons
