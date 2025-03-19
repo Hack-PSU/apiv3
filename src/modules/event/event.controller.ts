@@ -379,7 +379,7 @@ export class EventController {
   }
 
   @Post(":id/check-in/user/:userId")
-  //@Roles(Role.TEAM)
+  @Roles(Role.TEAM)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiDoc({
     summary: "Check-In by Event",
