@@ -4,6 +4,7 @@ import { Barcode, Location, PKPass } from "passkit-generator";
 import * as fs from "fs";
 import { HackathonPassData } from "../gcp/wallet/google-wallet.types";
 import axios from "axios";
+import { DateTime } from "luxon";
 
 @Injectable()
 export class AppleWalletService {
@@ -70,12 +71,12 @@ export class AppleWalletService {
           {
             key: "startTime",
             label: "Start Time",
-            value: new Date(passData.startDateTime).toLocaleString(),
+            value: passData.startDateTime,
           },
           {
             key: "endTime",
             label: "End Time",
-            value: new Date(passData.endDateTime).toLocaleString(),
+            value: passData.endDateTime,
           },
         ],
         auxiliaryFields: [],
