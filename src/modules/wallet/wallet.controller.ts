@@ -54,7 +54,7 @@ export class WalletController {
       startDateTime: new Date(hackathon.startTime).toISOString(),
       endDateTime: new Date(hackathon.endTime).toISOString(),
       location: {
-        latitude: 40.803470,
+        latitude: 40.803470, //eslint-disable-line
         longitude: -77.865478,
       },
     };
