@@ -71,12 +71,16 @@ export class AppleWalletService {
           {
             key: "startTime",
             label: "Start Time",
-            value: passData.startDateTime,
+            value: DateTime.fromJSDate(new Date(passData.startDateTime), {
+              zone: "America/New_York",
+            }).toLocaleString(DateTime.DATETIME_MED),
           },
           {
             key: "endTime",
             label: "End Time",
-            value: passData.endDateTime,
+            value: DateTime.fromJSDate(new Date(passData.endDateTime), {
+              zone: "America/New_York",
+            }).toLocaleString(DateTime.DATETIME_MED),
           },
         ],
         auxiliaryFields: [],
