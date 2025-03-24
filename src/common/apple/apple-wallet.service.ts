@@ -1,6 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { Barcode, PKPass } from "passkit-generator";
+import { Barcode, Location, PKPass } from "passkit-generator";
 import * as fs from "fs";
 import { HackathonPassData } from "../gcp/wallet/google-wallet.types";
 import axios from "axios";
@@ -56,6 +56,8 @@ export class AppleWalletService {
       passTypeIdentifier: "pass.hackpsu.wallet",
       serialNumber: `${Date.now()}`,
       teamIdentifier: "HN6JG96A2Y",
+      foregroundColor: "rgb(255,255,255)",
+      backgroundColor: "rgb(134,157,203)",
       eventTicket: {
         primaryFields: [
           {
@@ -95,6 +97,13 @@ export class AppleWalletService {
     };
 
     pass.setBarcodes(barcode);
+
+    const location: Location = {
+      latitude: passData.location.latitude,
+      longitude: passData.location.longitude,
+    };
+
+    pass.setLocations(location);
 
     let iconBuffer: Buffer;
     if (passData.logoUrl) {

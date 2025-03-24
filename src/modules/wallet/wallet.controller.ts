@@ -5,6 +5,7 @@ import { HackathonPassData } from "common/gcp/wallet/google-wallet.types";
 import { InjectRepository, Repository } from "common/objection";
 import { Hackathon } from "entities/hackathon.entity";
 import { RestrictedRoles, Role } from "common/gcp";
+import { DateTime } from "luxon";
 
 @ApiTags("Wallet")
 @Controller("wallet")
@@ -51,10 +52,14 @@ export class WalletController {
         "https://storage.googleapis.com/hackpsu-408118.appspot.com/sponsor-logos/6-Test%20Sponsor-light.png",
       ticketHolderName: `User ${userId}`,
       ticketNumber: userId,
-      startDateTime: new Date(hackathon.startTime).toISOString(),
-      endDateTime: new Date(hackathon.endTime).toISOString(),
+      startDateTime: DateTime.fromJSDate(new Date(hackathon.startTime), {
+        zone: "America/New_York",
+      }).toISO(),
+      endDateTime: DateTime.fromJSDate(new Date(hackathon.endTime), {
+        zone: "America/New_York",
+      }).toISO(),
       location: {
-        latitude: 40.803470, //eslint-disable-line
+        latitude: 40.80347, //eslint-disable-line
         longitude: -77.865478,
       },
     };
