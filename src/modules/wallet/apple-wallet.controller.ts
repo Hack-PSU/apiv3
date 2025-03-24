@@ -1,9 +1,17 @@
-import { Controller, Get, Param, Res, NotFoundException } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  Param,
+  Res,
+  NotFoundException,
+  Post,
+} from "@nestjs/common";
 import { Response } from "express";
 import { AppleWalletService } from "../../common/apple/apple-wallet.service";
 import { HackathonPassData } from "../../common/gcp/wallet/google-wallet.types";
 import { InjectRepository, Repository } from "common/objection";
 import { Hackathon } from "entities/hackathon.entity";
+import { RestrictedRoles, Role } from "common/gcp";
 
 @Controller("wallet/apple")
 export class AppleWalletController {
@@ -13,7 +21,11 @@ export class AppleWalletController {
     private readonly hackathonRepo: Repository<Hackathon>,
   ) {}
 
-  @Get(":id/pass")
+  @Post(":id/pass")
+  @RestrictedRoles({
+    roles: [Role.NONE],
+    predicate: (req) => req.user && req.user.sub === req.params.id,
+  })
   async createPass(
     @Param("id") userId: string,
     @Res() res: Response,
