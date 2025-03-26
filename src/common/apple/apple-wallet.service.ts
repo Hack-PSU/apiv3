@@ -55,7 +55,7 @@ export class AppleWalletService {
       formatVersion: 1,
       organizationName: passData.issuerName,
       passTypeIdentifier: "pass.hackpsu.wallet",
-      serialNumber: `${Date.now()}`,
+      serialNumber: `${Date.now()}-${userId}`,
       teamIdentifier: "HN6JG96A2Y",
       foregroundColor: "rgb(255,255,255)",
       backgroundColor: "rgb(134,157,203)",
@@ -74,6 +74,12 @@ export class AppleWalletService {
             value: DateTime.fromJSDate(new Date(passData.startDateTime), {
               zone: "America/New_York",
             }).toLocaleString(DateTime.DATETIME_MED),
+            semantics: {
+              eventStartDate: DateTime.fromJSDate(
+                new Date(passData.startDateTime),
+                { zone: "America/New_York" },
+              ).toISO(),
+            },
           },
           {
             key: "endTime",
@@ -81,18 +87,34 @@ export class AppleWalletService {
             value: DateTime.fromJSDate(new Date(passData.endDateTime), {
               zone: "America/New_York",
             }).toLocaleString(DateTime.DATETIME_MED),
+            semantics: {
+              eventEndDate: DateTime.fromJSDate(
+                new Date(passData.endDateTime),
+                { zone: "America/New_York" },
+              ).toISO(),
+            },
           },
         ],
-        auxiliaryFields: [],
+        auxiliaryFields: [
+          {
+            key: "location",
+            label: "Location",
+            value: "Business Building, University Park, PA",
+            semantics: {
+              location: {
+                latitude: passData.location.latitude,
+                longitude: passData.location.longitude,
+              },
+            },
+          },
+        ],
       },
     };
 
-    // Create the initial buffers with the pass.json file.
     const initialBuffers = {
       "pass.json": Buffer.from(JSON.stringify(passJson, null, 2)),
     };
 
-    // Create a new PKPass instance.
     const pass = new PKPass(initialBuffers, this.certificates, {});
 
     const barcode: Barcode = {
@@ -111,36 +133,28 @@ export class AppleWalletService {
     pass.setLocations(location);
 
     let iconBuffer: Buffer;
-    if (passData.logoUrl) {
-      try {
-        iconBuffer = await this.downloadImage(passData.logoUrl);
-        this.logger.log("Downloaded icon from URL");
-      } catch (error) {
-        this.logger.error(
-          "Error downloading icon, using fallback local icon",
-          error,
-        );
-        iconBuffer = fs.readFileSync("./assets/icon.png");
-      }
-    } else {
-      iconBuffer = fs.readFileSync("./assets/icon.png");
+    try {
+      iconBuffer = await this.downloadImage(passData.logoUrl);
+      this.logger.log("Downloaded icon from URL");
+    } catch (error) {
+      this.logger.error(
+        "Error downloading icon, using fallback local icon",
+        error,
+      );
     }
     pass.addBuffer("icon.png", iconBuffer);
 
-    if (passData.logoUrl) {
-      let logoBuffer: Buffer;
-      try {
-        logoBuffer = await this.downloadImage(passData.logoUrl);
-        this.logger.log("Downloaded logo from URL");
-      } catch (error) {
-        this.logger.error(
-          "Error downloading logo, using fallback local logo",
-          error,
-        );
-        logoBuffer = fs.readFileSync("./assets/logo.png");
-      }
-      pass.addBuffer("logo.png", logoBuffer);
+    let logoBuffer: Buffer;
+    try {
+      logoBuffer = await this.downloadImage(passData.logoUrl);
+      this.logger.log("Downloaded logo from URL");
+    } catch (error) {
+      this.logger.error(
+        "Error downloading logo, using fallback local logo",
+        error,
+      );
     }
+    pass.addBuffer("logo.png", logoBuffer);
 
     // Generate and return the signed .pkpass buffer.
     const pkpassBuffer = pass.getAsBuffer();
