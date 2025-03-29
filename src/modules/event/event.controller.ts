@@ -40,6 +40,7 @@ import { DBExceptionFilter } from "common/filters";
 import { FirebaseMessagingService } from "common/gcp/messaging";
 import { User } from "entities/user.entity";
 import { LocationEntity } from "entities/location.entity";
+import { Registration } from "entities/registration.entity";
 
 class EventEntityResponse extends OmitType(EventEntity, ["wsUrls"] as const) {
   @ApiProperty({ type: [String] })
@@ -73,6 +74,8 @@ export class EventController {
     private readonly scanRepo: Repository<Scan>,
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
+    @InjectRepository(Registration)
+    private readonly registrationRepo: Repository<Registration>,
     private readonly fcmService: FirebaseMessagingService,
     private readonly socket: SocketGateway,
     private readonly eventService: EventService,
@@ -426,8 +429,21 @@ export class EventController {
       throw new HttpException("user not found", HttpStatus.BAD_REQUEST);
     }
 
+    // check if user is registered for the current hackathon
+    const registration = await this.registrationRepo.findAll().exec();
+    const userRegistration = registration
+      .filter((r) => r.userId == userId)
+      .filter((r) => r.hackathonId == data.hackathonId)[0];
+    console.log("user registration", userRegistration);
+
+    if (!userRegistration) {
+      throw new HttpException(
+        "User is not registered for the current hackathon",
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
     if (event.type != EventType.checkIn) {
-      console.log("event type is not check-in");
       // Find check-in event
       const checkInEvent = await (await this.eventRepo.findAll().exec())
         .filter((e) => e.type == EventType.checkIn)
