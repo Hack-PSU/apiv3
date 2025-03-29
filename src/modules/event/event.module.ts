@@ -6,10 +6,11 @@ import { EventService } from "modules/event/event.service";
 import { Scan } from "entities/scan.entity";
 import { FirebaseMessagingModule } from "common/gcp/messaging";
 import { User } from "entities/user.entity";
+import { Registration } from "entities/registration.entity";
 
 @Module({
   imports: [
-    ObjectionModule.forFeature([Event, Scan, User]),
+    ObjectionModule.forFeature([Event, Scan, User, Registration]),
     FirebaseMessagingModule,
   ],
   providers: [EventService],

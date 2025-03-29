@@ -40,6 +40,7 @@ import { DBExceptionFilter } from "common/filters";
 import { FirebaseMessagingService } from "common/gcp/messaging";
 import { User } from "entities/user.entity";
 import { LocationEntity } from "entities/location.entity";
+import { Registration } from "entities/registration.entity";
 
 class EventEntityResponse extends OmitType(EventEntity, ["wsUrls"] as const) {
   @ApiProperty({ type: [String] })
@@ -73,6 +74,8 @@ export class EventController {
     private readonly scanRepo: Repository<Scan>,
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
+    @InjectRepository(Registration)
+    private readonly registrationRepo: Repository<Registration>,
     private readonly fcmService: FirebaseMessagingService,
     private readonly socket: SocketGateway,
     private readonly eventService: EventService,
@@ -424,6 +427,18 @@ export class EventController {
 
     if (!user) {
       throw new HttpException("user not found", HttpStatus.BAD_REQUEST);
+    }
+
+    // check if user is registered for the current hackathon
+    const registration = await this.registrationRepo
+      .findOne(userId)
+      .byHackathon(data.hackathonId);
+
+    if (!registration) {
+      throw new HttpException(
+        "User is not registered for the current hackathon",
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     if (event.type != EventType.checkIn) {
