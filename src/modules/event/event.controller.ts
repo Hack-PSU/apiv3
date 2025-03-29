@@ -382,7 +382,6 @@ export class EventController {
   }
 
   @Post(":id/check-in/user/:userId")
-  @Roles(Role.TEAM)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiDoc({
     summary: "Check-In by Event",
@@ -430,11 +429,13 @@ export class EventController {
     }
 
     // check if user is registered for the current hackathon
-    const registration = await this.registrationRepo
-      .findOne(userId)
-      .byHackathon(data.hackathonId);
+    const registration = await this.registrationRepo.findAll().exec();
+    const userRegistration = registration
+      .filter((r) => r.userId == userId)
+      .filter((r) => r.hackathonId == data.hackathonId)[0];
+    console.log("user registration", userRegistration);
 
-    if (!registration) {
+    if (!userRegistration) {
       throw new HttpException(
         "User is not registered for the current hackathon",
         HttpStatus.BAD_REQUEST,
@@ -442,7 +443,6 @@ export class EventController {
     }
 
     if (event.type != EventType.checkIn) {
-      console.log("event type is not check-in");
       // Find check-in event
       const checkInEvent = await (await this.eventRepo.findAll().exec())
         .filter((e) => e.type == EventType.checkIn)
