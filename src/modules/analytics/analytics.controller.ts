@@ -64,6 +64,31 @@ class AnalyticsSummaryResponse {
   codingExp: CodingExpCounts[];
 }
 
+class PieChartData{
+  @ApiProperty()
+  category: string;
+
+  @ApiProperty()
+  amount: number;
+}
+
+class FinancialSummaryResponse { 
+  @ApiProperty()
+  totalExpenses: number;
+
+  @ApiProperty()
+  pendingReimbursements: number;
+
+  @ApiProperty()
+  approvedReimbursements: number;
+
+  @ApiProperty({type: [PieChartData]})
+  spendingCategories: PieChartData[];
+
+  @ApiProperty()
+  bankAccountBalance: number;
+}
+
 class AnalyticsScansResponse extends PickType(OrganizerEntity, [
   "id",
   "firstName",

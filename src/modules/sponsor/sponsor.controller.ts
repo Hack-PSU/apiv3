@@ -439,6 +439,19 @@ export class SponsorController {
     return sponsor;
   }
 
+  @Post("/past-sponsors-information")
+  @Roles(Role.TEAM)
+  @ApiDoc({
+    summary: "Returns past sponsor information",
+    response: {
+      ok: {type: [SponsorEntity]},
+    },
+    auth: Role.TEAM,
+  })
+  async getPastSponsorsInformation(){
+    return await this.sponsorRepo.findAll();
+  }
+
   @Patch("/batch/update")
   @Roles(Role.TEAM)
   @ApiDoc({
