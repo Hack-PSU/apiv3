@@ -13,6 +13,7 @@ import { ApiDoc } from "common/docs";
 import { Role, Roles } from "common/gcp";
 import { Organizer, OrganizerEntity } from "entities/organizer.entity";
 import { Event, EventEntity } from "entities/event.entity";
+import { Finance } from "entities/finance.entity";
 
 class CountsResponse {
   @ApiProperty()
@@ -122,6 +123,8 @@ export class AnalyticsController {
     private readonly registrationRepo: Repository<Registration>,
     @InjectRepository(Event)
     private readonly eventRepo: Repository<Event>,
+    @InjectRepository(Finance)
+    private readonly financeRepo: Repository<Finance>,
   ) {}
 
   @Get("/summary")
@@ -174,12 +177,44 @@ export class AnalyticsController {
       .groupBy("codingExperience")
       .select("codingExperience");
 
+    const yearToDateExpenses = await this.financeRepo
+      .findAll()
+      .byHackathon()
+      .where("status", "APPROVED")
+      //.whereBetween()
+      .count("amount", { as: "totalExpenses" })
+
+    const spendingCategories = await this.financeRepo
+      .findAll()
+      .byHackathon()
+      .where("status", "APPROVED")
+      .select("category")
+      .groupBy("category")
+      
+    const totalReimbursements = await this.financeRepo
+      .findAll()
+      .byHackathon()
+      .whereIn("status", ["APPROVED", "REJECTED"])
+      .groupBy("status")
+      .count("id", {as: "count" })
+
+
+    const bankAccountBalance = await this.financeRepo
+      .findAll()
+      .byHackathon()
+      .where("status", "APPROVED")
+      .sum("amount as totalBalance")
+
     return {
       registrations: registrationCountsByHackathon,
       gender: activeGenderCounts,
       race: activeRaceEthnicityCounts,
       academicYear: activeAcademicYearCounts,
       codingExp: activeCodingExpCounts,
+      ytdExpenses: yearToDateExpenses,
+      categories: spendingCategories,
+      reimbursements: totalReimbursements,
+      bankBalance: bankAccountBalance,
     };
   }
 

@@ -449,7 +449,7 @@ export class SponsorController {
     auth: Role.TEAM,
   })
   async getPastSponsorsInformation(){
-    return await this.sponsorRepo.findAll();
+    return await this.sponsorRepo.findAll().byHackathon();
   }
 
   @Patch("/batch/update")
