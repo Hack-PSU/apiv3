@@ -186,6 +186,20 @@ export class SponsorController {
     return sponsor;
   }
 
+  @Get("/past-sponsors-information")
+  @Roles(Role.TEAM)
+  @ApiDoc({
+    summary: "Returns past sponsor information",
+    response: {
+      ok: {type: [SponsorEntity]},
+    },
+    auth: Role.TEAM,
+  })
+  async getPastSponsorsInformation(){
+    return await this.sponsorRepo.findAll().byHackathon();
+  }
+
+
   @Get(":id")
   @Roles(Role.TEAM)
   @ApiDoc({
@@ -438,6 +452,7 @@ export class SponsorController {
 
     return sponsor;
   }
+
 
   @Patch("/batch/update")
   @Roles(Role.TEAM)
