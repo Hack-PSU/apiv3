@@ -7,10 +7,11 @@ import { Scan } from "entities/scan.entity";
 import { Organizer } from "entities/organizer.entity";
 import { AnalyticsService } from "modules/analytics/analytics.service";
 import { AnalyticsController } from "modules/analytics/analytics.controller";
+import { Finance } from "entities/finance.entity";
 
 @Module({
   imports: [
-    ObjectionModule.forFeature([Registration, User, Event, Scan, Organizer]),
+    ObjectionModule.forFeature([Registration, User, Event, Scan, Organizer, Finance]),
   ],
   controllers: [AnalyticsController],
   providers: [AnalyticsService],
