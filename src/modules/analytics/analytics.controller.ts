@@ -177,12 +177,38 @@ export class AnalyticsController {
       .groupBy("codingExperience")
       .select("codingExperience");
 
+    return {
+      registrations: registrationCountsByHackathon,
+      gender: activeGenderCounts,
+      race: activeRaceEthnicityCounts,
+      academicYear: activeAcademicYearCounts,
+      codingExp: activeCodingExpCounts,
+
+    };
+  }
+
+  @Get("/financial-information")
+  //@Roles(Role.TEAM)
+  @ApiDoc({
+    summary: "Returns a variety of financial information used in the finanacial dashboard",
+    //auth: Role.TEAM,
+    response: {
+      ok: { type: FinancialSummaryResponse },
+    },
+  })
+  async getFinancials(){
+
+    const date = new Date();
+    const getYear = date.getFullYear();
+    const startDate = new Date(`${getYear}-01-01`).getTime();
+    const endDate = date.getTime();
+
     const yearToDateExpenses = await this.financeRepo
       .findAll()
       .byHackathon()
       .where("status", "APPROVED")
-      //.whereBetween()
-      .count("amount", { as: "totalExpenses" })
+      .whereBetween("createdAt", [startDate, endDate])
+      .sum("amount as totalExpenses")
 
     const spendingCategories = await this.financeRepo
       .findAll()
@@ -195,28 +221,19 @@ export class AnalyticsController {
       .findAll()
       .byHackathon()
       .whereIn("status", ["APPROVED", "REJECTED"])
+      .count("id", { as: "reimbursements" })
       .groupBy("status")
-      .count("id", {as: "count" })
+      .select(
 
+      )
 
-    const bankAccountBalance = await this.financeRepo
-      .findAll()
-      .byHackathon()
-      .where("status", "APPROVED")
-      .sum("amount as totalBalance")
-
-    return {
-      registrations: registrationCountsByHackathon,
-      gender: activeGenderCounts,
-      race: activeRaceEthnicityCounts,
-      academicYear: activeAcademicYearCounts,
-      codingExp: activeCodingExpCounts,
+    return{
       ytdExpenses: yearToDateExpenses,
       categories: spendingCategories,
       reimbursements: totalReimbursements,
-      bankBalance: bankAccountBalance,
-    };
+    }
   }
+
 
   @Get("/events")
   @Roles(Role.TEAM)

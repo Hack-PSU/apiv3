@@ -186,17 +186,15 @@ export class SponsorController {
     return sponsor;
   }
 
-  @Get("/past-sponsors-information")
-  @Roles(Role.TEAM)
+  @Get("/all-sponsors")
   @ApiDoc({
     summary: "Returns past sponsor information",
     response: {
       ok: {type: [SponsorEntity]},
     },
-    auth: Role.TEAM,
   })
   async getPastSponsorsInformation(){
-    return await this.sponsorRepo.findAll().byHackathon();
+    return await this.sponsorRepo.findAll().exec();
   }
 
 
