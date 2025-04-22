@@ -138,6 +138,9 @@ export class FinanceController {
     if (finance.submitterType === SubmitterType.USER) {
       const user = await this.userRepo.findOne(finance.submitterId).exec();
       if (!user) throw new NotFoundException("User not found");
+      if (finance.amount > 110) {
+        throw new BadRequestException("Participants cannot request reimbursements exceeding $110.");
+      }
     } else if (finance.submitterType === SubmitterType.ORGANIZER) {
       const organizer = await this.organizerRepo
         .findOne(finance.submitterId)
