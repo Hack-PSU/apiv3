@@ -10,6 +10,7 @@ import {
   Param,
   Patch,
   InternalServerErrorException,
+  Req,
 } from "@nestjs/common";
 import {
   ApiTags,
@@ -54,6 +55,19 @@ class OptionalStatus extends PartialType(
 export class FinanceCreateEntity extends IntersectionType(
   BaseFinanceCreateEntity,
   OptionalStatus,
+) {}
+
+export class FinancePatchEntity extends PartialType(
+  OmitType(FinanceEntity, [
+    "hackathonId",
+    "id",
+    "createdAt",
+    "updatedBy",
+    "submitterId",
+    "submitterType",
+    "receiptUrl",
+    "status",
+  ] as const),
 ) {}
 
 @ApiTags("Finance")
@@ -261,7 +275,10 @@ export class FinanceController {
         description1: updatedFinance.description,
         objectCode1: CategoryMap[updatedFinance.category],
         Date: new Date().toLocaleDateString(),
-        Group1: "Choice2",
+        Group1:
+          finance.submitterType === SubmitterType.ORGANIZER
+            ? "Choice1"
+            : "Choice2",
       };
 
       const pdfBytes = await this.financeService.populateReimbursementForm(
@@ -353,5 +370,45 @@ export class FinanceController {
     }
 
     return updatedFinance;
+  }
+
+  @Patch(":id")
+  @Roles(Role.TECH)
+  @ApiDoc({
+    summary: "Edit a reimbursement (everything but status & receipt)",
+    params: [{ name: "id", description: "Valid reimbursement ID" }],
+    request: { body: { type: FinancePatchEntity }, validate: true },
+    response: { ok: { type: FinanceEntity } },
+    auth: Role.TECH,
+  })
+  async patchFinance(
+    @Param("id") id: string,
+    @Req() req: any,
+    @Body(
+      new ValidationPipe({
+        transform: true,
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transformOptions: { enableImplicitConversion: true },
+      }),
+    )
+    updates: FinancePatchEntity,
+  ): Promise<Finance> {
+    const finance = await this.financeRepo.findOne(id).exec();
+    if (!finance) throw new NotFoundException("Reimbursement not found");
+
+    // check if status is pending
+    if (finance.status !== Status.PENDING) {
+      throw new BadRequestException("Cannot edit non-pending record");
+    }
+
+    Object.assign(finance, updates);
+    finance.updatedBy = req.user.sub;
+    try {
+      return await this.financeRepo.patchOne(id, finance).exec();
+    } catch (err) {
+      console.error("Error updating reimbursement", err);
+      throw new InternalServerErrorException("Failed to update record");
+    }
   }
 }
