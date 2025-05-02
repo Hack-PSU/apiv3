@@ -30,15 +30,20 @@ export class AppleWalletService {
     const signerKeyPassphrase = this.configService.get<string>(
       "APPLE_SIGNER_KEY_PASSPHRASE",
     );
-
-    this.certificates = {
-      wwdr: fs.readFileSync(wwdrPath),
-      signerCert: fs.readFileSync(signerCertPath),
-      signerKey: fs.readFileSync(signerKeyPath),
-      signerKeyPassphrase,
-    };
-
-    this.logger.log("Apple Wallet certificates loaded");
+    try {
+      this.certificates = {
+        wwdr: fs.readFileSync(wwdrPath),
+        signerCert: fs.readFileSync(signerCertPath),
+        signerKey: fs.readFileSync(signerKeyPath),
+        signerKeyPassphrase,
+      };
+      this.logger.log("Apple Wallet certificates loaded");
+    } catch (error) {
+      this.logger.error(
+        "Error loading Apple Wallet certificates. Please check the paths.",
+        error,
+      );
+    }
   }
 
   private async downloadImage(url: string): Promise<Buffer> {
