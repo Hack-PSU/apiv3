@@ -261,7 +261,10 @@ export class FinanceController {
         description1: updatedFinance.description,
         objectCode1: CategoryMap[updatedFinance.category],
         Date: new Date().toLocaleDateString(),
-        Group1: "Choice2",
+        Group1:
+          finance.submitterType === SubmitterType.ORGANIZER
+            ? "Choice1"
+            : "Choice2",
       };
 
       const pdfBytes = await this.financeService.populateReimbursementForm(
