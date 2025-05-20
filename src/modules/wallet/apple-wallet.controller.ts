@@ -50,7 +50,8 @@ export class AppleWalletController {
         zone: "America/New_York",
       }).toISO(),
       location: {
-        latitude: 40.803470, // eslint-disable-line
+        // prettier-ignore
+        latitude: 40.803470,
         longitude: -77.865478,
       },
     };
