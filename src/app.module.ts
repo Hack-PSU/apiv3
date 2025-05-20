@@ -6,9 +6,7 @@ import {
   ConfigToken,
   dbConfig,
   firebaseConfig,
-  invoiceBucketConfig,
-  resumeBucketConfig,
-  reimbursementFormBucketConfig,
+  bucketConfig,
   sendGridConfig,
 } from "common/config";
 import { AnalyticsModule } from "modules/analytics/analytics.module";
@@ -43,9 +41,7 @@ import { WalletModule } from "modules/wallet/wallet.module";
         firebaseConfig,
         sendGridConfig,
         appleConfig,
-        resumeBucketConfig,
-        invoiceBucketConfig,
-        reimbursementFormBucketConfig,
+        bucketConfig,
       ],
     }),
 

@@ -12,7 +12,7 @@ export class UserService {
 
   constructor(private readonly configService: ConfigService) {
     this.resumeBucketName = configService.get<ResumeBucketConfig>(
-      ConfigToken.RESUME,
+      ConfigToken.BUCKET,
     ).resume_bucket;
   }
 
