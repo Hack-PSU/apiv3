@@ -17,7 +17,7 @@ export class EmailController {
   constructor(private readonly namecheap: NamecheapEmailForwardingService) {}
 
   @Get("/forwarding")
-  //@Roles(Role.EXEC)
+  @Roles(Role.EXEC)
   @ApiDoc({
     summary: "Get all email forwarding settings for hackpsu.org",
     auth: Role.EXEC,
