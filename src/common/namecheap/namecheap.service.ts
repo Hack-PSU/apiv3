@@ -43,6 +43,8 @@ export class NamecheapEmailForwardingService {
     });
     const parsed = parser.parse(resp.data);
 
+    console.log("Parsed XML:", parsed);
+
     const result =
       parsed?.ApiResponse?.CommandResponse?.DomainDNSGetEmailForwardingResult;
     if (!result) {

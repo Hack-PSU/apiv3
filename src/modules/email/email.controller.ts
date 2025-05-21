@@ -11,7 +11,7 @@ import { ApiTags } from "@nestjs/swagger";
 import { ApiDoc, BadRequestExceptionResponse } from "common/docs";
 import { Role, Roles } from "common/gcp";
 
-@ApiTags("email")
+@ApiTags("Email")
 @Controller("email")
 export class EmailController {
   constructor(private readonly namecheap: NamecheapEmailForwardingService) {}
