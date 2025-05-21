@@ -31,6 +31,7 @@ import { SponsorModule } from "modules/sponsor/sponsor.module";
 import { UserModule } from "modules/user/user.module";
 import { FinanceModule } from "modules/finance/finance.module";
 import { WalletModule } from "modules/wallet/wallet.module";
+import { EmailModule } from "modules/email/email.module";
 
 @Module({
   imports: [
@@ -94,6 +95,7 @@ import { WalletModule } from "modules/wallet/wallet.module";
     AnalyticsModule,
     FinanceModule,
     WalletModule,
+    EmailModule,
 
     // WebSocket
     SocketModule,
