@@ -33,34 +33,34 @@ import { SponsorEntity } from "@entities/sponsor.entity";
 import { ApiDoc } from "common/docs";
 import { DBExceptionFilter } from "common/filters";
 
-class HackathonUpdateEntity extends OmitType(HackathonEntity, [
+export class HackathonUpdateEntity extends OmitType(HackathonEntity, [
   "id",
 ] as const) {}
 
-class HackathonCreateEntity extends OmitType(HackathonUpdateEntity, [
+export class HackathonCreateEntity extends OmitType(HackathonUpdateEntity, [
   "active",
 ] as const) {}
 
-class HackathonPatchEntity extends PartialType(HackathonUpdateEntity) {}
+export class HackathonPatchEntity extends PartialType(HackathonUpdateEntity) {}
 
-class HackathonCheckInResponse {
+export class HackathonCheckInResponse {
   @ApiProperty({
     description: "Included when active is set to true",
   })
   checkInId?: string;
 }
 
-class ConditionalHackathonResponse extends IntersectionType(
+export class ConditionalHackathonResponse extends IntersectionType(
   HackathonEntity,
   PartialType(HackathonCheckInResponse),
 ) {}
 
-class HackathonResponse extends IntersectionType(
+export class HackathonResponse extends IntersectionType(
   HackathonEntity,
   HackathonCheckInResponse,
 ) {}
 
-class StaticEventLocationEntity {
+export class StaticEventLocationEntity {
   @ApiProperty()
   id: number;
 
@@ -68,12 +68,12 @@ class StaticEventLocationEntity {
   name: string;
 }
 
-class StaticEventEntity extends EventEntity {
+export class StaticEventEntity extends EventEntity {
   @ApiProperty({ type: StaticEventLocationEntity })
   location: StaticEventLocationEntity;
 }
 
-class StaticActiveHackathonEntity extends HackathonEntity {
+export class StaticActiveHackathonEntity extends HackathonEntity {
   @ApiProperty({ type: [EventEntity] })
   events: StaticEventEntity[];
 
@@ -81,7 +81,7 @@ class StaticActiveHackathonEntity extends HackathonEntity {
   sponsors: SponsorEntity[];
 }
 
-class ActiveHackathonParams {
+export class ActiveHackathonParams {
   @ApiProperty({
     required: false,
     description: "active can either be a boolean or undefined",
