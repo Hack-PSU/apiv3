@@ -349,7 +349,7 @@ export class OrganizerController {
     auth: Role.EXEC,
   })
   async deleteOne(@Param("id") id: string) {
-    const organizer = await this.organizerRepo.deleteOne(id).exec();
+    const organizer = await this.organizerRepo.patchOne(id, { isActive: false }).exec();
 
     await this.auth.updateUserPrivilege(id, Role.NONE);
     this.socket.emit("delete:organizer", organizer, SocketRoom.ADMIN);
