@@ -33,7 +33,7 @@ export class JudgingService {
 
     // Get all organizers filtered by the provided user IDs.
     const organizers: Organizer[] = (
-      await this.organizerRepo.findAll().exec()
+      await this.organizerRepo.findAll().raw().where("isActive", true).execute()
     ).filter((user) => users.includes(user.id));
 
     // Categorize judges
@@ -180,6 +180,11 @@ export class JudgingService {
   }
 
   async reassignJudge(judgeId: string, excludeProjects: number[]) {
+    const judge = await this.organizerRepo.findOne(judgeId).exec();
+    if (!judge || !judge.isActive) {
+      throw new Error("Judge is not active or does not exist.");
+    }
+
     const unassignedProjects = await this.getUnassignedProjects();
     const validUnassignedProjects = unassignedProjects.filter(
       (p) => !excludeProjects.includes(p.id),
@@ -209,8 +214,10 @@ export class JudgingService {
   ): Promise<JudgeAssignment | null> {
     // ensure that the judge exists
     const judge = await this.organizerRepo.findOne(judgeId).exec();
-    if (!judge) {
-      throw new Error(`Judge with ID ${judgeId} does not exist.`);
+    if (!judge || !judge.isActive) {
+      throw new Error(
+        `Judge with ID ${judgeId} is not active or does not exist.`,
+      );
     }
 
     // Get all projects for the current hackathon.
