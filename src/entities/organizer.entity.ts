@@ -90,7 +90,7 @@ export class Organizer extends Entity {
   judgingLocation?: string;
 
   @ApiProperty({ type: Boolean, default: true })
-  @Column({ type: "boolean", default: true, required: true })
+  @Column({ type: "boolean", required: true })
   isActive: boolean;
 }
 
