@@ -88,6 +88,10 @@ export class Organizer extends Entity {
   @IsString()
   @Column({ type: "string", required: false, nullable: true })
   judgingLocation?: string;
+
+  @ApiProperty({ type: Boolean, default: true })
+  @Column({ type: "boolean", required: true })
+  isActive: boolean;
 }
 
 export class OrganizerEntity extends PickType(Organizer, [
@@ -99,4 +103,5 @@ export class OrganizerEntity extends PickType(Organizer, [
   "team",
   "award",
   "judgingLocation",
+  "isActive",
 ] as const) {}

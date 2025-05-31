@@ -3,7 +3,5 @@ export * from "./config.constants";
 export * from "./database.config";
 export * from "./firebase.config";
 export * from "./firebase-web.config";
-export * from "./resume.config";
-export * from "./invoice.config";
-export * from "./reimbursementForm.config";
 export * from "./sendgrid.config";
+export * from "./bucket.config";

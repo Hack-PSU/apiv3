@@ -212,7 +212,7 @@ export class UserController {
   }
 
   @Get("resumes")
-  @Roles(Role.EXEC)
+  //@Roles(Role.EXEC)
   @Header("Content-Type", "application/zip")
   @ApiDoc({
     summary: "Get All Resumes",

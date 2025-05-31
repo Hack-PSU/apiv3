@@ -3,13 +3,19 @@ import { Entity } from "entities/base.entity";
 import Objection from "objection";
 import { ApiProperty, PickType } from "@nestjs/swagger";
 import { IsBoolean, IsNumber, IsString } from "class-validator";
+import { Score } from "./score.entity";
+import { Event } from "./event.entity";
+import { Project } from "./project.entity";
+import { User } from "./user.entity";
+import { Sponsor } from "./sponsor.entity";
+import { Scan } from "./scan.entity";
 
 @Table({
   name: "hackathons",
   relationMappings: {
     scores: {
       relation: Entity.HasManyRelation,
-      modelClass: "score.entity.js",
+      modelClass: Score,
       join: {
         from: "hackathons.id",
         to: "scores.hackathonId",
@@ -17,15 +23,15 @@ import { IsBoolean, IsNumber, IsString } from "class-validator";
     },
     events: {
       relation: Entity.HasManyRelation,
-      modelClass: "event.entity.js",
+      modelClass: Event,
       join: {
         from: "hackathons.id",
-        to: "events.hackathonId",
+        to: Event.tableName + ".hackathonId",
       },
     },
     projects: {
       relation: Entity.HasManyRelation,
-      modelClass: "project.entity.js",
+      modelClass: Project,
       join: {
         from: "hackathons.id",
         to: "projects.hackathonId",
@@ -33,7 +39,7 @@ import { IsBoolean, IsNumber, IsString } from "class-validator";
     },
     users: {
       relation: Entity.ManyToManyRelation,
-      modelClass: "user.entity.js",
+      modelClass: User,
       join: {
         from: "hackathons.id",
         through: {
@@ -46,7 +52,7 @@ import { IsBoolean, IsNumber, IsString } from "class-validator";
     },
     sponsors: {
       relation: Entity.HasManyRelation,
-      modelClass: "sponsor.entity.js",
+      modelClass: Sponsor,
       join: {
         from: "hackathons.id",
         to: "sponsors.hackathonId",
@@ -54,7 +60,7 @@ import { IsBoolean, IsNumber, IsString } from "class-validator";
     },
     scans: {
       relation: Entity.HasManyRelation,
-      modelClass: "scan.entity.js",
+      modelClass: Scan,
       join: {
         from: "hackathons.id",
         to: "scans.hackathonId",

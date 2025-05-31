@@ -18,12 +18,12 @@ export class FinanceService {
 
   constructor(private readonly configService: ConfigService) {
     this.invoiceBucketName = this.configService.get<InvoiceBucketConfig>(
-      ConfigToken.INVOICE,
+      ConfigToken.BUCKET,
     ).invoice_bucket;
 
     this.reimbursementFormBucketName =
       this.configService.get<ReimbursementFormBucketConfig>(
-        ConfigToken.REIMBURSEMENT_FORM,
+        ConfigToken.BUCKET,
       ).reimbursement_form_bucket;
   }
 
