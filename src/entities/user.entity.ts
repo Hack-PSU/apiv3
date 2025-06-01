@@ -3,9 +3,12 @@ import { Column, ID, Table } from "common/objection";
 import { Entity } from "entities/base.entity";
 import { IsEmail, IsOptional, IsString } from "class-validator";
 
+// Removed imports for Product and InventoryHistory
+
 @Table({
   name: "users",
   relationMappings: {
+    // Kept existing relations, removed inventory-related ones
     extraCreditClasses: {
       relation: Entity.ManyToManyRelation,
       modelClass: "extra-credit-class.entity.js",
@@ -27,6 +30,7 @@ import { IsEmail, IsOptional, IsString } from "class-validator";
         to: "registrations.userId",
       },
     },
+    // Removed products, inventoryHistoriesFrom, inventoryHistoriesTo relations
   },
 })
 export class User extends Entity {
@@ -101,6 +105,12 @@ export class User extends Entity {
   @ApiProperty({ type: "string", nullable: true })
   @Column({ type: "string", required: false, nullable: true })
   resume?: string;
+
+  // Removed relation properties: products, inventoryHistoriesFrom, inventoryHistoriesTo
+
+  // Kept original relation type hints
+  extraCreditClasses?: import('./extra-credit-class.entity').ExtraCreditClass[];
+  registrations?: import('./registration.entity').Registration[];
 }
 
 export class UserEntity extends PickType(User, [
