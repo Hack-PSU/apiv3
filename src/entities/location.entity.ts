@@ -1,7 +1,7 @@
 import { Column, ID, Table } from "common/objection";
 import { Entity } from "entities/base.entity";
 import { ApiProperty, PickType } from "@nestjs/swagger";
-import { IsInt } from "class-validator"; // Changed from IsString
+import { IsInt, IsString } from "class-validator"; // Changed from IsString
 
 // Removed imports for Product and InventoryHistory as relations are being removed
 
