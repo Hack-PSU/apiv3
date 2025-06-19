@@ -13,7 +13,7 @@ export async function up(knex: Knex): Promise<void> {
                 "graduate-university",
                 "code-school-or-bootcamp",
                 "vocational-trade-apprenticeship",
-                "postdoc",
+                "post-doctorate",
                 "other",
                 "not-a-student",
                 "prefer-no-answer",

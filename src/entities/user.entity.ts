@@ -106,7 +106,7 @@ export class User extends Entity {
   @IsOptional()
   @IsString()
   @Column({ type: "string", required: false, nullable: true })
-  linkedinUrl?: string | null;
+  linkedinUrl?: string;
 }
 
 export class UserEntity extends PickType(User, [
