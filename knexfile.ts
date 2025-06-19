@@ -6,10 +6,10 @@ const config: { [key: string]: Knex.Config } = {
   staging: {
     client: "mysql",
     connection: {
-      database: "staging",
+      database: "prod",
       host: "127.0.0.1",
-      user: "localtester",
-      password: "ORyPNEvIEnEMiThBonerEMAnAlOGemeLIchoSEaTErchRINEcT",
+      user: "",
+      password: "",
     },
     pool: {
       min: 2,
