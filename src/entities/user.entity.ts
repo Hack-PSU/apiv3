@@ -101,6 +101,12 @@ export class User extends Entity {
   @ApiProperty({ type: "string", nullable: true })
   @Column({ type: "string", required: false, nullable: true })
   resume?: string;
+
+  @ApiProperty({ type: "string", required: false, nullable: true })
+  @IsOptional()
+  @IsString()
+  @Column({ type: "string", required: false, nullable: true })
+  linkedinUrl?: string;
 }
 
 export class UserEntity extends PickType(User, [
@@ -118,4 +124,5 @@ export class UserEntity extends PickType(User, [
   "country",
   "race",
   "resume",
+  "linkedinUrl"
 ] as const) {}
