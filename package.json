@@ -50,7 +50,6 @@
     "mjml": "^4.15.3",
     "mock-knex": "^0.4.13",
     "mysql": "^2.18.1",
-    "mysql2": "^3.14.1",
     "nanoid": "^5.0.9",
     "objection": "^3.1.5",
     "passkit-generator": "^3.3.1",
