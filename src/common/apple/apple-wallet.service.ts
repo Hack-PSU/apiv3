@@ -104,7 +104,7 @@ export class AppleWalletService {
           {
             key: "location",
             label: "Location",
-            value: "Business Building, University Park, PA",
+            value: "ECore Building, University Park, PA",
             semantics: {
               location: {
                 latitude: passData.location.latitude,
