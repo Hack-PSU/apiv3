@@ -47,7 +47,6 @@ export class FlagController {
   }
 
   @Get("/state/:id")
-  @Roles(Role.TEAM)
   @ApiDoc({
     summary: "Get the state of a feature flag",
     params: [
