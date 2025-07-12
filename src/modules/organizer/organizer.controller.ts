@@ -42,6 +42,7 @@ class OrganizerCreateEntity extends OmitType(OrganizerEntity, [
   "id",
   "award",
   "judgingLocation",
+  "isActive",
 ] as const) {}
 
 class OrganizerReplaceEntity extends OrganizerCreateEntity {}
@@ -151,6 +152,7 @@ export class OrganizerController {
       .createOne({
         id: UID,
         email: email,
+        isActive: true,
         ...user,
       })
       .exec();
