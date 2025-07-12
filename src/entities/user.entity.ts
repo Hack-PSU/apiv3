@@ -124,5 +124,5 @@ export class UserEntity extends PickType(User, [
   "country",
   "race",
   "resume",
-  "linkedinUrl"
+  "linkedinUrl",
 ] as const) {}

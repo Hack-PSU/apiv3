@@ -2,12 +2,12 @@ import { Knex } from "knex";
 
 export async function up(knex: Knex): Promise<void> {
   return knex.schema.alterTable("organizers", (t) => {
-    t.boolean("isActive").notNullable().defaultTo(true);
+    t.boolean("is_active").notNullable().defaultTo(true);
   });
 }
 
 export async function down(knex: Knex): Promise<void> {
   return knex.schema.alterTable("organizers", (t) => {
-    t.dropColumn("isActive");
+    t.dropColumn("is_active");
   });
 }

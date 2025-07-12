@@ -91,7 +91,7 @@ export class Organizer extends Entity {
 
   @ApiProperty({ type: Boolean, default: true })
   @Column({ type: "boolean", required: true })
-  isActive: boolean;
+  isActive: boolean = true;
 }
 
 export class OrganizerEntity extends PickType(Organizer, [
