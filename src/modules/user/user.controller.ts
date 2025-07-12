@@ -588,7 +588,7 @@ export class UserController {
     },
     auth: Role.EXEC,
   })
-  async getResume(@Param(":id") id: string): Promise<StreamableFile> {
+  async getResume(@Param("id") id: string): Promise<StreamableFile> {
     try {
       const user = await this.userRepo.findOne(id).exec();
       if (!user) {
