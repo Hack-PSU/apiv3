@@ -31,7 +31,6 @@ export class SendMailBody {
   @ApiProperty({ required: false, example: "team@hackpsu.org" })
   @IsOptional()
   @IsEmail()
-  @Transform((value) => value || DefaultFromEmail)
   from: string;
 }
 
