@@ -71,7 +71,7 @@ export class InventoryMovement extends Entity {
   // FROM
   @ApiProperty({ required: false, nullable: true })
   @IsOptional()
-  @Column({ type: "number", required: false, nullable: true })
+  @Column({ type: "integer", required: false, nullable: true })
   fromLocationId?: number;
 
   @ApiProperty({ required: false, nullable: true })
@@ -83,7 +83,7 @@ export class InventoryMovement extends Entity {
   // TO
   @ApiProperty({ required: false, nullable: true })
   @IsOptional()
-  @Column({ type: "number", required: false, nullable: true })
+  @Column({ type: "integer", required: false, nullable: true })
   toLocationId?: number;
 
   @ApiProperty({ required: false, nullable: true })
