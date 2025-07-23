@@ -1,7 +1,7 @@
 import { Entity } from "entities/base.entity";
 import { Column, ID, Table } from "common/objection";
 import { ApiProperty, PickType } from "@nestjs/swagger";
-import { IsEnum, IsOptional, IsString } from "class-validator";
+import { IsEnum, IsNumber, IsOptional, IsString } from "class-validator";
 import { Type } from "class-transformer";
 
 @Table({
@@ -48,6 +48,7 @@ export class InventoryItem extends Entity {
   id: string; // UUID
 
   @ApiProperty()
+  @IsNumber()
   @Type(() => Number)
   @Column({ type: "integer" })
   categoryId: number;
@@ -81,6 +82,7 @@ export class InventoryItem extends Entity {
 
   @ApiProperty({ required: false, nullable: true })
   @IsOptional()
+  @IsNumber()
   @Column({ type: "integer", required: false, nullable: true })
   holderLocationId?: number;
 
@@ -97,11 +99,13 @@ export class InventoryItem extends Entity {
   notes?: string;
 
   @ApiProperty()
+  @IsNumber()
   @Type(() => Number)
   @Column({ type: "integer" })
   createdAt: number;
 
   @ApiProperty()
+  @IsNumber()
   @Type(() => Number)
   @Column({ type: "integer" })
   updatedAt: number;
