@@ -221,7 +221,7 @@ export class InventoryController {
     const movement: Partial<InventoryMovement> = {
       id: nanoid(36),
       createdAt: now,
-      movedByOrganizerId: moverId,
+      movedByOrganizerId: mover.id,
       ...dto,
     };
 
