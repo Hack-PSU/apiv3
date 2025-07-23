@@ -32,6 +32,7 @@ import { UserModule } from "modules/user/user.module";
 import { FinanceModule } from "modules/finance/finance.module";
 import { WalletModule } from "modules/wallet/wallet.module";
 import { EmailModule } from "modules/email/email.module";
+import { InventoryModule } from "modules/inventory/inventory.module";
 
 @Module({
   imports: [
@@ -96,6 +97,7 @@ import { EmailModule } from "modules/email/email.module";
     FinanceModule,
     WalletModule,
     EmailModule,
+    InventoryModule,
 
     // WebSocket
     SocketModule,
