@@ -48,7 +48,8 @@ export class InventoryItem extends Entity {
   id: string; // UUID
 
   @ApiProperty()
-  @ID({ type: "integer" })
+  @Type(() => Number)
+  @Column({ type: "integer" })
   categoryId: number;
 
   @ApiProperty({ required: false, nullable: true })
