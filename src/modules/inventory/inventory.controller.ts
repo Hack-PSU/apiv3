@@ -103,12 +103,12 @@ export class InventoryController {
   }
 
   @Post("categories")
-  @Roles(Role.TECH)
+  @Roles(Role.TEAM)
   @ApiDoc({
     summary: "Create an inventory category",
     request: { body: { type: CreateCategoryDto }, validate: true },
     response: { created: { type: InventoryCategoryEntity } },
-    auth: Role.TECH,
+    auth: Role.TEAM,
   })
   async createCategory(
     @Body() dto: CreateCategoryDto,
@@ -117,12 +117,12 @@ export class InventoryController {
   }
 
   @Delete("categories/:id")
-  @Roles(Role.TECH)
+  @Roles(Role.TEAM)
   @ApiDoc({
     summary: "Delete an inventory category",
     params: [{ name: "id" }],
     response: { noContent: true },
-    auth: Role.TECH,
+    auth: Role.TEAM,
   })
   async deleteCategory(@Param("id") id: number): Promise<void> {
     try {
@@ -145,12 +145,12 @@ export class InventoryController {
   }
 
   @Post("items")
-  @Roles(Role.TECH)
+  @Roles(Role.TEAM)
   @ApiDoc({
     summary: "Create an inventory item",
     request: { body: { type: CreateItemDto }, validate: true },
     response: { created: { type: InventoryItemEntity } },
-    auth: Role.TECH,
+    auth: Role.TEAM,
   })
   async createItem(@Body() dto: CreateItemDto): Promise<InventoryItem> {
     const now = Date.now();
@@ -165,12 +165,12 @@ export class InventoryController {
   }
 
   @Delete("items/:id")
-  @Roles(Role.TECH)
+  @Roles(Role.TEAM)
   @ApiDoc({
     summary: "Soft delete an inventory item (status -> archived)",
     params: [{ name: "id" }],
     response: { ok: { type: InventoryItemEntity } },
-    auth: Role.TECH,
+    auth: Role.TEAM,
   })
   async deleteItem(@Param("id") id: string): Promise<InventoryItem> {
     const item = await this.itemRepo.findOne(id).exec();
@@ -193,12 +193,12 @@ export class InventoryController {
   }
 
   @Post("movements")
-  @Roles(Role.TECH)
+  @Roles(Role.TEAM)
   @ApiDoc({
     summary: "Create a movement record (also updates item's holder fields)",
     request: { body: { type: CreateMovementDto }, validate: true },
     response: { created: { type: InventoryMovementEntity } },
-    auth: Role.TECH,
+    auth: Role.TEAM,
   })
   async createMovement(
     @Body() dto: CreateMovementDto,
@@ -253,12 +253,12 @@ export class InventoryController {
   }
 
   @Delete("movements/:id")
-  @Roles(Role.TECH)
+  @Roles(Role.TEAM)
   @ApiDoc({
     summary: "Delete a movement record (admin fix only)",
     params: [{ name: "id" }],
     response: { noContent: true },
-    auth: Role.TECH,
+    auth: Role.TEAM,
   })
   async deleteMovement(@Param("id") id: string): Promise<void> {
     await this.moveRepo.deleteOne(id).exec();

@@ -1,14 +1,17 @@
 import type { Knex } from "knex";
 
 export async function up(knex: Knex): Promise<void> {
+  // --- categories ---
   await knex.schema.createTable("inventory_categories", (table) => {
     table.increments("id").unsigned().primary();
     table.string("name", 255).notNullable();
     table.text("description").nullable();
   });
 
+  // --- items ---
   await knex.schema.createTable("inventory_items", (table) => {
-    table.string("id", 36).primary().notNullable(); // UUID char(36)
+    table.uuid("id").primary().notNullable(); // UUID
+
     table
       .integer("category_id")
       .unsigned()
@@ -18,7 +21,7 @@ export async function up(knex: Knex): Promise<void> {
       .onDelete("RESTRICT")
       .onUpdate("CASCADE");
 
-    table.string("name", 255).nullable(); // optional override
+    table.string("name", 255).nullable();
     table.string("asset_tag", 255).nullable();
     table.string("serial_number", 255).nullable();
 
@@ -37,7 +40,7 @@ export async function up(knex: Knex): Promise<void> {
       .onUpdate("CASCADE");
 
     table
-      .string("holder_organizer_id", 36)
+      .uuid("holder_organizer_id")
       .nullable()
       .references("id")
       .inTable("organizers")
@@ -55,11 +58,12 @@ export async function up(knex: Knex): Promise<void> {
     table.index(["status"]);
   });
 
+  // --- movements ---
   await knex.schema.createTable("inventory_movements", (table) => {
-    table.string("id", 36).primary().notNullable(); // UUID char(36)
+    table.uuid("id").primary().notNullable(); // UUID
 
     table
-      .string("item_id", 36)
+      .uuid("item_id")
       .notNullable()
       .references("id")
       .inTable("inventory_items")
@@ -76,7 +80,7 @@ export async function up(knex: Knex): Promise<void> {
       .onDelete("SET NULL")
       .onUpdate("CASCADE");
     table
-      .string("from_organizer_id", 36)
+      .uuid("from_organizer_id")
       .nullable()
       .references("id")
       .inTable("organizers")
@@ -93,7 +97,7 @@ export async function up(knex: Knex): Promise<void> {
       .onDelete("SET NULL")
       .onUpdate("CASCADE");
     table
-      .string("to_organizer_id", 36)
+      .uuid("to_organizer_id")
       .nullable()
       .references("id")
       .inTable("organizers")
@@ -115,7 +119,7 @@ export async function up(knex: Knex): Promise<void> {
     table.text("notes").nullable();
 
     table
-      .string("moved_by_organizer_id", 36)
+      .uuid("moved_by_organizer_id")
       .notNullable()
       .references("id")
       .inTable("organizers")
