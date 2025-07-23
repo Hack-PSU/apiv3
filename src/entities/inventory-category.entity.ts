@@ -18,7 +18,7 @@ import { IsOptional, IsString } from "class-validator";
 })
 export class InventoryCategory extends Entity {
   @ApiProperty()
-  @ID({ type: "number" })
+  @ID({ type: "integer" })
   id: number;
 
   @ApiProperty()

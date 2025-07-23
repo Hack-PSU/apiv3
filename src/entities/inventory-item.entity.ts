@@ -48,7 +48,7 @@ export class InventoryItem extends Entity {
   id: string; // UUID
 
   @ApiProperty()
-  @Column({ type: "number" })
+  @ID({ type: "integer" })
   categoryId: number;
 
   @ApiProperty({ required: false, nullable: true })
@@ -80,7 +80,7 @@ export class InventoryItem extends Entity {
 
   @ApiProperty({ required: false, nullable: true })
   @IsOptional()
-  @Column({ type: "number", required: false, nullable: true })
+  @Column({ type: "integer", required: false, nullable: true })
   holderLocationId?: number;
 
   @ApiProperty({ required: false, nullable: true })
