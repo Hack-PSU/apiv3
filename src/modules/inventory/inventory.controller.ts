@@ -92,7 +92,7 @@ export class InventoryController {
 
   // ===== CATEGORIES =====
   @Get("categories")
-  @Roles(Role.TEAM, Role.EXEC, Role.TECH)
+  @Roles(Role.TEAM)
   @ApiDoc({
     summary: "List all inventory categories",
     response: { ok: { type: InventoryCategoryEntity, isArray: true } },
@@ -134,7 +134,7 @@ export class InventoryController {
 
   // ===== ITEMS =====
   @Get("items")
-  @Roles(Role.TEAM, Role.EXEC, Role.TECH)
+  @Roles(Role.TEAM)
   @ApiDoc({
     summary: "List all inventory items",
     response: { ok: { type: InventoryItemEntity, isArray: true } },
@@ -182,7 +182,7 @@ export class InventoryController {
 
   // ===== MOVEMENTS =====
   @Get("movements")
-  @Roles(Role.TEAM, Role.EXEC, Role.TECH)
+  @Roles(Role.TEAM)
   @ApiDoc({
     summary: "List all inventory movements",
     response: { ok: { type: InventoryMovementEntity, isArray: true } },
