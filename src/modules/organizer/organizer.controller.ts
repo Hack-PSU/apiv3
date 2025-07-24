@@ -88,7 +88,7 @@ export class OrganizerController {
   ) {}
 
   @Get("/")
-  @Roles(Role.EXEC)
+  @Roles(Role.TEAM)
   @ApiDoc({
     summary: "Get All Organizers",
     response: {
@@ -188,11 +188,14 @@ export class OrganizerController {
       noContent: true,
     },
   })
-  @Roles(Role.EXEC)
+  @Roles(Role.TECH)
   async resendAllVerificationEmails() {
     const allOrganizers = await this.organizerRepo.findAll().exec();
 
     for (const organizer of allOrganizers) {
+      if (!organizer.isActive) {
+        continue;
+      }
       try {
         const passwordResetLink = await this.auth.generatePasswordResetLink(
           organizer.email,

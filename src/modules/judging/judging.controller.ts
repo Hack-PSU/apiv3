@@ -153,7 +153,7 @@ export class JudgingController {
   }
 
   @Post("/assign")
-  //@Roles(Role.EXEC)
+  @Roles(Role.EXEC)
   async assignJudging(
     @Body(
       new ValidationPipe({

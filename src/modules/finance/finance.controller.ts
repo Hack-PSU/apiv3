@@ -85,7 +85,7 @@ export class FinanceController {
   ) {}
 
   @Get("/")
-  @Roles(Role.EXEC)
+  @Roles(Role.TEAM)
   @ApiDoc({
     summary: "Get all Reimbursements",
     response: {
@@ -98,7 +98,7 @@ export class FinanceController {
   }
 
   @Get(":id")
-  @Roles(Role.EXEC)
+  @Roles(Role.TEAM)
   @ApiDoc({
     summary: "Get a Reimbursement",
     params: [
