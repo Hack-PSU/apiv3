@@ -215,6 +215,38 @@ export class InventoryController {
     const item = await this.itemRepo.findOne(dto.itemId).exec();
     if (!item) throw new BadRequestException("Item not found");
 
+    // Validate current location/organizer matches 'from' fields if provided
+    if (
+      dto.fromLocationId !== undefined &&
+      item.holderLocationId !== dto.fromLocationId
+    ) {
+      throw new BadRequestException(
+        `Item is not at the specified 'from' location. Current location: ${item.holderLocationId}, Expected: ${dto.fromLocationId}`,
+      );
+    }
+
+    if (
+      dto.fromOrganizerId !== undefined &&
+      item.holderOrganizerId !== dto.fromOrganizerId
+    ) {
+      throw new BadRequestException(
+        `Item is not with the specified 'from' organizer. Current organizer: ${item.holderOrganizerId}, Expected: ${dto.fromOrganizerId}`,
+      );
+    }
+
+    // Validate business rules for specific movements
+    if (dto.reason === "return" && item.status !== "checked_out") {
+      throw new BadRequestException(
+        "Cannot return an item that is not checked out",
+      );
+    }
+
+    if (dto.reason === "checkout" && item.status !== "active") {
+      throw new BadRequestException(
+        "Cannot checkout an item that is not active",
+      );
+    }
+
     const now = Date.now();
 
     // Create movement
@@ -225,7 +257,7 @@ export class InventoryController {
       ...dto,
     };
 
-    // Update item holder + status smartly
+    // Update item holder + status with comprehensive logic
     item.holderLocationId = dto.toLocationId ?? null;
     item.holderOrganizerId = dto.toOrganizerId ?? null;
     item.updatedAt = now;
@@ -233,9 +265,15 @@ export class InventoryController {
     switch (dto.reason) {
       case "lost":
         item.status = "lost";
+        // Clear holder information for lost items
+        item.holderLocationId = null;
+        item.holderOrganizerId = null;
         break;
       case "disposed":
         item.status = "disposed";
+        // Clear holder information for disposed items
+        item.holderLocationId = null;
+        item.holderOrganizerId = null;
         break;
       case "checkout":
         item.status = "checked_out";
@@ -243,8 +281,28 @@ export class InventoryController {
       case "return":
         item.status = "active";
         break;
+      case "repair":
+        // Item under repair remains active but location/organizer is updated
+        // Status stays the same unless it was previously lost/disposed
+        if (item.status === "lost" || item.status === "disposed") {
+          item.status = "active";
+        }
+        break;
+      case "transfer":
+        // Transfer keeps current status unless item was lost/disposed
+        if (item.status === "lost" || item.status === "disposed") {
+          item.status = "active";
+        }
+        break;
+      case "other":
+        // For 'other' movements, status logic depends on context
+        // Keep current status unless explicitly moving from lost/disposed
+        if (item.status === "lost" || item.status === "disposed") {
+          item.status = "active";
+        }
+        break;
       default:
-        // keep current status
+        // Keep current status for any other reasons
         break;
     }
 
