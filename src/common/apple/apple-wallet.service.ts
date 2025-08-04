@@ -30,25 +30,49 @@ export class AppleWalletService {
     const signerKeyPassphrase = this.configService.get<string>(
       "APPLE_SIGNER_KEY_PASSPHRASE",
     );
+
     try {
+      // Validate that passphrase is provided if required
+      if (!signerKeyPassphrase) {
+        throw new Error(
+          "APPLE_SIGNER_KEY_PASSPHRASE environment variable is required for encrypted private keys",
+        );
+      }
+
       this.certificates = {
         wwdr: fs.readFileSync(wwdrPath),
         signerCert: fs.readFileSync(signerCertPath),
         signerKey: fs.readFileSync(signerKeyPath),
         signerKeyPassphrase,
       };
-      this.logger.log("Apple Wallet certificates loaded");
+      this.logger.log("Apple Wallet certificates loaded successfully");
     } catch (error) {
       this.logger.error(
-        "Error loading Apple Wallet certificates. Please check the paths.",
+        "Error loading Apple Wallet certificates. Please check the paths and passphrase.",
         error,
       );
+      throw error; // Re-throw to prevent service from starting with invalid config
     }
   }
 
   private async downloadImage(url: string): Promise<Buffer> {
     const response = await axios.get(url, { responseType: "arraybuffer" });
     return Buffer.from(response.data, "binary");
+  }
+
+  private calculateEventDuration(
+    startDateTime: string,
+    endDateTime: string,
+  ): string {
+    const start = DateTime.fromISO(startDateTime);
+    const end = DateTime.fromISO(endDateTime);
+    const duration = end.diff(start, ["days", "hours"]);
+
+    if (duration.days >= 1) {
+      return `${Math.floor(duration.days)} day${duration.days > 1 ? "s" : ""}`;
+    } else {
+      return `${Math.floor(duration.hours)} hour${duration.hours > 1 ? "s" : ""}`;
+    }
   }
 
   async generatePass(
@@ -62,23 +86,34 @@ export class AppleWalletService {
       passTypeIdentifier: "pass.hackpsu.wallet",
       serialNumber: `${Date.now()}-${userId}`,
       teamIdentifier: "HN6JG96A2Y",
-      foregroundColor: "rgb(255,255,255)",
-      backgroundColor: "rgb(134,157,203)",
+      // HackPSU brand colors - clean white background with grey text and coral accents
+      foregroundColor: "rgb(60,60,60)",
+      backgroundColor: "rgb(255,255,255)",
+      labelColor: "rgb(232,90,90)",
+      logoText: "HackPSU",
+      // Add visual enhancements
+      sharingProhibited: false,
+      maxDistance: 100,
+      relevantDate: DateTime.fromJSDate(new Date(passData.startDateTime), {
+        zone: "America/New_York",
+      }).toISO(),
       eventTicket: {
         primaryFields: [
           {
             key: "event",
-            label: "Event",
+            label: "HACKATHON EVENT",
             value: passData.eventName,
+            textAlignment: "PKTextAlignmentCenter",
           },
         ],
         secondaryFields: [
           {
             key: "startTime",
-            label: "Start Time",
+            label: "EVENT STARTS",
             value: DateTime.fromJSDate(new Date(passData.startDateTime), {
               zone: "America/New_York",
-            }).toLocaleString(DateTime.DATETIME_MED),
+            }).toFormat("EEE, MMM d 'at' h:mm a"),
+            textAlignment: "PKTextAlignmentLeft",
             semantics: {
               eventStartDate: DateTime.fromJSDate(
                 new Date(passData.startDateTime),
@@ -87,30 +122,68 @@ export class AppleWalletService {
             },
           },
           {
-            key: "endTime",
-            label: "End Time",
-            value: DateTime.fromJSDate(new Date(passData.endDateTime), {
-              zone: "America/New_York",
-            }).toLocaleString(DateTime.DATETIME_MED),
-            semantics: {
-              eventEndDate: DateTime.fromJSDate(
-                new Date(passData.endDateTime),
-                { zone: "America/New_York" },
-              ).toISO(),
-            },
+            key: "duration",
+            label: "DURATION",
+            value: this.calculateEventDuration(
+              passData.startDateTime,
+              passData.endDateTime,
+            ),
+            textAlignment: "PKTextAlignmentRight",
           },
         ],
         auxiliaryFields: [
           {
             key: "location",
-            label: "Location",
-            value: "ECore Building, University Park, PA",
+            label: "VENUE",
+            value: "ECore Building\nUniversity Park, PA",
+            textAlignment: "PKTextAlignmentLeft",
             semantics: {
               location: {
                 latitude: passData.location.latitude,
                 longitude: passData.location.longitude,
               },
             },
+          },
+          {
+            key: "attendee",
+            label: "ATTENDEE",
+            value: passData.ticketHolderName || `User ${userId}`,
+            textAlignment: "PKTextAlignmentRight",
+          },
+        ],
+        backFields: [
+          {
+            key: "website",
+            label: "Official Website",
+            value: passData.homepageUri || "https://hackpsu.org",
+            attributedValue: `<a href="${passData.homepageUri || "https://hackpsu.org"}">${passData.homepageUri || "https://hackpsu.org"}</a>`,
+          },
+          {
+            key: "eventDetails",
+            label: "Event Information",
+            value: `Join us for ${passData.eventName}! This pass serves as your admission ticket. Please have it ready when you arrive.\n\nFor questions or support, visit hackpsu.org or contact our team.`,
+          },
+          {
+            key: "schedule",
+            label: "Event Schedule",
+            value: `Check-in Opens: ${DateTime.fromJSDate(
+              new Date(passData.startDateTime),
+              {
+                zone: "America/New_York",
+              },
+            ).toFormat("h:mm a")}\n\nHackathon Begins: ${DateTime.fromJSDate(
+              new Date(passData.startDateTime),
+              {
+                zone: "America/New_York",
+              },
+            )
+              .plus({ hours: 2 })
+              .toFormat("h:mm a")}\n\nEvent Ends: ${DateTime.fromJSDate(
+              new Date(passData.endDateTime),
+              {
+                zone: "America/New_York",
+              },
+            ).toFormat("h:mm a")}`,
           },
         ],
       },
@@ -142,10 +215,8 @@ export class AppleWalletService {
       iconBuffer = await this.downloadImage(passData.logoUrl);
       this.logger.log("Downloaded icon from URL");
     } catch (error) {
-      this.logger.error(
-        "Error downloading icon, using fallback local icon",
-        error,
-      );
+      this.logger.error("Failed to download icon", error);
+      throw new Error("Failed to download required icon for pass generation");
     }
     pass.addBuffer("icon.png", iconBuffer);
 
@@ -154,10 +225,8 @@ export class AppleWalletService {
       logoBuffer = await this.downloadImage(passData.logoUrl);
       this.logger.log("Downloaded logo from URL");
     } catch (error) {
-      this.logger.error(
-        "Error downloading logo, using fallback local logo",
-        error,
-      );
+      this.logger.error("Failed to download logo", error);
+      throw new Error("Failed to download required logo for pass generation");
     }
     pass.addBuffer("logo.png", logoBuffer);
 

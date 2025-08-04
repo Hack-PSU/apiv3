@@ -110,21 +110,106 @@ export class GoogleWalletService {
         contentDescription: {
           defaultValue: {
             language: "en-US",
-            value: "Logo image description",
+            value: "HackPSU Logo",
           },
         },
       },
+      hexBackgroundColor: "#FFFFFF",
       dateTime: {
         start: passData.startDateTime,
         end: passData.endDateTime,
       },
+      venue: {
+        name: {
+          defaultValue: {
+            language: "en-US",
+            value: "ECore Building, Penn State University",
+          },
+        },
+        address: {
+          defaultValue: {
+            language: "en-US",
+            value: "University Park, PA 16802",
+          },
+        },
+      },
+      textModulesData: [
+        {
+          id: "attendee",
+          header: "ATTENDEE",
+          body: passData.ticketHolderName || "Hackathon Participant",
+          localizedHeader: {
+            defaultValue: {
+              language: "en-US",
+              value: "ATTENDEE",
+            },
+          },
+          localizedBody: {
+            defaultValue: {
+              language: "en-US",
+              value: passData.ticketHolderName || "Hackathon Participant",
+            },
+          },
+        },
+        {
+          id: "event_info",
+          header: "EVENT DETAILS",
+          body: `Join us for ${passData.eventName}! Check-in opens 2 hours before the hackathon begins. Please have your pass ready when you arrive.`,
+          localizedHeader: {
+            defaultValue: {
+              language: "en-US",
+              value: "EVENT DETAILS",
+            },
+          },
+          localizedBody: {
+            defaultValue: {
+              language: "en-US",
+              value: `Join us for ${passData.eventName}! Check-in opens 2 hours before the hackathon begins. Please have your pass ready when you arrive.`,
+            },
+          },
+        },
+        {
+          id: "website",
+          header: "OFFICIAL WEBSITE",
+          body: passData.homepageUri || "https://hackpsu.org",
+          localizedHeader: {
+            defaultValue: {
+              language: "en-US",
+              value: "OFFICIAL WEBSITE",
+            },
+          },
+          localizedBody: {
+            defaultValue: {
+              language: "en-US",
+              value: passData.homepageUri || "https://hackpsu.org",
+            },
+          },
+        },
+      ],
       ...(passData.location && {
         linksModuleData: {
           uris: [
             {
               uri: `https://www.google.com/maps/search/?api=1&query=${passData.location.latitude},${passData.location.longitude}`,
-              description: "Venue Location",
+              description: "View Venue Location",
               id: "VENUE_MAP",
+              localizedDescription: {
+                defaultValue: {
+                  language: "en-US",
+                  value: "View Venue Location",
+                },
+              },
+            },
+            {
+              uri: passData.homepageUri || "https://hackpsu.org",
+              description: "Visit HackPSU Website",
+              id: "WEBSITE",
+              localizedDescription: {
+                defaultValue: {
+                  language: "en-US",
+                  value: "Visit HackPSU Website",
+                },
+              },
             },
           ],
         },
@@ -188,13 +273,54 @@ export class GoogleWalletService {
         value: `HACKPSU_${userId}`,
         alternateText: "",
       },
+      ticketHolderName: passData.ticketHolderName || "Hackathon Participant",
+      seatInfo: {
+        seat: {
+          defaultValue: {
+            language: "en-US",
+            value: "General Admission",
+          },
+        },
+        row: {
+          defaultValue: {
+            language: "en-US",
+            value: "Hacker",
+          },
+        },
+      },
+      textModulesData: [
+        {
+          id: "check_in_info",
+          header: "CHECK-IN",
+          body: "Check-in opens 2 hours before hackathon start time. Please have this pass ready.",
+          localizedHeader: {
+            defaultValue: {
+              language: "en-US",
+              value: "CHECK-IN",
+            },
+          },
+          localizedBody: {
+            defaultValue: {
+              language: "en-US",
+              value:
+                "Check-in opens 2 hours before hackathon start time. Please have this pass ready.",
+            },
+          },
+        },
+      ],
       ...(passData.location && {
         linksModuleData: {
           uris: [
             {
               uri: `https://www.google.com/maps/search/?api=1&query=${passData.location.latitude},${passData.location.longitude}`,
-              description: "Venue Location",
+              description: "View Venue Location",
               id: "OBJECT_VENUE_MAP",
+              localizedDescription: {
+                defaultValue: {
+                  language: "en-US",
+                  value: "View Venue Location",
+                },
+              },
             },
           ],
         },
@@ -260,21 +386,89 @@ export class GoogleWalletService {
         contentDescription: {
           defaultValue: {
             language: "en-US",
-            value: "Logo image description",
+            value: "HackPSU Logo",
           },
         },
       },
+      hexBackgroundColor: "#FFFFFF",
       dateTime: {
         start: passData.startDateTime,
         end: passData.endDateTime,
       },
+      venue: {
+        name: {
+          defaultValue: {
+            language: "en-US",
+            value: "ECore Building, Penn State University",
+          },
+        },
+        address: {
+          defaultValue: {
+            language: "en-US",
+            value: "University Park, PA 16802",
+          },
+        },
+      },
+      textModulesData: [
+        {
+          id: "attendee",
+          header: "ATTENDEE",
+          body: passData.ticketHolderName || "Hackathon Participant",
+          localizedHeader: {
+            defaultValue: {
+              language: "en-US",
+              value: "ATTENDEE",
+            },
+          },
+          localizedBody: {
+            defaultValue: {
+              language: "en-US",
+              value: passData.ticketHolderName || "Hackathon Participant",
+            },
+          },
+        },
+        {
+          id: "event_info",
+          header: "EVENT DETAILS",
+          body: `Join us for ${passData.eventName}! Check-in opens 2 hours before the hackathon begins. Please have your pass ready when you arrive.`,
+          localizedHeader: {
+            defaultValue: {
+              language: "en-US",
+              value: "EVENT DETAILS",
+            },
+          },
+          localizedBody: {
+            defaultValue: {
+              language: "en-US",
+              value: `Join us for ${passData.eventName}! Check-in opens 2 hours before the hackathon begins. Please have your pass ready when you arrive.`,
+            },
+          },
+        },
+      ],
       ...(passData.location && {
         linksModuleData: {
           uris: [
             {
               uri: `https://www.google.com/maps/search/?api=1&query=${passData.location.latitude},${passData.location.longitude}`,
-              description: "Venue Location",
+              description: "View Venue Location",
               id: "VENUE_MAP",
+              localizedDescription: {
+                defaultValue: {
+                  language: "en-US",
+                  value: "View Venue Location",
+                },
+              },
+            },
+            {
+              uri: passData.homepageUri || "https://hackpsu.org",
+              description: "Visit HackPSU Website",
+              id: "WEBSITE",
+              localizedDescription: {
+                defaultValue: {
+                  language: "en-US",
+                  value: "Visit HackPSU Website",
+                },
+              },
             },
           ],
         },
@@ -290,13 +484,54 @@ export class GoogleWalletService {
         value: `HACKPSU_${userId}`,
         alternateText: "",
       },
+      ticketHolderName: passData.ticketHolderName || "Hackathon Participant",
+      seatInfo: {
+        seat: {
+          defaultValue: {
+            language: "en-US",
+            value: "General Admission",
+          },
+        },
+        row: {
+          defaultValue: {
+            language: "en-US",
+            value: "Hacker",
+          },
+        },
+      },
+      textModulesData: [
+        {
+          id: "check_in_info",
+          header: "CHECK-IN",
+          body: "Check-in opens 2 hours before hackathon start time. Please have this pass ready.",
+          localizedHeader: {
+            defaultValue: {
+              language: "en-US",
+              value: "CHECK-IN",
+            },
+          },
+          localizedBody: {
+            defaultValue: {
+              language: "en-US",
+              value:
+                "Check-in opens 2 hours before hackathon start time. Please have this pass ready.",
+            },
+          },
+        },
+      ],
       ...(passData.location && {
         linksModuleData: {
           uris: [
             {
               uri: `https://www.google.com/maps/search/?api=1&query=${passData.location.latitude},${passData.location.longitude}`,
-              description: "Venue Location",
+              description: "View Venue Location",
               id: "OBJECT_VENUE_MAP",
+              localizedDescription: {
+                defaultValue: {
+                  language: "en-US",
+                  value: "View Venue Location",
+                },
+              },
             },
           ],
         },
