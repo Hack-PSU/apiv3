@@ -244,9 +244,37 @@ export class JudgingService {
     console.log(availableProjects);
 
     if (availableProjects.length > 0) {
-      // Randomly pick one project from the available projects.
-      const randomIndex = Math.floor(Math.random() * availableProjects.length);
-      const selectedProject = availableProjects[randomIndex];
+      // Get judge counts for all available projects to prioritize those with fewer judges
+      const projectJudgeCounts = await Promise.all(
+        availableProjects.map(async (project) => {
+          const judgeCount = await this.scoreRepo
+            .findAll()
+            .raw()
+            .where("projectId", project.id)
+            .count("* as count")
+            .first();
+          return {
+            project,
+            judgeCount: Number(judgeCount.count) || 0,
+          };
+        }),
+      );
+
+      // Find the minimum judge count among available projects
+      const minJudgeCount = Math.min(
+        ...projectJudgeCounts.map((p) => p.judgeCount),
+      );
+
+      // Filter to only projects with the minimum judge count (highest priority)
+      const highestPriorityProjects = projectJudgeCounts
+        .filter((p) => p.judgeCount === minJudgeCount)
+        .map((p) => p.project);
+
+      // Randomly select from the highest priority projects to avoid deterministic bias
+      const randomIndex = Math.floor(
+        Math.random() * highestPriorityProjects.length,
+      );
+      const selectedProject = highestPriorityProjects[randomIndex];
 
       return {
         judgeId,
