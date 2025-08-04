@@ -10,6 +10,7 @@ import { AppleWalletService } from "../../common/apple/apple-wallet.service";
 import { HackathonPassData } from "../../common/gcp/wallet/google-wallet.types";
 import { InjectRepository, Repository } from "common/objection";
 import { Hackathon } from "entities/hackathon.entity";
+import { User } from "entities/user.entity";
 import { RestrictedRoles, Role } from "common/gcp";
 import { DateTime } from "luxon";
 
@@ -19,6 +20,8 @@ export class AppleWalletController {
     private readonly appleWalletService: AppleWalletService,
     @InjectRepository(Hackathon)
     private readonly hackathonRepo: Repository<Hackathon>,
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
   ) {}
 
   @Post(":id/pass")
@@ -35,17 +38,25 @@ export class AppleWalletController {
       throw new NotFoundException("No active hackathon found");
     }
 
+    const user = await User.query().findById(userId);
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+
+    // Set event time to 2 hours before hackathon start time
+    const eventStartTime = DateTime.fromJSDate(new Date(hackathon.startTime), {
+      zone: "America/New_York",
+    }).minus({ hours: 2 });
+
     const passData: HackathonPassData = {
       eventName: `HackPSU ${hackathon.name}`,
       issuerName: "HackPSU",
       homepageUri: "https://hackpsu.org",
       logoUrl:
         "https://storage.googleapis.com/hackpsu-408118.appspot.com/sponsor-logos/6-Test%20Sponsor-light.png",
-      ticketHolderName: `User ${userId}`,
+      ticketHolderName: `${user.firstName} ${user.lastName}`,
       ticketNumber: userId,
-      startDateTime: DateTime.fromJSDate(new Date(hackathon.startTime), {
-        zone: "America/New_York",
-      }).toISO(),
+      startDateTime: eventStartTime.toISO(),
       endDateTime: DateTime.fromJSDate(new Date(hackathon.endTime), {
         zone: "America/New_York",
       }).toISO(),
