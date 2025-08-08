@@ -42,7 +42,6 @@ export class ProjectController {
   ) {}
 
   @Get("/")
-  @Roles(Role.TEAM)
   @ApiDoc({
     summary: "Get All Projects",
     response: {
