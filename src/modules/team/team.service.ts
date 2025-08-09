@@ -7,6 +7,7 @@ import {
 import { InjectRepository, Repository } from "common/objection";
 import { TeamRoster, TeamRole } from "entities/team-roster.entity";
 import { User } from "entities/user.entity";
+import { nanoid } from "nanoid";
 import { v4 as uuidv4 } from "uuid";
 
 export interface CreateTeamDto {
@@ -51,7 +52,7 @@ export class TeamService {
       throw new ConflictException("User is already part of a team");
     }
 
-    const teamId = this.generateTeamId();
+    const teamId = nanoid(36);
     const now = Date.now();
 
     // Create the team with the lead as the first member
@@ -307,15 +308,5 @@ export class TeamService {
     if (!membership) {
       throw new BadRequestException("Only team leads can perform this action");
     }
-  }
-
-  private generateTeamId(): string {
-    // Generate a 26-character team ID (similar to Stripe IDs)
-    const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
-    let result = "team_";
-    for (let i = 0; i < 21; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return result;
   }
 }
