@@ -33,6 +33,8 @@ import { FinanceModule } from "modules/finance/finance.module";
 import { WalletModule } from "modules/wallet/wallet.module";
 import { EmailModule } from "modules/email/email.module";
 import { InventoryModule } from "modules/inventory/inventory.module";
+import { ReservationModule } from "modules/reservation/reservation.module";
+import { TeamModule } from "modules/team/team.module";
 
 @Module({
   imports: [
@@ -98,6 +100,8 @@ import { InventoryModule } from "modules/inventory/inventory.module";
     WalletModule,
     EmailModule,
     InventoryModule,
+    ReservationModule,
+    TeamModule,
 
     // WebSocket
     SocketModule,

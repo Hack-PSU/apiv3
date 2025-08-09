@@ -8,7 +8,6 @@ import { LocationController } from "./location.controller";
     ObjectionModule.forFeature([
       {
         schema: Location,
-        // Location does not rely on hackathon filtering
         disableByHackathon: true,
       },
     ]),

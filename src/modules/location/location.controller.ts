@@ -10,20 +10,32 @@ import {
   Patch,
   Post,
   Put,
+  Query,
   UseFilters,
   ValidationPipe,
+  NotFoundException,
 } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
 import { Location, LocationEntity } from "entities/location.entity";
-import { ApiTags, OmitType, PartialType } from "@nestjs/swagger";
+import { Hackathon } from "entities/hackathon.entity";
+import { ApiTags, OmitType, PartialType, ApiProperty } from "@nestjs/swagger";
 import { SocketGateway } from "modules/socket/socket.gateway";
 import { Role, Roles } from "common/gcp";
 import { ApiDoc } from "common/docs";
 import { DBExceptionFilter } from "common/filters";
+import { IsString } from "class-validator";
 
-class LocationCreateEntity extends OmitType(LocationEntity, ["id"] as const) {}
+class LocationCreateEntity extends OmitType(LocationEntity, ["id"] as const) {
+  hackathonId?: string; // Optional - defaults to active hackathon
+}
 
 class LocationPatchEntity extends PartialType(LocationCreateEntity) {}
+
+class LocationQueryParams {
+  @ApiProperty()
+  @IsString()
+  hackathonId: string;
+}
 
 @ApiTags("Locations")
 @Controller("locations")
@@ -36,16 +48,38 @@ export class LocationController {
   ) {}
 
   @Get("/")
+  @ApiDoc({
+    summary: "Find All Bookable Locations",
+    response: {
+      ok: { type: [LocationEntity] },
+    },
+  })
+  async getAll(
+    @Query(new ValidationPipe({ transform: true })) query: LocationQueryParams,
+  ) {
+    return this.locationRepo
+      .findAll()
+      .raw()
+      .where("hackathonId", query.hackathonId)
+      .where("isBookable", true);
+  }
+
+  @Get("/admin")
   @Roles(Role.TEAM)
   @ApiDoc({
-    summary: "Find All Locations",
+    summary: "Find All Locations (Admin Only)",
     response: {
       ok: { type: [LocationEntity] },
     },
     auth: Role.TEAM,
   })
-  async getAll() {
-    return this.locationRepo.findAll().exec();
+  async getAllAdmin(
+    @Query(new ValidationPipe({ transform: true })) query: LocationQueryParams,
+  ) {
+    return this.locationRepo
+      .findAll()
+      .raw()
+      .where("hackathonId", query.hackathonId);
   }
 
   @Post("/")
@@ -71,6 +105,13 @@ export class LocationController {
     )
     data: LocationCreateEntity,
   ) {
+    // Default to active hackathon if not provided
+    if (!data.hackathonId) {
+      const hackathon = await Hackathon.query().findOne({ active: true });
+      if (!hackathon) throw new NotFoundException("No active hackathon found");
+      data.hackathonId = hackathon.id;
+    }
+
     const location = await this.locationRepo.createOne(data).exec();
     this.socket.emit("create:location", location);
 
