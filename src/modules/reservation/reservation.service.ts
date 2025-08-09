@@ -416,7 +416,7 @@ export class ReservationService {
         reservationId,
         actorUserId,
         action,
-        meta,
+        meta: meta ? JSON.stringify(meta) : null,
         createdAt: Date.now(),
       })
       .exec();

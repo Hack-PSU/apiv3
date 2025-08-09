@@ -113,7 +113,7 @@ export async function up(knex: Knex): Promise<void> {
     table
       .enum("action", ["create", "cancel", "update", "auto_cancel"])
       .notNullable();
-    table.json("meta").nullable();
+    table.text("meta").nullable();
     table.bigInteger("created_at").unsigned().notNullable();
 
     table.index(["reservation_id"]);

@@ -6,7 +6,6 @@ import {
   IsNumber,
   IsEnum,
   IsOptional,
-  IsObject,
 } from "class-validator";
 
 export enum ReservationAuditAction {
@@ -62,9 +61,9 @@ export class ReservationAudit extends Entity {
 
   @ApiProperty({ nullable: true })
   @IsOptional()
-  @IsObject()
-  @Column({ type: "json", nullable: true })
-  meta: any | null;
+  @IsString()
+  @Column({ type: "string", nullable: true })
+  meta: string | null;
 
   @ApiProperty()
   @IsNumber()
