@@ -42,7 +42,7 @@ export async function up(knex: Knex): Promise<void> {
       .onDelete("CASCADE")
       .onUpdate("CASCADE");
 
-    table.unique(["user_id"]); // One team per user
+    table.unique(["user_id", "hackathon_id"]); // One team per user per hackathon
     table.unique(["team_id", "user_id"]); // Safety
     table.index(["team_id"]);
     table.index(["hackathon_id"]);
