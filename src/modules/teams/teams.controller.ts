@@ -158,11 +158,7 @@ export class TeamsController {
   }
 
   @Patch("change-lead")
-  @RestrictedRoles({
-    roles: [Role.NONE],
-    predicate: (req) => req.user && req.body.newLeadUserId === req.user?.sub,
-  })
-  @Roles(Role.TEAM)
+  @Roles(Role.NONE)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiDoc({
     summary: "Change Team Lead (Current Lead Only)",
@@ -174,7 +170,6 @@ export class TeamsController {
       noContent: true,
     },
     auth: Role.NONE,
-    restricted: true,
   })
   async changeTeamLead(
     @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))

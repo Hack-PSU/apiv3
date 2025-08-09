@@ -54,7 +54,7 @@ export class TeamsService {
         joinedAt: now,
         updatedAt: now,
       })
-      .byHackathon(hackathon.id);
+      .exec();
   }
 
   async addMemberByEmail(
@@ -124,7 +124,7 @@ export class TeamsService {
         joinedAt: now,
         updatedAt: now,
       })
-      .byHackathon(hackathon.id);
+      .exec();
   }
 
   async makeTeamLead(teamId: string, newLeadUserId: string): Promise<void> {
@@ -310,7 +310,9 @@ export class TeamsService {
       .byHackathon(hackathon.id)
       .where("teamId", teamId)
       .withGraphFetched("user")
-      .orderByRaw("CASE WHEN role = 'lead' THEN 0 ELSE 1 END, joined_at");
+      .orderByRaw(
+        `CASE WHEN role = '${TeamRole.LEAD}' THEN 0 ELSE 1 END, joined_at`,
+      );
   }
 
   async getTeamsOverview() {
