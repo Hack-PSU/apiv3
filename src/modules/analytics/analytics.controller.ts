@@ -13,6 +13,7 @@ import { ApiDoc } from "common/docs";
 import { Role, Roles } from "common/gcp";
 import { Organizer, OrganizerEntity } from "entities/organizer.entity";
 import { Event, EventEntity } from "entities/event.entity";
+import { Finance } from "entities/finance.entity";
 
 class CountsResponse {
   @ApiProperty()
@@ -64,6 +65,31 @@ class AnalyticsSummaryResponse {
   codingExp: CodingExpCounts[];
 }
 
+class PieChartData{
+  @ApiProperty()
+  category: string;
+
+  @ApiProperty()
+  amount: number;
+}
+
+class FinancialSummaryResponse { 
+  @ApiProperty()
+  totalExpenses: number;
+
+  @ApiProperty()
+  pendingReimbursements: number;
+
+  @ApiProperty()
+  approvedReimbursements: number;
+
+  @ApiProperty({type: [PieChartData]})
+  spendingCategories: PieChartData[];
+
+  @ApiProperty()
+  bankAccountBalance: number;
+}
+
 class AnalyticsScansResponse extends PickType(OrganizerEntity, [
   "id",
   "firstName",
@@ -97,13 +123,15 @@ export class AnalyticsController {
     private readonly registrationRepo: Repository<Registration>,
     @InjectRepository(Event)
     private readonly eventRepo: Repository<Event>,
+    @InjectRepository(Finance)
+    private readonly financeRepo: Repository<Finance>,
   ) {}
 
   @Get("/summary")
-  @Roles(Role.TEAM)
+  //@Roles(Role.TEAM)
   @ApiDoc({
     summary: "Get analytics summary for current hackathon",
-    auth: Role.TEAM,
+    //auth: Role.TEAM,
     response: {
       ok: { type: AnalyticsSummaryResponse },
     },
@@ -155,8 +183,57 @@ export class AnalyticsController {
       race: activeRaceEthnicityCounts,
       academicYear: activeAcademicYearCounts,
       codingExp: activeCodingExpCounts,
+
     };
   }
+
+  @Get("/financial-information")
+  //@Roles(Role.TEAM)
+  @ApiDoc({
+    summary: "Returns a variety of financial information used in the finanacial dashboard",
+    //auth: Role.TEAM,
+    response: {
+      ok: { type: FinancialSummaryResponse },
+    },
+  })
+  async getFinancials(){
+
+    const date = new Date();
+    const getYear = date.getFullYear();
+    const startDate = new Date(`${getYear}-01-01`).getTime();
+    const endDate = date.getTime();
+
+    const yearToDateExpenses = await this.financeRepo
+      .findAll()
+      .byHackathon()
+      .where("status", "APPROVED")
+      .whereBetween("createdAt", [startDate, endDate])
+      .sum("amount as totalExpenses")
+
+    const spendingCategories = await this.financeRepo
+      .findAll()
+      .byHackathon()
+      .where("status", "APPROVED")
+      .select("category")
+      .groupBy("category")
+      
+    const totalReimbursements = await this.financeRepo
+      .findAll()
+      .byHackathon()
+      .whereIn("status", ["APPROVED", "REJECTED"])
+      .count("id", { as: "reimbursements" })
+      .groupBy("status")
+      .select(
+
+      )
+
+    return{
+      ytdExpenses: yearToDateExpenses,
+      categories: spendingCategories,
+      reimbursements: totalReimbursements,
+    }
+  }
+
 
   @Get("/events")
   @Roles(Role.TEAM)
