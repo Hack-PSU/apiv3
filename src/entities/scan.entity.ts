@@ -1,7 +1,8 @@
 import { Column, ID, Table } from "common/objection";
 import { Entity } from "entities/base.entity";
 import { ApiProperty, PickType } from "@nestjs/swagger";
-import { IsOptional, IsString } from "class-validator";
+import { IsNumber, IsOptional, IsString } from "class-validator";
+import { Type } from "class-transformer";
 
 @Table({
   name: "scans",
@@ -53,6 +54,13 @@ export class Scan extends Entity {
   @IsString()
   @Column({ type: "string", required: false })
   hackathonId: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  @Column({ type: "integer", required: false })
+  timestamp?: number;
 }
 
 export class ScanEntity extends PickType(Scan, [
@@ -60,4 +68,5 @@ export class ScanEntity extends PickType(Scan, [
   "userId",
   "organizerId",
   "hackathonId",
+  "timestamp",
 ] as const) {}
