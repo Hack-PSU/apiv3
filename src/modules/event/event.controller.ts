@@ -477,6 +477,7 @@ export class EventController {
         ...data,
         userId,
         eventId: id,
+        timestamp: Date.now(),
       })
       .byHackathon(data.hackathonId);
 
