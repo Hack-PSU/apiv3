@@ -141,7 +141,7 @@ export class ProjectController {
   }
 
   @Patch(":id")
-  @Roles(Role.TEAM)
+  @Roles(Role.NONE)
   @ApiDoc({
     summary: "Patch a Project",
     params: [
