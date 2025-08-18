@@ -103,6 +103,14 @@ import { Scan } from "./scan.entity";
         to: "finances.hackathonId",
       },
     },
+    teams: {
+      relation: Entity.HasManyRelation,
+      modelClass: "team.entity.js",
+      join: {
+        from: "hackathons.id",
+        to: "teams.hackathonId",
+      },
+    },
   },
 })
 export class Hackathon extends Entity {
