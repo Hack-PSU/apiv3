@@ -7,9 +7,10 @@ import { IsBoolean, IsOptional, IsString } from "class-validator";
   name: "teams",
 })
 export class Team extends Entity {
-  @ApiProperty()
+  @ApiProperty({ required: false, description: "Defaults to active hackathon" })
+  @IsOptional()
   @IsString()
-  @Column({ type: "string" })
+  @Column({ type: "string", required: false })
   hackathonId: string;
   @ApiProperty()
   @IsString()
