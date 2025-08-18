@@ -9,6 +9,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseFilters,
   ValidationPipe,
 } from "@nestjs/common";
@@ -20,10 +21,12 @@ import { Role, Roles } from "common/gcp";
 import { ApiDoc } from "common/docs";
 import { DBExceptionFilter } from "common/filters";
 import { IsEmail, IsOptional, IsString } from "class-validator";
+import { Transform } from "class-transformer";
 import { nanoid } from "nanoid";
 
 class TeamCreateEntity extends OmitType(TeamEntity, [
   "id",
+  "hackathonId",
   "isActive",
 ] as const) {}
 
@@ -60,6 +63,25 @@ class AddUserByEmailEntity {
   email: string;
 }
 
+class ActiveTeamsParams {
+  @ApiProperty({
+    required: false,
+    description: "active can either be a boolean or undefined",
+  })
+  @IsOptional()
+  @Transform(({ value }) => {
+    switch (value) {
+      case "true":
+        return true;
+      case "false":
+        return false;
+      default:
+        return undefined;
+    }
+  })
+  active?: boolean;
+}
+
 @ApiTags("Teams")
 @Controller("teams")
 @UseFilters(DBExceptionFilter)
@@ -75,13 +97,26 @@ export class TeamController {
   @Roles(Role.NONE)
   @ApiDoc({
     summary: "Get All Teams",
+    query: [
+      {
+        name: "active",
+        type: ActiveTeamsParams,
+      },
+    ],
     response: {
       ok: { type: [TeamEntity] },
     },
     auth: Role.TEAM,
   })
-  async getAll() {
-    return this.teamRepo.findAll().exec();
+  async getAll(
+    @Query(new ValidationPipe({ transform: true }))
+    { active }: ActiveTeamsParams,
+  ) {
+    if (active === undefined || active === true) {
+      return this.teamRepo.findAll().byHackathon();
+    } else if (active === false) {
+      return this.teamRepo.findAll().exec();
+    }
   }
 
   @Post("/")
@@ -136,11 +171,11 @@ export class TeamController {
       throw new BadRequestException("Duplicate members are not allowed");
     }
 
-    // Check if any user is already in another team
+    // Check if any user is already in another team in the current hackathon
     if (memberIds.length > 0) {
       const existingTeams = await this.teamRepo
         .findAll()
-        .raw()
+        .byHackathon()
         .where((builder) => {
           memberIds.forEach((memberId) => {
             builder
@@ -154,7 +189,7 @@ export class TeamController {
 
       if (existingTeams.length > 0) {
         const conflictingUser = memberIds.find((memberId) =>
-          existingTeams.some((team) =>
+          existingTeams.some((team: any) =>
             [
               team.member1,
               team.member2,
@@ -176,7 +211,7 @@ export class TeamController {
         isActive: true,
         ...data,
       })
-      .exec();
+      .byHackathon();
 
     return team;
   }
@@ -273,7 +308,7 @@ export class TeamController {
       throw new BadRequestException("Team cannot have more than 5 members");
     }
 
-    // Check if any new user is already in another team
+    // Check if any new user is already in another team in the current hackathon
     const newMemberIds = memberFields
       .filter((field) => data[field] && data[field] !== existingTeam[field])
       .map((field) => data[field]);
@@ -281,7 +316,7 @@ export class TeamController {
     if (newMemberIds.length > 0) {
       const existingTeams = await this.teamRepo
         .findAll()
-        .raw()
+        .byHackathon()
         .where((builder) => {
           newMemberIds.forEach((memberId) => {
             builder
@@ -296,7 +331,7 @@ export class TeamController {
 
       if (existingTeams.length > 0) {
         const conflictingUser = newMemberIds.find((memberId) =>
-          existingTeams.some((team) =>
+          existingTeams.some((team: any) =>
             [
               team.member1,
               team.member2,
@@ -380,10 +415,10 @@ export class TeamController {
       throw new BadRequestException("User is already a member of this team");
     }
 
-    // Check if user is already in any other team
+    // Check if user is already in any other team in the current hackathon
     const existingTeams = await this.teamRepo
       .findAll()
-      .raw()
+      .byHackathon()
       .where((builder) => {
         builder
           .where("member1", user.id)

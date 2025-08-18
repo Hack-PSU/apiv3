@@ -9,6 +9,10 @@ import { IsBoolean, IsOptional, IsString } from "class-validator";
 export class Team extends Entity {
   @ApiProperty()
   @IsString()
+  @Column({ type: "string" })
+  hackathonId: string;
+  @ApiProperty()
+  @IsString()
   @ID({ type: "string" })
   id: string;
 
@@ -55,6 +59,7 @@ export class Team extends Entity {
 
 export class TeamEntity extends PickType(Team, [
   "id",
+  "hackathonId",
   "name",
   "member1",
   "member2",

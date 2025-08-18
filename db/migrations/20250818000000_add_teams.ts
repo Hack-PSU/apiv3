@@ -2,6 +2,13 @@ import { Knex } from "knex";
 
 export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable("teams", (table) => {
+    table
+      .uuid("hackathon_id")
+      .notNullable()
+      .references("id")
+      .inTable("hackathons")
+      .onDelete("CASCADE")
+      .onUpdate("CASCADE");
     table.uuid("id").primary().notNullable();
     table.string("name").notNullable();
     table
