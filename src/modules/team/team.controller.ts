@@ -72,7 +72,7 @@ export class TeamController {
   ) {}
 
   @Get("/")
-  @Roles(Role.TEAM)
+  @Roles(Role.NONE)
   @ApiDoc({
     summary: "Get All Teams",
     response: {
