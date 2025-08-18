@@ -136,6 +136,40 @@ export class TeamController {
       throw new BadRequestException("Duplicate members are not allowed");
     }
 
+    // Check if any user is already in another team
+    if (memberIds.length > 0) {
+      const existingTeams = await this.teamRepo
+        .findAll()
+        .raw()
+        .where((builder) => {
+          memberIds.forEach((memberId) => {
+            builder
+              .orWhere("member1", memberId)
+              .orWhere("member2", memberId)
+              .orWhere("member3", memberId)
+              .orWhere("member4", memberId)
+              .orWhere("member5", memberId);
+          });
+        });
+
+      if (existingTeams.length > 0) {
+        const conflictingUser = memberIds.find((memberId) =>
+          existingTeams.some((team) =>
+            [
+              team.member1,
+              team.member2,
+              team.member3,
+              team.member4,
+              team.member5,
+            ].includes(memberId),
+          ),
+        );
+        throw new BadRequestException(
+          `User ${conflictingUser} is already a member of another team`,
+        );
+      }
+    }
+
     const team = await this.teamRepo
       .createOne({
         id: nanoid(),
@@ -239,6 +273,45 @@ export class TeamController {
       throw new BadRequestException("Team cannot have more than 5 members");
     }
 
+    // Check if any new user is already in another team
+    const newMemberIds = memberFields
+      .filter((field) => data[field] && data[field] !== existingTeam[field])
+      .map((field) => data[field]);
+
+    if (newMemberIds.length > 0) {
+      const existingTeams = await this.teamRepo
+        .findAll()
+        .raw()
+        .where((builder) => {
+          newMemberIds.forEach((memberId) => {
+            builder
+              .orWhere("member1", memberId)
+              .orWhere("member2", memberId)
+              .orWhere("member3", memberId)
+              .orWhere("member4", memberId)
+              .orWhere("member5", memberId);
+          });
+        })
+        .andWhereNot("id", id);
+
+      if (existingTeams.length > 0) {
+        const conflictingUser = newMemberIds.find((memberId) =>
+          existingTeams.some((team) =>
+            [
+              team.member1,
+              team.member2,
+              team.member3,
+              team.member4,
+              team.member5,
+            ].includes(memberId),
+          ),
+        );
+        throw new BadRequestException(
+          `User ${conflictingUser} is already a member of another team`,
+        );
+      }
+    }
+
     const team = await this.teamRepo.patchOne(id, data).exec();
     return team;
   }
@@ -294,7 +367,7 @@ export class TeamController {
       throw new NotFoundException(`User with email ${data.email} not found`);
     }
 
-    // Check if user is already in team
+    // Check if user is already in this team
     const currentMembers = [
       team.member1,
       team.member2,
@@ -305,6 +378,23 @@ export class TeamController {
 
     if (currentMembers.includes(user.id)) {
       throw new BadRequestException("User is already a member of this team");
+    }
+
+    // Check if user is already in any other team
+    const existingTeams = await this.teamRepo
+      .findAll()
+      .raw()
+      .where((builder) => {
+        builder
+          .where("member1", user.id)
+          .orWhere("member2", user.id)
+          .orWhere("member3", user.id)
+          .orWhere("member4", user.id)
+          .orWhere("member5", user.id);
+      });
+
+    if (existingTeams.length > 0) {
+      throw new BadRequestException("User is already a member of another team");
     }
 
     // Find first empty slot
