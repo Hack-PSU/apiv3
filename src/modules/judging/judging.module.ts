@@ -8,9 +8,10 @@ import { JudgingController } from "modules/judging/judging.controller";
 import { JudgingService } from "modules/judging/judging.service";
 import { Organizer } from "entities/organizer.entity";
 import { Hackathon } from "entities/hackathon.entity";
+import { Team } from "entities/team.entity";
 
 @Module({
-  imports: [ObjectionModule.forFeature([Organizer, Project, Score, Hackathon])],
+  imports: [ObjectionModule.forFeature([Organizer, Project, Score, Hackathon, Team])],
   controllers: [JudgingController, ProjectController, ScoreController],
   providers: [JudgingService],
 })
