@@ -270,11 +270,7 @@ export class UserController {
   }
 
   @Get(":id")
-  @RestrictedRoles({
-    roles: [Role.NONE, Role.VOLUNTEER],
-    predicate: (req) => req.user && req.user?.sub === req.params.id,
-  })
-  @Roles(Role.TEAM)
+  @Roles(Role.NONE)
   @ApiDoc({
     summary: "Get a User",
     params: [
