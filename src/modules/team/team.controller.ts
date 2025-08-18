@@ -16,6 +16,7 @@ import {
 import { InjectRepository, Repository } from "common/objection";
 import { Team, TeamEntity } from "entities/team.entity";
 import { User } from "entities/user.entity";
+import { Hackathon } from "entities/hackathon.entity";
 import { ApiProperty, ApiTags, OmitType, PartialType } from "@nestjs/swagger";
 import { Role, Roles } from "common/gcp";
 import { ApiDoc } from "common/docs";
@@ -205,13 +206,20 @@ export class TeamController {
       }
     }
 
+    // Get active hackathon
+    const hackathon = await Hackathon.query().findOne({ active: true });
+    if (!hackathon) {
+      throw new NotFoundException("No active hackathon found");
+    }
+
     const team = await this.teamRepo
       .createOne({
         id: nanoid(),
+        hackathonId: hackathon.id,
         isActive: true,
         ...data,
       })
-      .byHackathon();
+      .exec();
 
     return team;
   }
