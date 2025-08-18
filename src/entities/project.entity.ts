@@ -1,5 +1,5 @@
 import { ApiProperty, PickType } from "@nestjs/swagger";
-import { IsOptional, IsString } from "class-validator";
+import { IsOptional, IsString, IsUrl } from "class-validator";
 import { Column, ID, Table } from "common/objection";
 import { Entity } from "entities/base.entity";
 
@@ -12,6 +12,14 @@ import { Entity } from "entities/base.entity";
       join: {
         from: "projects.id",
         to: "scores.projectId",
+      },
+    },
+    team: {
+      relation: Entity.BelongsToOneRelation,
+      modelClass: "team.entity.js",
+      join: {
+        from: "projects.teamId",
+        to: "teams.id",
       },
     },
   },
@@ -42,6 +50,18 @@ export class Project extends Entity {
   @IsString()
   @Column({ type: "string", required: false })
   categories: string;
+
+  @ApiProperty({ required: false, description: "Team associated with this project" })
+  @IsOptional()
+  @IsString()
+  @Column({ type: "string", required: false })
+  teamId?: string;
+
+  @ApiProperty({ required: false, description: "Devpost submission link" })
+  @IsOptional()
+  @IsUrl({}, { message: "Must be a valid URL" })
+  @Column({ type: "string", required: false })
+  devpostLink?: string;
 }
 
 export class ProjectEntity extends PickType(Project, [
@@ -49,4 +69,6 @@ export class ProjectEntity extends PickType(Project, [
   "name",
   "hackathonId",
   "categories",
+  "teamId",
+  "devpostLink",
 ] as const) {}

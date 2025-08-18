@@ -6,6 +6,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  NotFoundException,
   Param,
   ParseIntPipe,
   Patch,
@@ -18,6 +19,7 @@ import {
 } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
 import { Project, ProjectEntity } from "entities/project.entity";
+import { Team } from "entities/team.entity";
 import { ApiTags, OmitType, PartialType } from "@nestjs/swagger";
 import { Role, Roles } from "common/gcp";
 import { ApiDoc } from "common/docs";
@@ -39,6 +41,8 @@ export class ProjectController {
     private readonly projectRepo: Repository<Project>,
     @InjectRepository(Hackathon)
     private readonly hackathonRepo: Repository<Hackathon>,
+    @InjectRepository(Team)
+    private readonly teamRepo: Repository<Team>,
   ) {}
 
   @Get("/")
@@ -54,7 +58,7 @@ export class ProjectController {
   }
 
   @Post("/")
-  @Roles(Role.TEAM)
+  @Roles(Role.NONE)
   @ApiDoc({
     summary: "Create a Project",
     request: {
@@ -76,6 +80,19 @@ export class ProjectController {
     )
     data: ProjectCreateEntity,
   ) {
+    // Validate teamId if provided
+    if (data.teamId) {
+      const team = await this.teamRepo.findOne(data.teamId).exec();
+      if (!team) {
+        throw new BadRequestException(`Team with ID ${data.teamId} not found`);
+      }
+
+      // Check if team is active
+      if (!team.isActive) {
+        throw new BadRequestException("Cannot assign project to inactive team");
+      }
+    }
+
     return this.projectRepo.createOne(data).byHackathon();
   }
 
@@ -96,6 +113,31 @@ export class ProjectController {
   })
   async getOne(@Param("id", ParseIntPipe) id: number) {
     return this.projectRepo.findOne(id).exec();
+  }
+
+  @Get("team/:teamId")
+  @Roles(Role.NONE)
+  @ApiDoc({
+    summary: "Get Projects by Team ID",
+    params: [
+      {
+        name: "teamId",
+        description: "ID must be set to a team's ID",
+      },
+    ],
+    response: {
+      ok: { type: [ProjectEntity] },
+    },
+    auth: Role.NONE,
+  })
+  async getProjectsByTeam(@Param("teamId") teamId: string) {
+    // Validate team exists
+    const team = await this.teamRepo.findOne(teamId).exec();
+    if (!team) {
+      throw new NotFoundException(`Team with ID ${teamId} not found`);
+    }
+
+    return this.projectRepo.findAll().byHackathon().where("teamId", teamId);
   }
 
   @Patch(":id")
@@ -128,6 +170,19 @@ export class ProjectController {
     )
     data: ProjectPatchEntity,
   ) {
+    // Validate teamId if provided
+    if (data.teamId) {
+      const team = await this.teamRepo.findOne(data.teamId).exec();
+      if (!team) {
+        throw new BadRequestException(`Team with ID ${data.teamId} not found`);
+      }
+
+      // Check if team is active
+      if (!team.isActive) {
+        throw new BadRequestException("Cannot assign project to inactive team");
+      }
+    }
+
     return this.projectRepo.patchOne(id, data).exec();
   }
 
