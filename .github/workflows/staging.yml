@@ -28,7 +28,7 @@ jobs:
         credentials_json: ${{ secrets.GCP_DEPLOYER_SA_KEY }}
 
     - name: Setup Google Cloud SDK
-      uses: google-github-actions/setup-gcloud@v2
+      uses: google-github-actions/setup-gcloud@v3
 
     - name: Authorize Docker Push
       run: gcloud auth configure-docker us-east4-docker.pkg.dev --quiet
