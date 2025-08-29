@@ -352,7 +352,7 @@ export class FinanceController {
         subject: "HackPSU Reimbursement Approved",
         message: reimbursementApprovedMessage,
       });
-    } else if (updatedFinance.status === Status.REJECTED) {
+    } else if (updatedFinance.status.startsWith("REJECTED")) {
       const reimbursementRejectedMessage =
         await this.sendGridService.populateTemplate(
           DefaultTemplate.reimbursementRejected,
