@@ -350,8 +350,16 @@ export class FinanceController {
         subject: "HackPSU Reimbursement Rejected",
         message: reimbursementRejectedMessage,
       });
+    } else if (updatedFinance.status === Status.SUBMITTED_TO_ASA) {
+      const asaNotificationMessage = `Reimbursement ${updatedFinance.id} has been submitted to ASA for processing.`;
+      await this.sendGridService.send({
+        from: "finance@hackpsu.org",
+        to: "asa-team@hackpsu.org",
+        subject: "Reimbursement Submitted to ASA",
+        message: asaNotificationMessage,
+      });
     }
-
+    
     return updatedFinance;
   }
 }

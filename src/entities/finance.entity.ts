@@ -29,18 +29,6 @@ export enum Status {
   REJECTED_OTHER = "REJECTED_OTHER"
 }
 
-export enum RejectionReason {
-  INVALID_RECEIPT = "Invalid receipt",
-  WRONG_ADDRESS = "Wrong address",
-  WRONG_DESCRIPTION = "Wrong description",
-  INCORRECT_AMOUNT = "Incorrect amount",
-  DUPLICATE_SUBMISSION = "Duplicate submission",
-  MISSING_INFORMATION = "Missing required information",
-  INELIGIBLE_EXPENSE = "Ineligible expense",
-  EXPIRED_SUBMISSION = "Expired submission deadline",
-  OTHER = "Other"
-}
-
 export enum SubmitterType {
   USER = "USER",
   ORGANIZER = "ORGANIZER",
@@ -265,17 +253,6 @@ export class Finance extends Entity {
   status: Status;
 
   @ApiProperty({
-    description: "Reason for rejection when status is REJECTED",
-    enum: RejectionReason,
-    required: false,
-    example: RejectionReason.INVALID_RECEIPT,
-  })
-  @IsEnum(RejectionReason)
-  @IsOptional()
-  @Column({ type: "string", nullable: true })
-  rejectionReason?: RejectionReason;
-
-  @ApiProperty({
     description: "Type of the submitter (USER or ORGANIZER)",
     enum: SubmitterType,
     example: SubmitterType.USER,
@@ -379,7 +356,6 @@ export class FinanceEntity extends PickType(Finance, [
   "id",
   "amount",
   "status",
-  "rejectionReason",
   "submitterType",
   "submitterId",
   "receiptUrl",
