@@ -53,6 +53,7 @@ import {
 } from "common/sendgrid";
 import { Registration, RegistrationEntity } from "entities/registration.entity";
 import * as admin from "firebase-admin";
+import * as QRCode from "qrcode";
 import { IsOptional } from "class-validator";
 import { Transform } from "class-transformer";
 import { FirebaseMessagingService } from "common/gcp/messaging";
@@ -543,6 +544,7 @@ export class UserController {
       process.env.RUNTIME_INSTANCE &&
       process.env.RUNTIME_INSTANCE === "production"
     ) {
+      const qrCodeDataUrl = await QRCode.toDataURL(`HACKPSU_${user.id}`);
       const message = await this.sendGridService.populateTemplate(
         DefaultTemplate.registration,
         {
@@ -550,6 +552,7 @@ export class UserController {
           date: "October 25th - 26th 2025",
           address: "ECore Building, University Park PA",
           firstName: user.firstName,
+          qrCode: qrCodeDataUrl,
         },
       );
 
