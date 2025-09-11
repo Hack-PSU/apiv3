@@ -42,11 +42,7 @@ export class PhotoService {
       metadata: {
         contentType: file.mimetype,
       },
-      public: true,
     });
-
-    // Make the file publicly accessible
-    await blob.makePublic();
 
     return this.getPublicPhotoUrl(filename);
   }
