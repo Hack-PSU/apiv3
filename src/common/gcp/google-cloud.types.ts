@@ -16,6 +16,10 @@ export type ReimbursementFormBucketConfig = {
   reimbursement_form_bucket?: string;
 };
 
+export type PhotoBucketConfig = {
+  photo_bucket?: string;
+};
+
 export type GoogleCloudCoreModuleOptions = {
   imports?: any[];
   useFactory: (...args: any[]) => FirebaseConfig;
