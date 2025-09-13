@@ -75,10 +75,31 @@ export class AppleWalletService {
     }
   }
 
+  
+  //  Generates NFC message payload for hackathon pass
+  //  Format: HACKPSU_EVENT_<eventId>_USER_<userId>_TS_<timestamp>
+   
+  private generateNFCMessage(userId: string, passData: HackathonPassData): string {
+    const eventId = this.generateEventId(passData.eventName);
+    const timestamp = Math.floor(Date.now() / 1000); // Unix timestamp
+    return `HACKPSU_EVENT_${eventId}_USER_${userId}_TS_${timestamp}`;
+  }
+
+
+  private generateEventId(eventName: string): string {
+    return eventName
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '')
+      .substring(0, 12);
+  }
+
   async generatePass(
     passData: HackathonPassData,
     userId: string,
   ): Promise<Buffer> {
+    // Generate NFC message
+    const nfcMessage = this.generateNFCMessage(userId, passData);
+    
     const passJson = {
       description: passData.eventName,
       formatVersion: 1,
@@ -97,6 +118,13 @@ export class AppleWalletService {
       relevantDate: DateTime.fromJSDate(new Date(passData.startDateTime), {
         zone: "America/New_York",
       }).toISO(),
+      
+      nfc: {
+        message: nfcMessage,
+        encryptionPublicKey: undefined, // OOptional, only needed for encryption
+        requiresAuthentication: false, // Set to true if you want Face ID/Touch ID required
+      },
+      
       eventTicket: {
         primaryFields: [
           {
@@ -161,7 +189,7 @@ export class AppleWalletService {
           {
             key: "eventDetails",
             label: "Event Information",
-            value: `Join us for ${passData.eventName}! This pass serves as your admission ticket. Please have it ready when you arrive.\n\nFor questions or support, visit hackpsu.org or contact our team.`,
+            value: `Join us for ${passData.eventName}! This pass serves as your admission ticket. You can either show the QR code or tap your device on our NFC scanners at check-in.\n\nFor questions or support, visit hackpsu.org or contact our team.`,
           },
           {
             key: "schedule",
@@ -194,6 +222,7 @@ export class AppleWalletService {
     };
 
     const pass = new PKPass(initialBuffers, this.certificates, {});
+
 
     const barcode: Barcode = {
       message: `HACKPSU_${userId}`,
