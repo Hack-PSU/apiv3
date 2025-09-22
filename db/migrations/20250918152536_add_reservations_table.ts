@@ -1,55 +1,45 @@
 import type { Knex } from "knex";
 
-
 export async function up(knex: Knex): Promise<void> {
-    await knex.schema.createTable("reservations", (table) => {
-        table
-            .increments("id")
-            .primary()
-            .notNullable();
-        table
-            .bigInteger("start_time")
-            .unsigned()
-            .notNullable();
+  await knex.schema.alterTable("locations", (table) => {
+    table.index("id");
+  });
 
-        table
-            .bigInteger("end_time")
-            .unsigned()
-            .notNullable();
+  await knex.schema.createTable("reservations", (table) => {
+    table.increments("id").primary().notNullable();
+    table.bigInteger("start_time").unsigned().notNullable();
 
-        table
-            .integer("location_id")
-            .unsigned()
-            .notNullable()
-            .references("id")
-            .inTable("locations")
-            .onDelete("CASCADE")
-            .onUpdate("CASCADE");
+    table.bigInteger("end_time").unsigned().notNullable();
 
-        table
-            .uuid("team_id")
-            .notNullable()
-            .references("id")
-            .inTable("teams")
-            .onDelete("CASCADE")
-            .onUpdate("CASCADE");
-        
-        table
-            .uuid("hackathon_id")
-            .notNullable()
-            .references("id")
-            .inTable("hackathons")
-            .onDelete("CASCADE")
-            .onUpdate("CASCADE");
-        
-        table
-            .enu("reservation_type", ["participant", "admin"])
-            .notNullable();
-    });
+    table
+      .integer("location_id")
+      .unsigned()
+      .notNullable()
+      .references("id")
+      .inTable("locations")
+      .onDelete("CASCADE")
+      .onUpdate("CASCADE");
+
+    table
+      .uuid("team_id")
+      .notNullable()
+      .references("id")
+      .inTable("teams")
+      .onDelete("CASCADE")
+      .onUpdate("CASCADE");
+
+    table
+      .uuid("hackathon_id")
+      .notNullable()
+      .references("id")
+      .inTable("hackathons")
+      .onDelete("CASCADE")
+      .onUpdate("CASCADE");
+
+    table.enu("reservation_type", ["participant", "admin"]).notNullable();
+  });
 }
-
 
 export async function down(knex: Knex): Promise<void> {
-    await knex.schema.dropTableIfExists("reservations");
+  await knex.schema.dropTableIfExists("reservations");
 }
-
