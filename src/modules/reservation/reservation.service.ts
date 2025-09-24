@@ -11,7 +11,6 @@ import {
   ReservationStatus,
 } from "entities/reservation.entity";
 
-// what does reservation audit do??
 import {
   ReservationAudit,
   ReservationAuditAction,
@@ -21,7 +20,6 @@ import {
 import { Location } from "entities/location.entity";
 import { Hackathon } from "entities/hackathon.entity";
 
-// what does team roster do??
 import { TeamRoster, TeamRole } from "entities/team-roster.entity";
 import { v4 as uuidv4 } from "uuid";
 

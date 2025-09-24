@@ -1,10 +1,10 @@
 import { Module } from "@nestjs/common";
 import { ObjectionModule } from "common/objection";
 import { Reservation } from "entities/reservation.entity";
-// import { ReservationAudit } from "entities/reservation-audit.entity";
+import { ReservationAudit } from "entities/reservation-audit.entity";
 import { Location } from "entities/location.entity";
 import { Hackathon } from "entities/hackathon.entity";
-// import { TeamRoster } from "entities/team-roster.entity";
+import { TeamRoster } from "entities/team-roster.entity";
 import { ReservationController } from "./reservation.controller";
 import { ReservationService } from "./reservation.service";
 
@@ -15,10 +15,10 @@ import { ReservationService } from "./reservation.service";
         schema: Reservation,
         disableByHackathon: true,
       },
-      // {
-      //   schema: ReservationAudit,
-      //   disableByHackathon: true,
-      // },
+      {
+        schema: ReservationAudit,
+        disableByHackathon: true,
+      },
       {
         schema: Location,
         disableByHackathon: true,
@@ -27,10 +27,10 @@ import { ReservationService } from "./reservation.service";
         schema: Hackathon,
         disableByHackathon: true,
       },
-      // {
-      //   schema: TeamRoster,
-      //   disableByHackathon: true,
-      // },
+      {
+        schema: TeamRoster,
+        disableByHackathon: true,
+      },
     ]),
   ],
   controllers: [ReservationController],
