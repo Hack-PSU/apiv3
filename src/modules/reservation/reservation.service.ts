@@ -22,11 +22,11 @@ import { Hackathon } from "entities/hackathon.entity";
 
 import { TeamRoster, TeamRole } from "entities/team-roster.entity";
 import { v4 as uuidv4 } from "uuid";
+
 export interface UpdateReservationDto {
   reservationID: string;
   startTime?: number;
   endTime?: number;
-  hackathonID: string;
 }
 
 export interface CreateReservationDto {
@@ -164,6 +164,50 @@ export class ReservationService {
       canceledByUserId,
       ReservationAuditAction.CANCEL,
       { reason, originalReservation: reservation },
+    );
+
+    return updatedReservation;
+  }
+
+  async updateReservation(
+    data: UpdateReservationDto,
+    updatedByUserId: string
+  ): Promise<Reservation> {
+    
+    // Get the reservation
+    const reservation = await this.reservationRepo
+      .findOne(data.reservationID)
+      .exec();
+
+    if (!reservation) {
+      throw new NotFoundException("Reservation not found");
+    }
+
+    // validate data
+    const validationData = {
+      locationId: reservation.locationId,
+      teamId: reservation.teamId,
+      startTime: data.startTime ? data.startTime : reservation.startTime,
+      endTime: data.endTime ? data.endTime : reservation.endTime,
+      hackathonId: reservation.hackathonId
+    };
+
+    await this.validateReservation(validationData, updatedByUserId);
+
+    // patch with new start and end times
+    const updatedReservation = await this.reservationRepo
+      .patchOne(data.reservationID, {
+        startTime: validationData.startTime,
+        endTime: validationData.endTime
+      })
+      .exec();
+
+    // add into audit
+    await this.createAuditRecord(
+      data.reservationID,
+      updatedByUserId,
+      ReservationAuditAction.UPDATE,
+      { updatedReservation }
     );
 
     return updatedReservation;
