@@ -25,7 +25,7 @@ import { DBExceptionFilter } from "common/filters";
 import { IsString, IsNumber, IsOptional, IsEnum } from "class-validator";
 import { Type } from "class-transformer";
 
-class CreateReservationRequest {
+class CreateReservationEntity {
   @ApiProperty()
   @IsNumber()
   @Type(() => Number)
@@ -50,7 +50,7 @@ class CreateReservationRequest {
   hackathonId: string;
 }
 
-class CreateBlackoutRequest {
+class CreateBlackoutEntity {
   @ApiProperty()
   @IsNumber()
   @Type(() => Number)
@@ -71,7 +71,7 @@ class CreateBlackoutRequest {
   hackathonId: string;
 }
 
-class CancelReservationRequest {
+class CancelReservationEntity {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
@@ -179,7 +179,7 @@ export class ReservationController {
   @ApiDoc({
     summary: "Create Team Reservation",
     request: {
-      body: { type: CreateReservationRequest },
+      body: { type: CreateReservationEntity },
       validate: true,
     },
     response: {
@@ -188,7 +188,7 @@ export class ReservationController {
   })
   async createReservation(
     @Body(new ValidationPipe({ transform: true }))
-    data: CreateReservationRequest,
+    data: CreateReservationEntity,
     @Req() req: any,
   ) {
     return this.reservationService.createReservation(data, req.user?.sub);
@@ -199,7 +199,7 @@ export class ReservationController {
   @ApiDoc({
     summary: "Create Blackout Period (Admin Only)",
     request: {
-      body: { type: CreateBlackoutRequest },
+      body: { type: CreateBlackoutEntity },
       validate: true,
     },
     response: {
@@ -208,7 +208,7 @@ export class ReservationController {
     auth: Role.TEAM,
   })
   async createBlackout(
-    @Body(new ValidationPipe({ transform: true })) data: CreateBlackoutRequest,
+    @Body(new ValidationPipe({ transform: true })) data: CreateBlackoutEntity,
     @Req() req: any,
   ) {
     return this.reservationService.createBlackout(data, req.user?.sub);
@@ -225,7 +225,7 @@ export class ReservationController {
       },
     ],
     request: {
-      body: { type: CancelReservationRequest },
+      body: { type: CancelReservationEntity },
       validate: true,
     },
     response: {
@@ -235,7 +235,7 @@ export class ReservationController {
   async cancelReservation(
     @Param("id") reservationId: string,
     @Body(new ValidationPipe({ transform: true }))
-    data: CancelReservationRequest,
+    data: CancelReservationEntity,
     @Req() req: any,
   ) {
     await this.reservationService.cancelReservation(
@@ -257,7 +257,7 @@ export class ReservationController {
       },
     ],
     request: {
-      body: { type: CancelReservationRequest },
+      body: { type: CancelReservationEntity },
       validate: true,
     },
     response: {
@@ -268,7 +268,7 @@ export class ReservationController {
   async cancelBlackout(
     @Param("id") blackoutId: string,
     @Body(new ValidationPipe({ transform: true }))
-    data: CancelReservationRequest,
+    data: CancelReservationEntity,
     @Req() req: any,
   ) {
     await this.reservationService.cancelReservation(

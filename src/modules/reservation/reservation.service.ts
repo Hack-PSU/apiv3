@@ -286,9 +286,9 @@ export class ReservationService {
     }
 
     // Only team leads can create reservations
-    if (membership.role !== TeamRole.LEAD) {
-      throw new ForbiddenException("Only team leads can create reservations");
-    }
+    // if (membership.role !== TeamRole.LEAD) {
+    //   throw new ForbiddenException("Only team leads can create reservations");
+    // }
 
     // Verify team has valid roster (≤ 5 members, exactly 1 lead)
     const teamMembers = await TeamRoster.query()
