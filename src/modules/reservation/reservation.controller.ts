@@ -24,6 +24,34 @@ import { ApiDoc } from "common/docs";
 import { DBExceptionFilter } from "common/filters";
 import { IsString, IsNumber, IsOptional, IsEnum } from "class-validator";
 import { Type } from "class-transformer";
+import { isNumber } from "lodash";
+
+export class UpdateReservationRequest {
+  @ApiProperty()
+  @
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  locationId?: number;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  startTime?: number;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  endTime?: number;
+
+  @ApiProperty()
+  @IsString()
+  hackathonId: string;
+}
 
 class CreateReservationEntity {
   @ApiProperty()

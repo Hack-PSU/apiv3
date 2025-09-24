@@ -24,6 +24,12 @@ import { Hackathon } from "entities/hackathon.entity";
 // what does team roster do??
 import { TeamRoster, TeamRole } from "entities/team-roster.entity";
 import { v4 as uuidv4 } from "uuid";
+export interface UpdateReservationDto {
+  reservationID: string;
+  startTime?: number;
+  endTime?: number;
+  hackathonID: string;
+}
 
 export interface CreateReservationDto {
   locationId: number;
