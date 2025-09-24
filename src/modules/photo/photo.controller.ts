@@ -5,12 +5,14 @@ import {
   InternalServerErrorException,
   Post,
   UseInterceptors,
+  Req,
+  Body,
 } from "@nestjs/common";
+import { Request } from "express";
 import { ApiTags } from "@nestjs/swagger";
 import { ApiDoc } from "common/docs";
 import { Role, Roles } from "common/gcp";
 import { FileInterceptor } from "@nestjs/platform-express";
-import { nanoid } from "nanoid";
 import { PhotoService } from "./photo.service";
 import { UploadedPhoto } from "./uploaded-photo.decorator";
 
@@ -41,20 +43,20 @@ export class PhotoController {
     },
   })
   async uploadPhoto(
-    @UploadedPhoto() photo: Express.Multer.File,
-  ): Promise<{ photoId: string; photoUrl: string }> {
+      @UploadedPhoto() photo: Express.Multer.File,
+      @Req() req: Request,
+      @Body("fileType") fileType: string,
+    ): Promise<{ photoId: string; photoUrl: string }> {
     if (!photo) {
       throw new BadRequestException("Photo is required");
     }
 
-    const photoId = nanoid(32);
+    const userId = (req.user as any)?.uid;
+    const type = fileType || "default";
 
     try {
-      const photoUrl = await this.photoService.uploadPhoto(photoId, photo);
-      return {
-        photoId,
-        photoUrl,
-      };
+      const { photoId, photoUrl } = await this.photoService.uploadPhoto(userId, type, photo);
+      return { photoId, photoUrl };
     } catch (error) {
       console.error("Error uploading photo:", error);
       throw new InternalServerErrorException("Failed to upload photo");
