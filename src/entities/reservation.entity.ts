@@ -4,13 +4,8 @@ import { ApiProperty, PickType } from "@nestjs/swagger";
 import { IsString, IsNumber, IsEnum, IsOptional } from "class-validator";
 
 export enum ReservationType {
-  TEAM = "team",
-  BLACKOUT = "blackout",
-}
-
-export enum ReservationStatus {
-  CONFIRMED = "confirmed",
-  CANCELED = "canceled",
+  PARTICIPANT = "participant",
+  ADMIN = "admin",
 }
 
 @Table({
@@ -23,14 +18,6 @@ export enum ReservationStatus {
       join: {
         from: "reservations.locationId",
         to: "locations.id",
-      },
-    },
-    createdByUser: {
-      relation: Entity.BelongsToOneRelation,
-      modelClass: "user.entity.js",
-      join: {
-        from: "reservations.createdByUserId",
-        to: "users.id",
       },
     },
     hackathon: {
@@ -63,7 +50,7 @@ export class Reservation extends Entity {
   @ApiProperty({ enum: ReservationType })
   @IsEnum(ReservationType)
   @Column({ type: "string", required: true })
-  type: ReservationType = ReservationType.TEAM;
+  reservationType: ReservationType = ReservationType.PARTICIPANT;
 
   @ApiProperty()
   @IsNumber()
@@ -75,33 +62,6 @@ export class Reservation extends Entity {
   @Column({ type: "integer" })
   endTime: number;
 
-  @ApiProperty({ enum: ReservationStatus })
-  @IsEnum(ReservationStatus)
-  @Column({ type: "string", required: true })
-  status: ReservationStatus = ReservationStatus.CONFIRMED;
-
-  @ApiProperty()
-  @IsString()
-  @Column({ type: "string" })
-  createdByUserId: string;
-
-  @ApiProperty()
-  @IsNumber()
-  @Column({ type: "integer" })
-  createdAt: number;
-
-  @ApiProperty({ nullable: true })
-  @IsOptional()
-  @IsNumber()
-  @Column({ type: "integer", nullable: true })
-  canceledAt: number | null;
-
-  @ApiProperty({ nullable: true })
-  @IsOptional()
-  @IsString()
-  @Column({ type: "string", nullable: true })
-  cancelReason: string | null;
-
   @ApiProperty()
   @IsString()
   @Column({ type: "string" })
@@ -112,13 +72,8 @@ export class ReservationEntity extends PickType(Reservation, [
   "id",
   "locationId",
   "teamId",
-  "type",
+  "reservationType",
   "startTime",
   "endTime",
-  "status",
-  "createdByUserId",
-  "createdAt",
-  "canceledAt",
-  "cancelReason",
   "hackathonId",
 ] as const) {}

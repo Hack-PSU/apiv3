@@ -5,22 +5,12 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
-import {
-  Reservation,
-  ReservationType,
-  ReservationStatus,
-} from "entities/reservation.entity";
-
-import {
-  ReservationAudit,
-  ReservationAuditAction,
-} from "entities/reservation-audit.entity";
-
-
+import { Reservation, ReservationType } from "entities/reservation.entity";
 import { Location } from "entities/location.entity";
 import { Hackathon } from "entities/hackathon.entity";
-
-import { TeamRoster, TeamRole } from "entities/team-roster.entity";
+import { Team } from "entities/team.entity";
+import { Organizer } from "entities/organizer.entity";
+import { Role } from "common/gcp";
 import { v4 as uuidv4 } from "uuid";
 
 export interface UpdateReservationDto {
@@ -37,105 +27,58 @@ export interface CreateReservationDto {
   hackathonId: string;
 }
 
-export interface CreateBlackoutDto {
-  locationId: number;
-  startTime: number;
-  endTime: number;
-  hackathonId: string;
-}
-
-export interface ReservationFilters {
-  locationId?: number;
-  teamId?: string;
-  status?: ReservationStatus;
-  type?: ReservationType;
-  from?: number;
-  to?: number;
-}
-
 @Injectable()
 export class ReservationService {
   constructor(
     @InjectRepository(Reservation)
     private readonly reservationRepo: Repository<Reservation>,
-    @InjectRepository(ReservationAudit)
-    private readonly auditRepo: Repository<ReservationAudit>,
     @InjectRepository(Location)
     private readonly locationRepo: Repository<Location>,
     @InjectRepository(Hackathon)
     private readonly hackathonRepo: Repository<Hackathon>,
-    @InjectRepository(TeamRoster)
-    private readonly teamRosterRepo: Repository<TeamRoster>,
+    @InjectRepository(Team)
+    private readonly teamRepo: Repository<Team>,
+    @InjectRepository(Organizer)
+    private readonly organizerRepo: Repository<Organizer>,
   ) {}
 
   async createReservation(
     data: CreateReservationDto,
-    createdByUserId: string,
+    userId: string,
   ): Promise<Reservation> {
-    // Validate the reservation
-    await this.validateReservation(data, createdByUserId);
+    // Check if user is an organizer
+    const isOrganizer = await this.isUserOrganizer(userId);
+
+    // If not an organizer, validate team constraints
+    if (!isOrganizer) {
+      await this.validateReservation(data, userId);
+    } else {
+      // For organizers, just validate basic constraints
+      await this.validateBasicConstraints(data);
+      await this.checkConflicts(data);
+    }
 
     const reservation = await this.reservationRepo
       .createOne({
         id: uuidv4(),
-        ...data,
-        type: ReservationType.TEAM,
-        status: ReservationStatus.CONFIRMED,
-        createdByUserId,
-        createdAt: Date.now(),
-        canceledAt: null,
-        cancelReason: null,
+        locationId: data.locationId,
+        teamId: data.teamId,
+        startTime: data.startTime,
+        endTime: data.endTime,
+        hackathonId: data.hackathonId,
+        reservationType: isOrganizer
+          ? ReservationType.ADMIN
+          : ReservationType.PARTICIPANT,
       })
       .exec();
-
-    // Create audit record
-    await this.createAuditRecord(
-      reservation.id,
-      createdByUserId,
-      ReservationAuditAction.CREATE,
-      { reservation },
-    );
 
     return reservation;
   }
 
-  async createBlackout(
-    data: CreateBlackoutDto,
-    createdByUserId: string,
-  ): Promise<Reservation> {
-    // Validate basic constraints (hackathon bounds, location exists)
-    await this.validateBasicConstraints(data);
-
-    const blackout = await this.reservationRepo
-      .createOne({
-        id: uuidv4(),
-        ...data,
-        teamId: null,
-        type: ReservationType.BLACKOUT,
-        status: ReservationStatus.CONFIRMED,
-        createdByUserId,
-        createdAt: Date.now(),
-        canceledAt: null,
-        cancelReason: null,
-      })
-      .exec();
-
-    // Create audit record
-    await this.createAuditRecord(
-      blackout.id,
-      createdByUserId,
-      ReservationAuditAction.CREATE,
-      { blackout },
-    );
-
-    return blackout;
-  }
-
   async cancelReservation(
     reservationId: string,
-    canceledByUserId: string,
-    reason?: string,
-  ): Promise<Reservation> {
+    userId: string,
+  ): Promise<void> {
     const reservation = await this.reservationRepo
       .findOne(reservationId)
       .exec();
@@ -143,37 +86,52 @@ export class ReservationService {
       throw new NotFoundException("Reservation not found");
     }
 
-    if (reservation.status === ReservationStatus.CANCELED) {
-      throw new BadRequestException("Reservation is already canceled");
+    // Check if user is an organizer with EXEC or higher role
+    const organizer = await this.organizerRepo.findOne(userId).exec();
+    const hasExecPrivileges =
+      organizer && organizer.isActive && organizer.privilege >= Role.EXEC;
+
+    // If user has EXEC+ privileges, they can delete any reservation
+    if (hasExecPrivileges) {
+      await this.reservationRepo.deleteOne(reservationId).exec();
+      return;
     }
 
-    // Check if user can cancel this reservation
-    await this.checkCancelPermission(reservation, canceledByUserId);
+    // For regular users, check if they are canceling their own team's reservation
+    if (reservation.teamId) {
+      const team = await this.teamRepo.findOne(reservation.teamId).exec();
+      if (team) {
+        const isUserInTeam = [
+          team.member1,
+          team.member2,
+          team.member3,
+          team.member4,
+          team.member5,
+        ].includes(userId);
 
-    const updatedReservation = await this.reservationRepo
-      .patchOne(reservationId, {
-        status: ReservationStatus.CANCELED,
-        canceledAt: Date.now(),
-        cancelReason: reason || null,
-      })
-      .exec();
+        if (!isUserInTeam) {
+          throw new ForbiddenException(
+            "You can only cancel your own team's reservations",
+          );
+        }
+      } else {
+        throw new ForbiddenException(
+          "You can only cancel your own team's reservations",
+        );
+      }
+    } else {
+      // This is an admin reservation with no team - only EXEC+ can delete
+      throw new ForbiddenException("You cannot cancel this reservation");
+    }
 
-    // Create audit record
-    await this.createAuditRecord(
-      reservationId,
-      canceledByUserId,
-      ReservationAuditAction.CANCEL,
-      { reason, originalReservation: reservation },
-    );
-
-    return updatedReservation;
+    // Delete the reservation
+    await this.reservationRepo.deleteOne(reservationId).exec();
   }
 
   async updateReservation(
     data: UpdateReservationDto,
-    updatedByUserId: string
+    userId: string,
   ): Promise<Reservation> {
-    
     // Get the reservation
     const reservation = await this.reservationRepo
       .findOne(data.reservationID)
@@ -189,76 +147,37 @@ export class ReservationService {
       teamId: reservation.teamId,
       startTime: data.startTime ? data.startTime : reservation.startTime,
       endTime: data.endTime ? data.endTime : reservation.endTime,
-      hackathonId: reservation.hackathonId
+      hackathonId: reservation.hackathonId,
     };
 
-    await this.validateReservation(validationData, updatedByUserId);
+    await this.validateReservation(validationData, userId);
 
     // patch with new start and end times
     const updatedReservation = await this.reservationRepo
       .patchOne(data.reservationID, {
         startTime: validationData.startTime,
-        endTime: validationData.endTime
+        endTime: validationData.endTime,
       })
       .exec();
-
-    // add into audit
-    await this.createAuditRecord(
-      data.reservationID,
-      updatedByUserId,
-      ReservationAuditAction.UPDATE,
-      { updatedReservation }
-    );
 
     return updatedReservation;
   }
 
-  async getReservations(
-    filters: ReservationFilters,
-    hackathonId: string,
-  ): Promise<Reservation[]> {
-    let query = Reservation.query().where("hackathonId", hackathonId);
-
-    if (filters.locationId) {
-      query = query.where("locationId", filters.locationId);
-    }
-
-    if (filters.teamId) {
-      query = query.where("teamId", filters.teamId);
-    }
-
-    if (filters.status) {
-      query = query.where("status", filters.status);
-    }
-
-    if (filters.type) {
-      query = query.where("type", filters.type);
-    }
-
-    if (filters.from) {
-      query = query.where("endTime", ">", filters.from);
-    }
-
-    if (filters.to) {
-      query = query.where("startTime", "<", filters.to);
-    }
-
-    return query.orderBy("startTime", "asc");
+  async getReservations(hackathonId: string): Promise<Reservation[]> {
+    return Reservation.query()
+      .where("hackathonId", hackathonId)
+      .orderBy("startTime", "asc");
   }
 
   private async validateReservation(
     data: CreateReservationDto,
-    createdByUserId: string,
+    userId: string,
   ): Promise<void> {
     // 1. Validate basic constraints (hackathon bounds, location exists, duration)
     await this.validateBasicConstraints(data);
 
     // 2. Validate team constraints
-    await this.validateTeamConstraints(
-      data.teamId,
-      createdByUserId,
-      data.hackathonId,
-    );
+    await this.validateTeamConstraints(data.teamId, userId, data.hackathonId);
 
     // 3. Check for conflicts (blackouts, capacity, team double booking)
     await this.checkConflicts(data);
@@ -290,29 +209,11 @@ export class ReservationService {
       throw new BadRequestException("Start time must be before end time");
     }
 
-    // Get location and validate
-    const location = await Location.query()
-      .findById(data.locationId)
-      .where("hackathonId", data.hackathonId)
-      .first();
+    // Get location and validate it exists
+    const location = await this.locationRepo.findOne(data.locationId).exec();
 
     if (!location) {
       throw new NotFoundException("Location not found");
-    }
-
-    if (!location.isBookable) {
-      throw new BadRequestException("Location is not bookable");
-    }
-
-    // Validate duration
-    const durationMins = (data.endTime - data.startTime) / (1000 * 60);
-    if (
-      durationMins < location.minReservationMins ||
-      durationMins > location.maxReservationMins
-    ) {
-      throw new BadRequestException(
-        `Reservation duration must be between ${location.minReservationMins} and ${location.maxReservationMins} minutes`,
-      );
     }
   }
 
@@ -321,96 +222,76 @@ export class ReservationService {
     userId: string,
     hackathonId: string,
   ): Promise<void> {
-    // Check if user is part of the team
-    const membership = await TeamRoster.query()
-      .where("teamId", teamId)
-      .where("userId", userId)
-      .where("hackathonId", hackathonId)
-      .where("isActive", true)
-      .first();
+    // Check if team exists and is active
+    const team = await this.teamRepo.findOne(teamId).exec();
 
-    if (!membership) {
+    if (!team) {
+      throw new NotFoundException("Team not found");
+    }
+
+    if (!team.isActive) {
+      throw new BadRequestException("Team is not active");
+    }
+
+    if (team.hackathonId !== hackathonId) {
+      throw new BadRequestException(
+        "Team is not registered for this hackathon",
+      );
+    }
+
+    // Check if user is a member of the team
+    const isUserInTeam = [
+      team.member1,
+      team.member2,
+      team.member3,
+      team.member4,
+      team.member5,
+    ].includes(userId);
+
+    if (!isUserInTeam) {
       throw new ForbiddenException("User is not a member of this team");
-    }
-
-    // Only team leads can create reservations
-    // if (membership.role !== TeamRole.LEAD) {
-    //   throw new ForbiddenException("Only team leads can create reservations");
-    // }
-
-    // Verify team has valid roster (≤ 5 members, exactly 1 lead)
-    const teamMembers = await TeamRoster.query()
-      .where("teamId", teamId)
-      .where("hackathonId", hackathonId)
-      .where("isActive", true);
-
-    if (teamMembers.length > 5) {
-      throw new BadRequestException("Team has too many members (max 5)");
-    }
-
-    const leadCount = teamMembers.filter(
-      (m) => m.role === TeamRole.LEAD,
-    ).length;
-    if (leadCount !== 1) {
-      throw new BadRequestException("Team must have exactly one lead");
     }
   }
 
   private async checkConflicts(data: CreateReservationDto): Promise<void> {
     const location = await this.locationRepo.findOne(data.locationId).exec();
-
-    // Expand window by buffer for conflict checks
-    const bufferMs = location.bufferMins * 60 * 1000;
-    const checkStartTime = data.startTime - bufferMs;
-    const checkEndTime = data.endTime + bufferMs;
-
-    // 1. Check for blackouts
-    const blackouts = await Reservation.query()
-      .where("locationId", data.locationId)
-      .where("type", ReservationType.BLACKOUT)
-      .where("status", ReservationStatus.CONFIRMED)
-      .where("hackathonId", data.hackathonId)
-      .where(function (this) {
-        this.where(function (this) {
-          this.where("startTime", "<", data.endTime).where(
-            "endTime",
-            ">",
-            data.startTime,
-          );
-        });
-      });
-
-    if (blackouts.length > 0) {
-      throw new BadRequestException(
-        "Time slot conflicts with a blackout period",
-      );
+    if (!location) {
+      throw new NotFoundException("Location not found");
     }
 
-    // 2. Check room capacity (by teams)
-    const overlappingReservations = await Reservation.query()
-      .where("locationId", data.locationId)
-      .where("type", ReservationType.TEAM)
-      .where("status", ReservationStatus.CONFIRMED)
-      .where("hackathonId", data.hackathonId)
-      .where(function (this) {
-        this.where(function (this) {
-          this.where("startTime", "<", checkEndTime).where(
-            "endTime",
-            ">",
-            checkStartTime,
-          );
+    // 1. Check room capacity (person-based, 0 = unlimited)
+    if (location.capacity > 0) {
+      // Get all overlapping reservations
+      const overlappingReservations = await Reservation.query()
+        .where("locationId", data.locationId)
+        .where("reservationType", ReservationType.PARTICIPANT)
+        .where("hackathonId", data.hackathonId)
+        .where(function (this) {
+          this.where(function (this) {
+            this.where("startTime", "<", data.endTime).where(
+              "endTime",
+              ">",
+              data.startTime,
+            );
+          });
         });
-      });
 
-    if (overlappingReservations.length >= location.teamCapacity) {
-      throw new BadRequestException("Room is at capacity for this time slot");
+      // Count people in overlapping reservations
+      // For simplicity, assume each reservation is for 1 person, effectively a team booking
+      const currentOccupancy = overlappingReservations.length;
+
+      if (currentOccupancy >= location.capacity) {
+        throw new BadRequestException(
+          `Location is at capacity (${location.capacity} people) for this time slot`,
+        );
+      }
     }
+    // If capacity is 0, skip capacity check (unlimited)
 
-    // 3. Check team double booking (team can't have multiple reservations)
+    // 2. Check team double booking (team can't have multiple reservations)
     const teamConflicts = await Reservation.query()
       .where("teamId", data.teamId)
-      .where("type", ReservationType.TEAM)
-      .where("status", ReservationStatus.CONFIRMED)
+      .where("reservationType", ReservationType.PARTICIPANT)
       .where("hackathonId", data.hackathonId)
       .where(function (this) {
         this.where(function (this) {
@@ -429,50 +310,8 @@ export class ReservationService {
     }
   }
 
-  private async checkCancelPermission(
-    reservation: Reservation,
-    userId: string,
-  ): Promise<void> {
-    // Creator can always cancel
-    if (reservation.createdByUserId === userId) {
-      return;
-    }
-
-    // Team lead can cancel team reservations
-    if (reservation.type === ReservationType.TEAM && reservation.teamId) {
-      const membership = await TeamRoster.query()
-        .where("teamId", reservation.teamId)
-        .where("userId", userId)
-        .where("hackathonId", reservation.hackathonId)
-        .where("isActive", true)
-        .where("role", TeamRole.LEAD)
-        .first();
-
-      if (membership) {
-        return;
-      }
-    }
-
-    throw new ForbiddenException(
-      "User does not have permission to cancel this reservation",
-    );
-  }
-
-  private async createAuditRecord(
-    reservationId: string,
-    actorUserId: string,
-    action: ReservationAuditAction,
-    meta: any = null,
-  ): Promise<void> {
-    await this.auditRepo
-      .createOne({
-        id: uuidv4(),
-        reservationId,
-        actorUserId,
-        action,
-        meta: meta ? JSON.stringify(meta) : null,
-        createdAt: Date.now(),
-      })
-      .exec();
+  private async isUserOrganizer(userId: string): Promise<boolean> {
+    const organizer = await this.organizerRepo.findOne(userId).exec();
+    return organizer !== null && organizer.isActive;
   }
 }
