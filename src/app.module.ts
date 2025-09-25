@@ -24,6 +24,7 @@ import { NotificationModule } from "modules/notification/notification.module";
 import { ObjectionModule } from "common/objection";
 import { OrganizerModule } from "modules/organizer/organizer.module";
 import { RegistrationModule } from "modules/registration/registration.module";
+import { ReservationModule } from "modules/reservation/reservation.module";
 import { ScanModule } from "modules/scan/scan.module";
 import { SendGridModule } from "common/sendgrid";
 import { SocketModule } from "modules/socket/socket.module";
@@ -102,6 +103,7 @@ import { PhotoModule } from "modules/photo/photo.module";
     InventoryModule,
     TeamModule,
     PhotoModule,
+    ReservationModule,
 
     // WebSocket
     SocketModule,
