@@ -33,21 +33,21 @@ export class PhotoService {
   }
 
   async uploadPhoto(
-      userId: string,
-      fileType: string,
-      file: Express.Multer.File,
-    ): Promise<{ photoId: string; photoUrl: string }> {
-      const extension = file.originalname.split(".").pop() || "jpg";
-      const photoId = `${userId}_${fileType}_${uuidv4()}`;
-      const filename = `${photoId}.${extension}`;
-      const blob = this.photoBucket.file(filename);
-  
-      await blob.save(file.buffer, {
-        metadata: { contentType: file.mimetype },
-      });
-  
-      return { photoId, photoUrl: this.getPublicPhotoUrl(filename) };
-    }
+    userId: string,
+    fileType: string,
+    file: Express.Multer.File,
+  ): Promise<{ photoId: string; photoUrl: string }> {
+    const extension = file.originalname.split(".").pop() || "jpg";
+    const photoId = `${userId}_${fileType}_${uuidv4()}`;
+    const filename = `${photoId}.${extension}`;
+    const blob = this.photoBucket.file(filename);
+
+    await blob.save(file.buffer, {
+      metadata: { contentType: file.mimetype },
+    });
+
+    return { photoId, photoUrl: this.getPublicPhotoUrl(filename) };
+  }
 
   async getAllPhotos(): Promise<
     { name: string; url: string; createdAt: Date }[]

@@ -43,10 +43,10 @@ export class PhotoController {
     },
   })
   async uploadPhoto(
-      @UploadedPhoto() photo: Express.Multer.File,
-      @Req() req: Request,
-      @Body("fileType") fileType: string,
-    ): Promise<{ photoId: string; photoUrl: string }> {
+    @UploadedPhoto() photo: Express.Multer.File,
+    @Req() req: Request,
+    @Body("fileType") fileType: string,
+  ): Promise<{ photoId: string; photoUrl: string }> {
     if (!photo) {
       throw new BadRequestException("Photo is required");
     }
@@ -55,7 +55,11 @@ export class PhotoController {
     const type = fileType || "default";
 
     try {
-      const { photoId, photoUrl } = await this.photoService.uploadPhoto(userId, type, photo);
+      const { photoId, photoUrl } = await this.photoService.uploadPhoto(
+        userId,
+        type,
+        photo,
+      );
       return { photoId, photoUrl };
     } catch (error) {
       console.error("Error uploading photo:", error);

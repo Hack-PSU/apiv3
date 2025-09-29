@@ -51,7 +51,10 @@ export class Project extends Entity {
   @Column({ type: "string", required: false })
   categories: string;
 
-  @ApiProperty({ required: false, description: "Team associated with this project" })
+  @ApiProperty({
+    required: false,
+    description: "Team associated with this project",
+  })
   @IsOptional()
   @IsString()
   @Column({ type: "string", required: false })

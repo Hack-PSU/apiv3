@@ -11,7 +11,9 @@ import { Hackathon } from "entities/hackathon.entity";
 import { Team } from "entities/team.entity";
 
 @Module({
-  imports: [ObjectionModule.forFeature([Organizer, Project, Score, Hackathon, Team])],
+  imports: [
+    ObjectionModule.forFeature([Organizer, Project, Score, Hackathon, Team]),
+  ],
   controllers: [JudgingController, ProjectController, ScoreController],
   providers: [JudgingService],
 })
