@@ -35,7 +35,7 @@ type EndpointOptions = {
     body?: ApiBodyOptions;
     validate?: boolean;
   };
-  response: {
+  response?: {
     noContent?: boolean;
     ok?: ApiResponseOptions;
     created?: ApiResponseOptions;

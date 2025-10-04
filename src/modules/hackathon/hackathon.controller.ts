@@ -32,6 +32,10 @@ import { Transform } from "class-transformer";
 import { SponsorEntity } from "entities/sponsor.entity";
 import { ApiDoc } from "common/docs";
 import { DBExceptionFilter } from "common/filters";
+import { Organizer } from "entities/organizer.entity";
+import { GoogleDriveService } from "common/gcp/drive";
+import { ConfigService } from "@nestjs/config";
+import { ConfigToken } from "common/config";
 
 class HackathonUpdateEntity extends OmitType(HackathonEntity, [
   "id",
@@ -110,7 +114,11 @@ export class HackathonController {
     private readonly hackathonRepo: Repository<Hackathon>,
     @InjectRepository(Event)
     private readonly eventRepo: Repository<Event>,
+    @InjectRepository(Organizer)
+    private readonly organizerRepo: Repository<Organizer>,
     private readonly socket: SocketGateway,
+    private readonly driveService: GoogleDriveService,
+    private readonly configService: ConfigService,
   ) {}
 
   private async getActiveHackathon() {
@@ -159,7 +167,6 @@ export class HackathonController {
   }
 
   @Post("/")
-  @Roles(Role.EXEC)
   @ApiDoc({
     summary: "Create a Hackathon",
     request: {
@@ -203,6 +210,34 @@ export class HackathonController {
         hackathonId: newHackathonId,
       })
       .exec();
+
+    // Setup Google Drive folder structure
+    try {
+      const driveRootFolder = this.configService.get<string>(
+        `${ConfigToken.BUCKET}.drive_root_folder`,
+      );
+
+      if (driveRootFolder) {
+        // Get all exec team members
+        const execOrganizers = await this.organizerRepo
+          .findAll()
+          .raw()
+          .where("team", "Exec")
+          .andWhere("isActive", true)
+          .execute();
+
+        const execEmails = execOrganizers.map((org: Organizer) => org.email);
+
+        await this.driveService.setupHackathonFolderStructure(
+          data.name,
+          driveRootFolder,
+          execEmails,
+        );
+      }
+    } catch (error) {
+      // Log the error but don't fail hackathon creation
+      console.error("Failed to create Google Drive folder structure:", error);
+    }
 
     this.socket.emit("create:hackathon", newHackathon);
 
