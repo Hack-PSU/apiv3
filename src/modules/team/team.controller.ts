@@ -9,6 +9,7 @@ import {
   Param,
   Patch,
   Post,
+  Delete,
   Query,
   UseFilters,
   ValidationPipe,
@@ -16,6 +17,7 @@ import {
 import { InjectRepository, Repository } from "common/objection";
 import { Team, TeamEntity } from "entities/team.entity";
 import { User } from "entities/user.entity";
+import { Reservation } from "entities/reservation.entity";
 import { Hackathon } from "entities/hackathon.entity";
 import { ApiProperty, ApiTags, OmitType, PartialType } from "@nestjs/swagger";
 import { Role, Roles } from "common/gcp";
@@ -92,6 +94,8 @@ export class TeamController {
     private readonly teamRepo: Repository<Team>,
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
+    @InjectRepository(Reservation)
+    private readonly reservationRepo: Repository<Reservation>,
   ) {}
 
   @Get("/")
@@ -461,5 +465,39 @@ export class TeamController {
 
     const updatedTeam = await this.teamRepo.patchOne(id, updateData).exec();
     return updatedTeam;
+  }
+
+  @Delete(":id")
+  @Roles(Role.NONE)
+  @ApiDoc({
+    summary: "Soft delete a team",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to a team's ID",
+      },
+    ],
+    response: {
+      ok: { type: TeamEntity },
+    },
+    auth: Role.TEAM,
+  })
+  async deleteOne(@Param("id") id: string) {
+    const existingTeam = await this.teamRepo.findOne(id).exec();
+    if (!existingTeam) {
+      throw new NotFoundException("Team not found");
+    }
+    if (!existingTeam.isActive) {
+      throw new BadRequestException("Team is already inactive");
+    }
+    // Delete all reservations associated with team
+    await this.reservationRepo
+      .findAll()
+      .raw()
+      .where("teamId", id)
+      .delete();
+      
+    const team = await this.teamRepo.patchOne(id, { isActive: false }).exec();
+    return team;
   }
 }
