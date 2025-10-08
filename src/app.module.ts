@@ -24,6 +24,7 @@ import { NotificationModule } from "modules/notification/notification.module";
 import { ObjectionModule } from "common/objection";
 import { OrganizerModule } from "modules/organizer/organizer.module";
 import { RegistrationModule } from "modules/registration/registration.module";
+import { ReservationModule } from "modules/reservation/reservation.module";
 import { ScanModule } from "modules/scan/scan.module";
 import { SendGridModule } from "common/sendgrid";
 import { SocketModule } from "modules/socket/socket.module";
@@ -35,6 +36,7 @@ import { EmailModule } from "modules/email/email.module";
 import { InventoryModule } from "modules/inventory/inventory.module";
 import { TeamModule } from "modules/team/team.module";
 import { PhotoModule } from "modules/photo/photo.module";
+import { DriveModule } from "modules/drive/drive.module";
 
 @Module({
   imports: [
@@ -102,6 +104,8 @@ import { PhotoModule } from "modules/photo/photo.module";
     InventoryModule,
     TeamModule,
     PhotoModule,
+    ReservationModule,
+    DriveModule,
 
     // WebSocket
     SocketModule,

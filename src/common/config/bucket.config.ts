@@ -7,16 +7,22 @@ import {
 } from "common/gcp";
 import { ConfigToken } from "common/config/config.constants";
 
+export type DriveRootFolderConfig = {
+  drive_root_folder?: string;
+};
+
 export const bucketConfig = registerAs<
   InvoiceBucketConfig &
     ResumeBucketConfig &
     ReimbursementFormBucketConfig &
-    PhotoBucketConfig
+    PhotoBucketConfig &
+    DriveRootFolderConfig
 >(ConfigToken.BUCKET, () => {
   return {
     invoice_bucket: process.env.INVOICE_BUCKET,
     reimbursement_form_bucket: process.env.REIMBURSEMENT_FORM_BUCKET,
     resume_bucket: process.env.RESUME_BUCKET,
     photo_bucket: process.env.PHOTO_BUCKET,
+    drive_root_folder: process.env.DRIVE_ROOT_FOLDER,
   };
 });

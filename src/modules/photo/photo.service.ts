@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { PhotoBucketConfig } from "common/gcp";
 import * as admin from "firebase-admin";
+import { v4 as uuidv4 } from "uuid";
 import { ConfigToken } from "common/config";
 import { ConfigService } from "@nestjs/config";
 
@@ -32,19 +33,20 @@ export class PhotoService {
   }
 
   async uploadPhoto(
-    photoId: string,
+    userId: string,
+    fileType: string,
     file: Express.Multer.File,
-  ): Promise<string> {
-    const filename = this.getPhotoFileName(photoId, file.originalname);
+  ): Promise<{ photoId: string; photoUrl: string }> {
+    const extension = file.originalname.split(".").pop() || "jpg";
+    const photoId = `${userId}_${fileType}_${uuidv4()}`;
+    const filename = `${photoId}.${extension}`;
     const blob = this.photoBucket.file(filename);
 
     await blob.save(file.buffer, {
-      metadata: {
-        contentType: file.mimetype,
-      },
+      metadata: { contentType: file.mimetype },
     });
 
-    return this.getPublicPhotoUrl(filename);
+    return { photoId, photoUrl: this.getPublicPhotoUrl(filename) };
   }
 
   async getAllPhotos(): Promise<

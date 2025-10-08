@@ -14,7 +14,8 @@ export class GoogleWalletService {
   constructor(private readonly configService: ConfigService) {
     // GOOGLE_APPLICATION_CREDENTIALS should point to your service account key file for local testing.
     this.keyFilePath = this.configService.get<string>(
-      "GOOGLE_APPLICATION_CREDENTIALS",
+      // "GOOGLE_APPLICATION_CREDENTIALS",
+      "GOOGLE_CERT",
     );
     this.init();
   }
