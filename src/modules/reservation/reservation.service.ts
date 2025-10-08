@@ -60,7 +60,6 @@ export class ReservationService {
 
     const reservation = await this.reservationRepo
       .createOne({
-        id: uuidv4(),
         locationId: data.locationId,
         teamId: data.teamId,
         startTime: data.startTime,
