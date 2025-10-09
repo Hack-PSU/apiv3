@@ -85,7 +85,8 @@ export class ReservationService {
           ? ReservationType.ADMIN
           : ReservationType.PARTICIPANT,
       })
-      .byHackathon(data.hackathonId).execute();
+      .byHackathon(data.hackathonId)
+      .execute();
     console.log("created reservation:", reservation);
 
     return reservation;
@@ -334,6 +335,7 @@ export class ReservationService {
 
   private async isUserOrganizer(userId: string): Promise<boolean> {
     const organizer = await this.organizerRepo.findOne(userId).exec();
-    return organizer !== null && organizer.isActive;
+    console.log("organizer:", organizer);
+    return organizer !== null && organizer !== undefined && organizer.isActive;
   }
 }
