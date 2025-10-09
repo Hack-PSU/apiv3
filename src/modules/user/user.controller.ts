@@ -235,13 +235,8 @@ export class UserController {
       const zip = await this.userService.downloadAllResumes(allowedUserIds);
       return new StreamableFile(zip);
     } catch (error) {
-      if (error instanceof Error) {
-        console.error(error.stack);
-      }
-      if (error && typeof error === "object" && "errors" in error) {
-        console.error((error as any).errors);
-      }
-      throw new HttpException((error as Error).message, HttpStatus.INTERNAL_SERVER_ERROR);
+      console.log(`getAllResumes: ${error}`);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 

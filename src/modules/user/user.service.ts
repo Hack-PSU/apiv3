@@ -52,7 +52,9 @@ export class UserService {
       .delete({ ignoreNotFound: true });
   }
 
-  async downloadAllResumes(allowedUserIds: Set<string>): Promise<archiver.Archiver> {
+  async downloadAllResumes(
+    allowedUserIds: Set<string>,
+  ): Promise<archiver.Archiver> {
     const bucket = admin.storage().bucket(this.resumeBucketName);
     const [files] = await bucket.getFiles();
     const zip = archiver("zip");
