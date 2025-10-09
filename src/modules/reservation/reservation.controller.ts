@@ -92,7 +92,7 @@ export class ReservationController {
   }
 
   @Post("/")
-  @Roles(Role.NONE)
+  @Roles(Role.TEAM)
   @ApiDoc({
     summary: "Create Team Reservation",
     request: {
@@ -113,7 +113,7 @@ export class ReservationController {
 
   @Delete("/:id")
   @HttpCode(HttpStatus.NO_CONTENT)
-  @Roles(Role.NONE)
+  @Roles(Role.TEAM)
   @ApiDoc({
     summary: "Cancel Reservation",
     params: [

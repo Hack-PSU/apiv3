@@ -11,6 +11,7 @@ import { Hackathon } from "entities/hackathon.entity";
 import { Team } from "entities/team.entity";
 import { Organizer } from "entities/organizer.entity";
 import { Role } from "common/gcp";
+import { FirebaseAuthService } from "common/gcp";
 import { v4 as uuidv4 } from "uuid";
 
 export interface UpdateReservationDto {
@@ -40,6 +41,7 @@ export class ReservationService {
     private readonly teamRepo: Repository<Team>,
     @InjectRepository(Organizer)
     private readonly organizerRepo: Repository<Organizer>,
+    private readonly firebaseAuthService: FirebaseAuthService,
   ) {}
 
   async createReservation(
@@ -87,9 +89,9 @@ export class ReservationService {
 
     // Check if user is an organizer with EXEC or higher role
     const organizer = await this.organizerRepo.findOne(userId).exec();
+    const userPrivilege = await this.firebaseAuthService.getUserPrivilegeFromUid(userId);
     const hasExecPrivileges =
-      organizer && organizer.isActive && organizer.privilege >= Role.EXEC;
-
+      organizer && organizer.isActive && userPrivilege >= Role.EXEC;
     // If user has EXEC+ privileges, they can delete any reservation
     if (hasExecPrivileges) {
       await this.reservationRepo.deleteOne(reservationId).exec();
