@@ -93,6 +93,15 @@ export class ProjectController {
       }
     }
 
+    const result = await this.projectRepo
+      .findAll()
+      .byHackathon()
+      .count("* as total")
+      .first()
+      .execute();
+
+    const amountOfProjects = result.total;
+    data.name = `(${amountOfProjects + 1}) ${data.name}`;
     return this.projectRepo.createOne(data).byHackathon();
   }
 
