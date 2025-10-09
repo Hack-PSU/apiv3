@@ -40,6 +40,7 @@ export class UserService {
 
   async downloadResume(userId: string): Promise<Buffer> {
     const filename = this.getResumeFileName(userId);
+
     const blob = this.resumeBucket.file(filename);
     const [buffer] = await blob.download();
     return buffer;
@@ -51,13 +52,22 @@ export class UserService {
       .delete({ ignoreNotFound: true });
   }
 
-  async downloadAllResumes(): Promise<any> {
+  async downloadAllResumes(
+    allowedUserIds: Set<string>,
+  ): Promise<archiver.Archiver> {
     const bucket = admin.storage().bucket(this.resumeBucketName);
     const [files] = await bucket.getFiles();
     const zip = archiver("zip");
-    files.forEach((file) => {
-      zip.append(file.createReadStream(), { name: file.name });
-    });
+
+    files
+      .filter((file) => {
+        const id = file.name.replace(/\.pdf$/i, "");
+        return allowedUserIds.has(id);
+      })
+      .forEach((file) =>
+        zip.append(file.createReadStream(), { name: file.name }),
+      );
+
     zip.finalize();
     return zip;
   }

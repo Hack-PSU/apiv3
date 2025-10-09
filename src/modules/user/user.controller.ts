@@ -223,7 +223,16 @@ export class UserController {
   })
   async getAllResumes(): Promise<StreamableFile> {
     try {
-      const zip = await this.userService.downloadAllResumes();
+      const registrations = (await this.registrationRepo
+        .findAll()
+        .byHackathon()
+        .select("userId")) as Array<{ userId: string }>;
+
+      const allowedUserIds = new Set<string>(
+        registrations.map((registration) => registration.userId),
+      );
+
+      const zip = await this.userService.downloadAllResumes(allowedUserIds);
       return new StreamableFile(zip);
     } catch (error) {
       console.log(`getAllResumes: ${error}`);
