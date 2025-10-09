@@ -223,11 +223,25 @@ export class UserController {
   })
   async getAllResumes(): Promise<StreamableFile> {
     try {
-      const zip = await this.userService.downloadAllResumes();
+      const registrations = (await this.registrationRepo
+        .findAll()
+        .byHackathon()
+        .select("userId")) as Array<{ userId: string }>;
+
+      const allowedUserIds = new Set<string>(
+        registrations.map((registration) => registration.userId),
+      );
+
+      const zip = await this.userService.downloadAllResumes(allowedUserIds);
       return new StreamableFile(zip);
     } catch (error) {
-      console.log(`getAllResumes: ${error}`);
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      if (error instanceof Error) {
+        console.error(error.stack);
+      }
+      if (error && typeof error === "object" && "errors" in error) {
+        console.error((error as any).errors);
+      }
+      throw new HttpException((error as Error).message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
