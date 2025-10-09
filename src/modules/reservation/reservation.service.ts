@@ -13,6 +13,7 @@ import { Organizer } from "entities/organizer.entity";
 import { Role } from "common/gcp";
 import { FirebaseAuthService } from "common/gcp";
 import { v4 as uuidv4 } from "uuid";
+import { nanoid } from "nanoid";
 
 export interface UpdateReservationDto {
   reservationID: string;
@@ -44,6 +45,14 @@ export class ReservationService {
     private readonly firebaseAuthService: FirebaseAuthService,
   ) {}
 
+  async getActiveHackathonId(): Promise<string> {
+    const hackathon = await Hackathon.query().findOne({ active: true });
+    if (!hackathon) {
+      throw new NotFoundException("Active hackathon not found");
+    }
+    return hackathon.id;
+  }
+
   async createReservation(
     data: CreateReservationDto,
     userId: string,
@@ -52,18 +61,23 @@ export class ReservationService {
     const isOrganizer = await this.isUserOrganizer(userId);
 
     // If not an organizer, validate team constraints
+    console.log("isOrganizer:", isOrganizer);
     if (!isOrganizer) {
+      console.log("validating reservation for user:", userId);
       await this.validateReservation(data, userId);
     } else {
+      console.log("organizer creating reservation");
       // For organizers, just validate basic constraints
       await this.validateBasicConstraints(data);
+      console.log("validated basic constraints for organizer");
       await this.checkConflicts(data);
     }
+    console.log("creating reservation:", data);
 
-    const reservation = await this.reservationRepo
+    const reservation = this.reservationRepo
       .createOne({
         locationId: data.locationId,
-        teamId: data.teamId,
+        teamId: data.teamId, // Organizer reservations are not team-specific
         startTime: data.startTime,
         endTime: data.endTime,
         hackathonId: data.hackathonId,
@@ -71,7 +85,8 @@ export class ReservationService {
           ? ReservationType.ADMIN
           : ReservationType.PARTICIPANT,
       })
-      .exec();
+      .byHackathon(data.hackathonId).execute();
+    console.log("created reservation:", reservation);
 
     return reservation;
   }
@@ -89,7 +104,8 @@ export class ReservationService {
 
     // Check if user is an organizer with EXEC or higher role
     const organizer = await this.organizerRepo.findOne(userId).exec();
-    const userPrivilege = await this.firebaseAuthService.getUserPrivilegeFromUid(userId);
+    const userPrivilege =
+      await this.firebaseAuthService.getUserPrivilegeFromUid(userId);
     const hasExecPrivileges =
       organizer && organizer.isActive && userPrivilege >= Role.EXEC;
     // If user has EXEC+ privileges, they can delete any reservation
@@ -164,7 +180,8 @@ export class ReservationService {
     return updatedReservation;
   }
 
-  async getReservations(hackathonId: string): Promise<Reservation[]> {
+  async getReservations(): Promise<Reservation[]> {
+    const hackathonId = await this.getActiveHackathonId();
     return Reservation.query()
       .where("hackathonId", hackathonId)
       .orderBy("startTime", "asc");
@@ -179,6 +196,7 @@ export class ReservationService {
 
     // 2. Validate team constraints
     await this.validateTeamConstraints(data.teamId, userId, data.hackathonId);
+    console.log("validated team constraints");
 
     // 3. Check for conflicts (blackouts, capacity, team double booking)
     await this.checkConflicts(data);
@@ -216,6 +234,7 @@ export class ReservationService {
     if (!location) {
       throw new NotFoundException("Location not found");
     }
+    console.log("validated basic constraints");
   }
 
   private async validateTeamConstraints(
@@ -303,6 +322,8 @@ export class ReservationService {
           );
         });
       });
+
+    console.log("teamConflicts:", teamConflicts);
 
     if (teamConflicts.length > 0) {
       throw new BadRequestException(

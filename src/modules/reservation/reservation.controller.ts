@@ -9,6 +9,7 @@ import {
   Post,
   Query,
   Req,
+  UnauthorizedException,
   UseFilters,
   ValidationPipe,
 } from "@nestjs/common";
@@ -64,12 +65,6 @@ export class UpdateReservationEntity {
   endTime?: number;
 }
 
-class ReservationQueryParams {
-  @ApiProperty()
-  @IsString()
-  hackathonId: string;
-}
-
 @ApiTags("Reservations")
 @Controller("reservations")
 @UseFilters(DBExceptionFilter)
@@ -84,15 +79,12 @@ export class ReservationController {
       ok: { type: [ReservationEntity] },
     },
   })
-  async getReservations(
-    @Query(new ValidationPipe({ transform: true }))
-    query: ReservationQueryParams,
-  ) {
-    return this.reservationService.getReservations(query.hackathonId);
+  async getReservations() {
+    return this.reservationService.getReservations();
   }
 
   @Post("/")
-  @Roles(Role.TEAM)
+  @Roles(Role.NONE)
   @ApiDoc({
     summary: "Create Team Reservation",
     request: {
@@ -108,7 +100,12 @@ export class ReservationController {
     data: CreateReservationEntity,
     @Req() req: any,
   ) {
-    return this.reservationService.createReservation(data, req.user?.sub);
+    if (!req.user || !("sub" in req.user)) {
+      throw new UnauthorizedException();
+    }
+
+    const userId = String(req.user.sub);
+    return await this.reservationService.createReservation(data, userId);
   }
 
   @Delete("/:id")
@@ -127,9 +124,11 @@ export class ReservationController {
     },
   })
   async cancelReservation(@Param("id") reservationId: string, @Req() req: any) {
-    await this.reservationService.cancelReservation(
-      reservationId,
-      req.user?.sub,
-    );
+    if (!req.user || !("sub" in req.user)) {
+      throw new UnauthorizedException();
+    }
+
+    const userId = String(req.user.sub);
+    await this.reservationService.cancelReservation(reservationId, userId);
   }
 }
