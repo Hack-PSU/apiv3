@@ -1,42 +1,34 @@
-import type { Knex } from "knex";
+// knexfile.js
+require('ts-node/register');
+require('dotenv').config();
 
-// Update with your config settings.
+const {
+  MYSQL_HOST = '127.0.0.1',
+  MYSQL_PORT = '3307',
+  MYSQL_DATABASE = 'test',
+  MYSQL_USER = 'localtester',
+  MYSQL_PASSWORD = '',
+} = process.env;
 
-const config: { [key: string]: Knex.Config } = {
-  staging: {
-    client: "mysql",
-    connection: {
-      database: "prod",
-      host: "127.0.0.1",
-      user: "",
-      password: "",
-    },
-    pool: {
-      min: 2,
-      max: 10,
-    },
-    migrations: {
-      tableName: "knex_migrations",
-      directory: "./db/migrations",
-    },
+const base = {
+  client: 'mysql2',
+  connection: {
+    host: MYSQL_HOST,
+    port: Number(MYSQL_PORT),
+    database: MYSQL_DATABASE,
+    user: MYSQL_USER,
+    password: MYSQL_PASSWORD,
   },
-
-  production: {
-    client: "mysql",
-    connection: {
-      database: "production",
-      user: "apiv3_production",
-      password: "",
-    },
-    pool: {
-      min: 2,
-      max: 10,
-    },
-    migrations: {
-      tableName: "knex_migrations",
-      directory: "./db/migrations",
-    },
+  pool: { min: 2, max: 10 },
+  migrations: {
+    tableName: 'knex_migrations',
+    directory: './db/migrations',
+    extension: 'ts',
   },
 };
 
-module.exports = config;
+module.exports = {
+  development: base,
+  staging: base,
+  production: base,
+};

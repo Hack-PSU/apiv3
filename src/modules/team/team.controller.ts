@@ -224,6 +224,7 @@ export class TeamController {
     return team;
   }
 
+
   @Get(":id")
   @Roles(Role.NONE)
   @ApiDoc({
@@ -355,8 +356,36 @@ export class TeamController {
       }
     }
 
-    const team = await this.teamRepo.patchOne(id, data).exec();
-    return team;
+    // Apply update
+const team = await this.teamRepo.patchOne(id, data).exec();
+
+// Re-fetch updated data after patch
+const updatedTeam = await this.teamRepo.findOne(id).exec();
+
+// Check member status and auto-deactivate if needed
+const noMembersLeft =
+  !updatedTeam.member1 &&
+  !updatedTeam.member2 &&
+  !updatedTeam.member3 &&
+  !updatedTeam.member4 &&
+  !updatedTeam.member5;
+
+// Deactivate if all members are gone
+if (noMembersLeft) {
+  await this.teamRepo.patchOne(id, { isActive: false }).exec();
+  updatedTeam.isActive = false; // update the local object too
+  return updatedTeam;
+}
+
+// Deactivate if the 5th member leaves
+if (!updatedTeam.member5) {
+  await this.teamRepo.patchOne(id, { isActive: false }).exec();
+  updatedTeam.isActive = false;
+  return updatedTeam;
+}
+
+// If none of the above, just return the current state
+return updatedTeam;
   }
 
   @Post(":id/add-user")
@@ -463,3 +492,11 @@ export class TeamController {
     return updatedTeam;
   }
 }
+
+
+
+
+
+
+
+
