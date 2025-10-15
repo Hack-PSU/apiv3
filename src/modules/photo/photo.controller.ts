@@ -7,6 +7,7 @@ import {
   UseInterceptors,
   Req,
   Body,
+  UnauthorizedException,
 } from "@nestjs/common";
 import { Request } from "express";
 import { ApiTags } from "@nestjs/swagger";
@@ -51,7 +52,11 @@ export class PhotoController {
       throw new BadRequestException("Photo is required");
     }
 
-    const userId = (req.user as any)?.uid;
+    if (!req.user || !("sub" in req.user)) {
+      throw new UnauthorizedException();
+    }
+    
+    const userId = String(req.user.sub);
     const type = fileType || "default";
 
     try {
