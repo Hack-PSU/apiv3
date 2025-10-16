@@ -182,7 +182,7 @@ export class InventoryController {
     response: { ok: { type: InventoryItemEntity } },
     auth: Role.TEAM
   })
-  async updateItem(@Param("id") id: string, @Body() dto: CreateItemDto): Promise<InventoryItem> {
+  async updateItem(@Param("id") id: string, @Body() dto: UpdateItemDto): Promise<InventoryItem> {
     // Validate the dto: item should (at least) have one of the following: name, asset tag, serial number
     if (!dto.name.trim() && !dto.assetTag.trim() && !dto.serialNumber.trim()) 
       throw new ForbiddenException("Item must have a name, asset tag, or serial number");
