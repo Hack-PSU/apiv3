@@ -6631,9 +6631,9 @@ parseurl@^1.3.3:
   integrity sha512-CiyeOxFT/JZyN5m0z9PfXw4SCBJ6Sygz1Dpl0wqjlhDEGGBP1GnsUVEL0p63hoG1fcj3fHynXi9NYO4nWOL+qQ==
 
 passkit-generator@^3.3.1:
-  version "3.5.0"
-  resolved "https://registry.yarnpkg.com/passkit-generator/-/passkit-generator-3.5.0.tgz#39bd4e3214dd60cb138b424275208b4ab93b523a"
-  integrity sha512-/Xx+AK9iSsi0CNH3sAVxh2BTQBnBzfs1mFQPXH2ZlujakUR0Bq+5AWVJKV894jY9bgZ5kKbCgkogf2mjAnhnDg==
+  version "3.5.2"
+  resolved "https://registry.yarnpkg.com/passkit-generator/-/passkit-generator-3.5.2.tgz#0747ba6aa4417fad86dd435cc924934269a098a0"
+  integrity sha512-/ELKMoS+lkdDr1tEhIDgVu6Mh4/QDq/wUEwHOSUh+f9Han0Nh+6WunRzK3e62A6AFL0Q7tnsE/7IsHgnvx4hcQ==
   dependencies:
     do-not-zip "^1.0.0"
     joi "17.4.2"
