@@ -355,7 +355,22 @@ export class TeamController {
       }
     }
 
-    const team = await this.teamRepo.patchOne(id, data).exec();
+    // Transform empty strings to null for database compatibility
+    const sanitizedData = { ...data };
+    memberFields.forEach(field => {
+      if (sanitizedData[field] === "") {
+        sanitizedData[field] = null;
+      }
+    });
+
+    const team = await this.teamRepo.patchOne(id, sanitizedData).exec();
+    const updatedTeam = await this.teamRepo.findOne(id).exec();
+
+    // If no members left, set isActive to false
+    if (!updatedTeam.member1 && !updatedTeam.member2 && !updatedTeam.member3 && !updatedTeam.member4 && !updatedTeam.member5) {
+      await this.teamRepo.patchOne(id, { isActive: false }).exec();
+    }
+
     return team;
   }
 
