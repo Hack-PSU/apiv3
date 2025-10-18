@@ -62,4 +62,9 @@ export class PhotoService {
         : new Date(),
     }));
   }
+  deletePhoto(photoId: string, originalName: string) {
+    return this.photoBucket
+      .file(this.getPhotoFileName(photoId, originalName))
+      .delete({ ignoreNotFound: true });
+  }
 }
