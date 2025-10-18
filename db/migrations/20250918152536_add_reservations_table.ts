@@ -1,14 +1,6 @@
 import type { Knex } from "knex";
 
 export async function up(knex: Knex): Promise<void> {
-  await knex.schema.alterTable("locations", (table) => {
-    table.index("id");
-  });
-
-  await knex.schema.alterTable("teams", (table) => {
-    table.index("id");
-  });
-
   await knex.schema.createTable("reservations", (table) => {
     table.increments("id").primary().notNullable();
     table.bigInteger("start_time").unsigned().notNullable();
@@ -46,9 +38,4 @@ export async function up(knex: Knex): Promise<void> {
 
 export async function down(knex: Knex): Promise<void> {
   await knex.schema.dropTableIfExists("reservations");
-
-  // Remove the index we added
-  await knex.schema.alterTable("locations", (table) => {
-    table.dropIndex("id");
-  });
 }

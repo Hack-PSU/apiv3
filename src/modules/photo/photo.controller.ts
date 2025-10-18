@@ -4,9 +4,12 @@ import {
   Get,
   InternalServerErrorException,
   Post,
+  Patch,
+  Param,
   UseInterceptors,
   Req,
   Body,
+  UnauthorizedException,
 } from "@nestjs/common";
 import { Request } from "express";
 import { ApiTags } from "@nestjs/swagger";
@@ -51,7 +54,11 @@ export class PhotoController {
       throw new BadRequestException("Photo is required");
     }
 
-    const userId = (req.user as any)?.uid;
+    if (!req.user || !("sub" in req.user)) {
+      throw new UnauthorizedException();
+    }
+    
+    const userId = String(req.user.sub);
     const type = fileType || "default";
 
     try {
@@ -70,10 +77,10 @@ export class PhotoController {
   @Get("/")
   @Roles(Role.NONE)
   @ApiDoc({
-    summary: "Get all photos",
+    summary: "Get all approved photos",
     response: {
       ok: {
-        description: "List of all photos",
+        description: "List of all approved photos",
         schema: {
           type: "array",
           items: {
@@ -96,6 +103,112 @@ export class PhotoController {
     } catch (error) {
       console.error("Error fetching photos:", error);
       throw new InternalServerErrorException("Failed to fetch photos");
+    }
+  }
+
+  @Get("/pending")
+  @Roles(Role.TEAM)
+  @ApiDoc({
+    summary: "Get all photos with approval status (admin only)",
+    response: {
+      ok: {
+        description: "List of all photos with approval status",
+        schema: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              name: { type: "string" },
+              url: { type: "string" },
+              createdAt: { type: "string", format: "date-time" },
+              uploadedBy: { type: "string" },
+              approvalStatus: { type: "string" },
+            },
+          },
+        },
+      },
+    },
+  })
+  async getAllPendingPhotos(): Promise<
+    {
+      name: string;
+      url: string;
+      createdAt: Date;
+      uploadedBy: string;
+      approvalStatus: string;
+    }[]
+  > {
+    try {
+      return await this.photoService.getAllPendingPhotos();
+    } catch (error) {
+      console.error("Error fetching pending photos:", error);
+      throw new InternalServerErrorException("Failed to fetch pending photos");
+    }
+  }
+
+  @Patch("/:filename/approve")
+  @Roles(Role.TEAM)
+  @ApiDoc({
+    summary: "Approve a photo (admin only)",
+    response: {
+      ok: {
+        description: "Photo approved successfully",
+      },
+    },
+  })
+  async approvePhoto(
+    @Param("filename") filename: string,
+    @Req() req: Request,
+  ): Promise<{ message: string }> {
+    if (!req.user || !("sub" in req.user)) {
+      throw new UnauthorizedException();
+    }
+
+    const adminId = String(req.user.sub);
+
+    try {
+      await this.photoService.updatePhotoApprovalStatus(
+        filename,
+        "approved",
+        adminId,
+      );
+      return { message: "Photo approved successfully" };
+    } catch (error) {
+      console.error("Error approving photo:", error);
+      throw new InternalServerErrorException("Failed to approve photo");
+    }
+  }
+
+  @Patch("/:filename/reject")
+  @Roles(Role.TEAM)
+  @ApiDoc({
+    summary: "Reject a photo (admin only)",
+    response: {
+      ok: {
+        description: "Photo rejected successfully",
+      },
+    },
+  })
+  async rejectPhoto(
+    @Param("filename") filename: string,
+    @Req() req: Request,
+  ): Promise<{ message: string }> {
+    if (!req.user || !("sub" in req.user)) {
+      throw new UnauthorizedException();
+    }
+
+    const adminId = String(req.user.sub);
+
+    try {
+      await this.photoService.updatePhotoApprovalStatus(
+        filename,
+        "rejected",
+        adminId,
+      );
+      return { message: "Photo rejected successfully" };
+    } catch (error) {
+      console.error("Error rejecting photo:", error);
+      throw new InternalServerErrorException("Failed to reject photo");
     }
   }
 }

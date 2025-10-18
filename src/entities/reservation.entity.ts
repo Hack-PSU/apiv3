@@ -11,24 +11,6 @@ export enum ReservationType {
 @Table({
   name: "reservations",
   hackathonId: "hackathonId",
-  relationMappings: {
-    location: {
-      relation: Entity.BelongsToOneRelation,
-      modelClass: "location.entity.js",
-      join: {
-        from: "reservations.locationId",
-        to: "locations.id",
-      },
-    },
-    hackathon: {
-      relation: Entity.BelongsToOneRelation,
-      modelClass: "hackathon.entity.js",
-      join: {
-        from: "reservations.hackathonId",
-        to: "hackathons.id",
-      },
-    },
-  },
 })
 export class Reservation extends Entity {
   @ApiProperty()

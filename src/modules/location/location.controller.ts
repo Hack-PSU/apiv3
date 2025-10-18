@@ -36,7 +36,7 @@ export class LocationController {
   ) {}
 
   @Get("/")
-  @Roles(Role.TEAM)
+  @Roles(Role.NONE)
   @ApiDoc({
     summary: "Find All Locations",
     response: {
