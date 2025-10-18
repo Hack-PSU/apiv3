@@ -1,12 +1,15 @@
 import {
   BadRequestException,
+  Body,
   Controller,
+  Delete,
   Get,
   InternalServerErrorException,
+  Param,
   Post,
-  UseInterceptors,
+  Query,
   Req,
-  Body,
+  UseInterceptors,
   UnauthorizedException,
 } from "@nestjs/common";
 import { Request } from "express";
@@ -101,6 +104,39 @@ export class PhotoController {
     } catch (error) {
       console.error("Error fetching photos:", error);
       throw new InternalServerErrorException("Failed to fetch photos");
+    }
+  }
+
+  @Delete(":photoId")
+  @Roles(Role.NONE)
+  @ApiDoc({
+    summary: "Delete a photo",
+    params: [{ name: "photoId" }],
+    query: [
+      {
+        name: "originalName",
+        description: "Original filename including the extension",
+      },
+    ],
+    response: { noContent: true },
+  })
+  async deletePhoto(
+    @Param("photoId") photoId: string,
+    @Query("originalName") originalName: string,
+  ): Promise<void> {
+    if (!photoId) {
+      throw new BadRequestException("photoId is required");
+    }
+
+    if (!originalName) {
+      throw new BadRequestException("originalName is required");
+    }
+
+    try {
+      await this.photoService.deletePhoto(photoId, originalName);
+    } catch (error) {
+      console.error("Error deleting photo:", error);
+      throw new InternalServerErrorException("Failed to delete photo");
     }
   }
 }
