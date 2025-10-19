@@ -10,6 +10,7 @@ import { ConfigModule } from "@nestjs/config";
 import { Registration } from "entities/registration.entity";
 import { FirebaseMessagingModule } from "common/gcp/messaging";
 import { Event } from "entities/event.entity";
+import { GotifyModule } from "common/gotify/gotify.module";
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { Event } from "entities/event.entity";
     ]),
     ConfigModule,
     FirebaseMessagingModule,
+    GotifyModule,
   ],
   providers: [UserService],
   controllers: [UserController],
