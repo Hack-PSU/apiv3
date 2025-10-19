@@ -41,6 +41,7 @@ import { FirebaseMessagingService } from "common/gcp/messaging";
 import { User } from "entities/user.entity";
 import { LocationEntity } from "entities/location.entity";
 import { Registration } from "entities/registration.entity";
+import { GotifyService } from "common/gotify/gotify.service";
 
 class EventEntityResponse extends OmitType(EventEntity, ["wsUrls"] as const) {
   @ApiProperty({ type: [String] })
@@ -79,6 +80,7 @@ export class EventController {
     private readonly fcmService: FirebaseMessagingService,
     private readonly socket: SocketGateway,
     private readonly eventService: EventService,
+    private readonly gotifyService: GotifyService,
   ) {}
 
   @Get("/")
@@ -488,6 +490,26 @@ export class EventController {
       });
     } catch (e) {
       console.error(`Cannot send token message to: ${userId}`, e);
+    }
+
+    // Send Gotify notification for check-in
+    try {
+      const totalScans = await this.scanRepo
+        .findAll()
+        .byHackathon(data.hackathonId)
+        .resultSize();
+
+      const userName = `${user.firstName} ${user.lastName}`;
+
+      await this.gotifyService.sendCheckinNotification(
+        userName,
+        user.email,
+        event.name,
+        totalScans,
+      );
+    } catch (error) {
+      console.log(`Failed to send Gotify check-in notification: ${error}`);
+      // Don't fail the check-in if notification fails
     }
   }
 }
