@@ -98,7 +98,9 @@ export class PhotoService {
         : new Date(),
       uploadedBy: String(file.metadata.metadata?.uploadedBy || "unknown"),
       // If metadata is missing, treat as pending (backward compatibility)
-      approvalStatus: String(file.metadata.metadata?.approvalStatus || "pending"),
+      approvalStatus: String(
+        file.metadata.metadata?.approvalStatus || "pending",
+      ),
     }));
   }
 
@@ -120,7 +122,10 @@ export class PhotoService {
         reviewedAt: new Date().toISOString(),
         // If uploadedBy/uploadedAt are missing, set defaults for backward compatibility
         uploadedBy: existingMetadata.metadata?.uploadedBy || "unknown",
-        uploadedAt: existingMetadata.metadata?.uploadedAt || existingMetadata.timeCreated || new Date().toISOString(),
+        uploadedAt:
+          existingMetadata.metadata?.uploadedAt ||
+          existingMetadata.timeCreated ||
+          new Date().toISOString(),
       },
     });
   }
