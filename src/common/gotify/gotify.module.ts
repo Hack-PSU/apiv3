@@ -1,7 +1,7 @@
-import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { GotifyService } from './gotify.service';
-import gotifyConfig from './gotify.config';
+import { Module } from "@nestjs/common";
+import { ConfigModule } from "@nestjs/config";
+import { GotifyService } from "./gotify.service";
+import gotifyConfig from "./gotify.config";
 
 @Module({
   imports: [ConfigModule.forFeature(gotifyConfig)],

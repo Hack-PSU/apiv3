@@ -1,8 +1,8 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
-import { GotifyService } from '../../common/gotify/gotify.service';
-import { Hackathon } from '../../entities/hackathon.entity';
-import { DateTime } from 'luxon';
+import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
+import { Cron } from "@nestjs/schedule";
+import { GotifyService } from "../../common/gotify/gotify.service";
+import { Hackathon } from "../../entities/hackathon.entity";
+import { DateTime } from "luxon";
 
 @Injectable()
 export class NotificationSchedulerService implements OnModuleInit {
@@ -12,37 +12,37 @@ export class NotificationSchedulerService implements OnModuleInit {
 
   async onModuleInit() {
     // NotificationScheduler initialized
-    this.logger.log('NotificationScheduler initialized');
+    this.logger.log("NotificationScheduler initialized");
     // Bootstrap notification disabled
   }
-  @Cron('0 6 * * *', {
-    name: 'daily-countdown',
-    timeZone: 'America/New_York', // EST/EDT timezone
+  @Cron("0 6 * * *", {
+    name: "daily-countdown",
+    timeZone: "America/New_York", // EST/EDT timezone
   })
   async handleDailyCountdown() {
     if (!this.gotifyService.isEnabled()) {
-      this.logger.debug('Skipping daily countdown (not production)');
+      this.logger.debug("Skipping daily countdown (not production)");
       return;
     }
 
     try {
       // Get the active hackathon
       const activeHackathon = await Hackathon.query()
-        .where('active', true)
+        .where("active", true)
         .first();
 
       if (!activeHackathon) {
-        this.logger.warn('No active hackathon found, skipping countdown');
+        this.logger.warn("No active hackathon found, skipping countdown");
         return;
       }
 
       // Convert Unix timestamp to DateTime
       const startDate = DateTime.fromMillis(activeHackathon.startTime, {
-        zone: 'America/New_York',
-      }).startOf('day');
+        zone: "America/New_York",
+      }).startOf("day");
 
-      const today = DateTime.now().setZone('America/New_York').startOf('day');
-      const daysUntil = Math.ceil(startDate.diff(today, 'days').days);
+      const today = DateTime.now().setZone("America/New_York").startOf("day");
+      const daysUntil = Math.ceil(startDate.diff(today, "days").days);
 
       // Only send if the event hasn't passed and is within 30 days
       if (daysUntil >= 0 && daysUntil <= 30) {
@@ -51,7 +51,7 @@ export class NotificationSchedulerService implements OnModuleInit {
           `Daily countdown sent: ${daysUntil} days until ${activeHackathon.name}`,
         );
       } else if (daysUntil < 0) {
-        this.logger.debug('Event has passed, skipping countdown');
+        this.logger.debug("Event has passed, skipping countdown");
       } else {
         this.logger.debug(
           `Event is too far away (${daysUntil} days), skipping countdown`,

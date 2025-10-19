@@ -57,7 +57,7 @@ export class PhotoController {
     if (!req.user || !("sub" in req.user)) {
       throw new UnauthorizedException();
     }
-    
+
     const userId = String(req.user.sub);
     const type = fileType || "default";
 

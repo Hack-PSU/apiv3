@@ -66,7 +66,7 @@ class CreateItemDto extends IntersectionType(
 class UpdateItemDto extends OmitType(BaseCreateItemDto, [
   "categoryId",
   "holderLocationId",
-  "holderOrganizerId"
+  "holderOrganizerId",
 ] as const) {}
 
 // Movement
@@ -176,21 +176,27 @@ export class InventoryController {
   @Patch("items/:id")
   @Roles(Role.TEAM)
   @ApiDoc({
-    summary: "Update an inventory item's name, asset tag, serial number, or note",
+    summary:
+      "Update an inventory item's name, asset tag, serial number, or note",
     request: { body: { type: UpdateItemDto }, validate: true },
     params: [{ name: "id" }],
     response: { ok: { type: InventoryItemEntity } },
-    auth: Role.TEAM
+    auth: Role.TEAM,
   })
-  async updateItem(@Param("id") id: string, @Body() dto: UpdateItemDto): Promise<InventoryItem> {
+  async updateItem(
+    @Param("id") id: string,
+    @Body() dto: UpdateItemDto,
+  ): Promise<InventoryItem> {
     // Validate the dto: item should (at least) have one of the following: name, asset tag, serial number
-    if (!dto.name.trim() && !dto.assetTag.trim() && !dto.serialNumber.trim()) 
-      throw new ForbiddenException("Item must have a name, asset tag, or serial number");
+    if (!dto.name.trim() && !dto.assetTag.trim() && !dto.serialNumber.trim())
+      throw new ForbiddenException(
+        "Item must have a name, asset tag, or serial number",
+      );
 
     // Get the item
     const item = await this.itemRepo.findOne(id).exec();
     if (!item) throw new NotFoundException("Item not found");
-    
+
     // Update the new values and patch
     Object.assign(item, dto);
     return this.itemRepo.patchOne(id, item).exec();
