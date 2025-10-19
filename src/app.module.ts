@@ -40,6 +40,7 @@ import { DriveModule } from "modules/drive/drive.module";
 import { NotificationSchedulerModule } from "modules/notification-scheduler/notification-scheduler.module";
 import { GotifyModule } from "common/gotify/gotify.module";
 import gotifyConfig from "common/gotify/gotify.config";
+import { OrganizerApplicationModule } from "modules/organizer-application/organizer-application.module";
 
 @Module({
   imports: [
@@ -110,6 +111,7 @@ import gotifyConfig from "common/gotify/gotify.config";
     PhotoModule,
     ReservationModule,
     DriveModule,
+    OrganizerApplicationModule,
 
     // WebSocket
     SocketModule,
