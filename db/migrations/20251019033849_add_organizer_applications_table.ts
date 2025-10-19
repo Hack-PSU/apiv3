@@ -84,7 +84,10 @@ export async function up(knex: Knex): Promise<void> {
 
     // Timestamps
     table.timestamp("created_at").notNullable().defaultTo(knex.fn.now());
-    table.timestamp("updated_at").notNullable().defaultTo(knex.fn.now());
+    table
+      .timestamp("updated_at")
+      .notNullable()
+      .defaultTo(knex.raw("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"));
 
     // Indexes for efficient querying
     table.index("email");

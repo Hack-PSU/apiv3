@@ -83,7 +83,6 @@ export class OrganizerApplicationService {
         .patchOne(applicationId, {
           firstChoiceStatus: ApplicationStatus.ACCEPTED,
           assignedTeam: team,
-          updatedAt: new Date(),
         })
         .exec();
     }
@@ -114,7 +113,6 @@ export class OrganizerApplicationService {
         .patchOne(applicationId, {
           secondChoiceStatus: ApplicationStatus.ACCEPTED,
           assignedTeam: team,
-          updatedAt: new Date(),
         })
         .exec();
     }
@@ -158,7 +156,6 @@ export class OrganizerApplicationService {
       return this.applicationRepo
         .patchOne(applicationId, {
           firstChoiceStatus: ApplicationStatus.REJECTED,
-          updatedAt: new Date(),
         })
         .exec();
     }
@@ -177,7 +174,6 @@ export class OrganizerApplicationService {
       return this.applicationRepo
         .patchOne(applicationId, {
           secondChoiceStatus: ApplicationStatus.REJECTED,
-          updatedAt: new Date(),
         })
         .exec();
     }
