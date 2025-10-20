@@ -827,4 +827,43 @@ export class UserController {
   ) {
     return this.ecAssignmentRepo.deleteOne([id, classId]).exec();
   }
+
+  @Get("export/data")
+  @Roles(Role.EXEC)
+  @ApiDoc({
+    summary: "Export Users and Registration Data",
+    response: {
+      ok: {
+        description: "Array of user and registration data for CSV export",
+        schema: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              first_name: { type: 'string' },
+              last_name: { type: 'string' },
+              email: {type: 'string' },
+              phone: { type: 'string' },
+              age: { type: 'number' },
+              country: { type: 'string' },
+              university: { type: 'string' },
+              academic_year: { type: 'string' },
+              mlh_coc: { type: 'boolean' },
+              mlh_dcp: { type: 'boolean' },
+              share_address_mlh: { type: 'boolean' },
+              share_address_sponsors: { type: 'boolean' },
+              share_email_mlh: { type: 'boolean' },
+              driving: { type: 'boolean' },
+              travel_reimbursement: { type: 'boolean' },
+              first_hackathon: { type: 'boolean' }
+            }
+          }
+        }
+      }
+    },
+    auth: Role.EXEC,
+  })
+  async exportUsersRegistrationsData() {
+    return this.userService.getUsersRegistrationData();
+  }
 }
