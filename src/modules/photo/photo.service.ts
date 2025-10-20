@@ -43,7 +43,14 @@ export class PhotoService {
     const blob = this.photoBucket.file(filename);
 
     await blob.save(file.buffer, {
-      metadata: { contentType: file.mimetype },
+      metadata: {
+        contentType: file.mimetype,
+        metadata: {
+          approvalStatus: "pending",
+          uploadedBy: userId,
+          uploadedAt: new Date().toISOString(),
+        },
+      },
     });
 
     return { photoId, photoUrl: this.getPublicPhotoUrl(filename) };
@@ -54,7 +61,15 @@ export class PhotoService {
   > {
     const [files] = await this.photoBucket.getFiles();
 
-    return files.map((file) => ({
+    // Filter to only show approved photos
+    const approvedFiles = files.filter((file) => {
+      const approvalStatus = file.metadata.metadata?.approvalStatus;
+      // If metadata is missing, treat as pending (backward compatibility)
+      // Only show if explicitly approved
+      return approvalStatus === "approved";
+    });
+
+    return approvedFiles.map((file) => ({
       name: file.name,
       url: this.getPublicPhotoUrl(file.name),
       createdAt: file.metadata.timeCreated
@@ -62,6 +77,59 @@ export class PhotoService {
         : new Date(),
     }));
   }
+
+  async getAllPendingPhotos(): Promise<
+    {
+      name: string;
+      url: string;
+      createdAt: Date;
+      uploadedBy: string;
+      approvalStatus: string;
+    }[]
+  > {
+    const [files] = await this.photoBucket.getFiles();
+
+    // Get all photos with their approval status
+    return files.map((file) => ({
+      name: file.name,
+      url: this.getPublicPhotoUrl(file.name),
+      createdAt: file.metadata.timeCreated
+        ? new Date(file.metadata.timeCreated)
+        : new Date(),
+      uploadedBy: String(file.metadata.metadata?.uploadedBy || "unknown"),
+      // If metadata is missing, treat as pending (backward compatibility)
+      approvalStatus: String(
+        file.metadata.metadata?.approvalStatus || "pending",
+      ),
+    }));
+  }
+
+  async updatePhotoApprovalStatus(
+    filename: string,
+    status: "approved" | "rejected",
+    adminId: string,
+  ): Promise<void> {
+    const file = this.photoBucket.file(filename);
+    const [existingMetadata] = await file.getMetadata();
+
+    // Preserve existing metadata or create new structure
+    // This handles backward compatibility for photos without metadata
+    await file.setMetadata({
+      metadata: {
+        ...existingMetadata.metadata,
+        approvalStatus: status,
+        reviewedBy: adminId,
+        reviewedAt: new Date().toISOString(),
+        // If uploadedBy/uploadedAt are missing, set defaults for backward compatibility
+        uploadedBy: existingMetadata.metadata?.uploadedBy || "unknown",
+        uploadedAt:
+          existingMetadata.metadata?.uploadedAt ||
+          existingMetadata.timeCreated ||
+          new Date().toISOString(),
+      },
+    });
+  }
+
   deletePhoto(photoId: string, originalName: string) {
     return this.photoBucket
       .file(this.getPhotoFileName(photoId, originalName))

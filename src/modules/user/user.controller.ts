@@ -36,6 +36,7 @@ import { UserService } from "modules/user/user.service";
 import { UploadedResume } from "modules/user/uploaded-resume.decorator";
 import { Express, Request } from "express";
 import { Scan, ScanEntity } from "entities/scan.entity";
+import { GotifyService } from "common/gotify/gotify.service";
 import {
   ExtraCreditClass,
   ExtraCreditClassEntity,
@@ -134,6 +135,7 @@ export class UserController {
     private readonly sendGridService: SendGridService,
     private readonly auth: FirebaseAuthService,
     private readonly fcmService: FirebaseMessagingService,
+    private readonly gotifyService: GotifyService,
   ) {}
 
   @Get("/")
@@ -570,6 +572,25 @@ export class UserController {
       });
     }
 
+    // Send Gotify notification for new registration
+    try {
+      const totalRegistrations = await this.registrationRepo
+        .findAll()
+        .byHackathon()
+        .resultSize();
+
+      const userName = `${user.firstName} ${user.lastName}`;
+
+      await this.gotifyService.sendRegistrationNotification(
+        totalRegistrations,
+        userName,
+        user.email,
+      );
+    } catch (error) {
+      console.log(`Failed to send Gotify notification: ${error}`);
+      // Don't fail the registration if notification fails
+    }
+
     return newRegistration;
   }
 
@@ -678,6 +699,26 @@ export class UserController {
         `User_Controller: Cannot send token message to ${hasUser.id}`,
         e,
       );
+    }
+
+    // Send Gotify notification for check-in
+    try {
+      const totalScans = await this.scanRepo
+        .findAll()
+        .byHackathon(hackathonId)
+        .resultSize();
+
+      const userName = `${hasUser.firstName} ${hasUser.lastName}`;
+
+      await this.gotifyService.sendCheckinNotification(
+        userName,
+        hasUser.email,
+        event.name,
+        totalScans,
+      );
+    } catch (error) {
+      console.log(`Failed to send Gotify check-in notification: ${error}`);
+      // Don't fail the check-in if notification fails
     }
   }
 

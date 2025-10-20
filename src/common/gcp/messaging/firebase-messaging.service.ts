@@ -63,6 +63,12 @@ export class FirebaseMessagingService {
 
     const token = await this.getFcmToken(userId);
 
+    // If user doesn't have an FCM token, skip sending notification
+    if (!token) {
+      console.warn(`No FCM token for user ${userId}, skipping notification`);
+      return null;
+    }
+
     const message: admin.messaging.TokenMessage = {
       token,
       data: payloadData,
