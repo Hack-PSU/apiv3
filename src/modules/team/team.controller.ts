@@ -360,6 +360,39 @@ export class TeamController {
     }
 
     const team = await this.teamRepo.patchOne(id, data).exec();
+
+    // Check if all members have been removed - if so, soft delete the team
+    const updatedMembers = [
+      team.member1,
+      team.member2,
+      team.member3,
+      team.member4,
+      team.member5,
+    ].filter(Boolean);
+
+    if (updatedMembers.length === 0) {
+      // No members left - soft delete team and all associated reservations
+      console.log(
+        `All members removed from team ${id}, auto soft-deleting team and reservations`,
+      );
+
+      const deletedReservationsCount = await this.reservationRepo
+        .findAll()
+        .raw()
+        .where("teamId", id)
+        .delete();
+
+      console.log(
+        `Deleted ${deletedReservationsCount} reservations for team ${id}`,
+      );
+
+      const deletedTeam = await this.teamRepo
+        .patchOne(id, { isActive: false })
+        .exec();
+
+      return deletedTeam;
+    }
+
     return team;
   }
 
@@ -470,7 +503,7 @@ export class TeamController {
   @Delete(":id")
   @Roles(Role.NONE)
   @ApiDoc({
-    summary: "Soft delete a team",
+    summary: "Soft delete a team and remove all associated reservations",
     params: [
       {
         name: "id",
@@ -490,13 +523,18 @@ export class TeamController {
     if (!existingTeam.isActive) {
       throw new BadRequestException("Team is already inactive");
     }
-    // Delete all reservations associated with team
-    await this.reservationRepo
+
+    // Delete all reservations associated with team before soft-deleting
+    const deletedReservationsCount = await this.reservationRepo
       .findAll()
       .raw()
       .where("teamId", id)
       .delete();
-      
+
+    console.log(
+      `Deleted ${deletedReservationsCount} reservations for team ${id}`,
+    );
+
     const team = await this.teamRepo.patchOne(id, { isActive: false }).exec();
     return team;
   }
