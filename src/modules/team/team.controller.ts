@@ -9,6 +9,7 @@ import {
   Param,
   Patch,
   Post,
+  Delete,
   Query,
   UseFilters,
   ValidationPipe,
@@ -16,6 +17,7 @@ import {
 import { InjectRepository, Repository } from "common/objection";
 import { Team, TeamEntity } from "entities/team.entity";
 import { User } from "entities/user.entity";
+import { Reservation } from "entities/reservation.entity";
 import { Hackathon } from "entities/hackathon.entity";
 import { ApiProperty, ApiTags, OmitType, PartialType } from "@nestjs/swagger";
 import { Role, Roles } from "common/gcp";
@@ -92,6 +94,8 @@ export class TeamController {
     private readonly teamRepo: Repository<Team>,
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
+    @InjectRepository(Reservation)
+    private readonly reservationRepo: Repository<Reservation>,
   ) {}
 
   @Get("/")
@@ -356,6 +360,39 @@ export class TeamController {
     }
 
     const team = await this.teamRepo.patchOne(id, data).exec();
+
+    // Check if all members have been removed - if so, soft delete the team
+    const updatedMembers = [
+      team.member1,
+      team.member2,
+      team.member3,
+      team.member4,
+      team.member5,
+    ].filter(Boolean);
+
+    if (updatedMembers.length === 0) {
+      // No members left - soft delete team and all associated reservations
+      console.log(
+        `All members removed from team ${id}, auto soft-deleting team and reservations`,
+      );
+
+      const deletedReservationsCount = await this.reservationRepo
+        .findAll()
+        .raw()
+        .where("teamId", id)
+        .delete();
+
+      console.log(
+        `Deleted ${deletedReservationsCount} reservations for team ${id}`,
+      );
+
+      const deletedTeam = await this.teamRepo
+        .patchOne(id, { isActive: false })
+        .exec();
+
+      return deletedTeam;
+    }
+
     return team;
   }
 
@@ -461,5 +498,44 @@ export class TeamController {
 
     const updatedTeam = await this.teamRepo.patchOne(id, updateData).exec();
     return updatedTeam;
+  }
+
+  @Delete(":id")
+  @Roles(Role.NONE)
+  @ApiDoc({
+    summary: "Soft delete a team and remove all associated reservations",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to a team's ID",
+      },
+    ],
+    response: {
+      ok: { type: TeamEntity },
+    },
+    auth: Role.TEAM,
+  })
+  async deleteOne(@Param("id") id: string) {
+    const existingTeam = await this.teamRepo.findOne(id).exec();
+    if (!existingTeam) {
+      throw new NotFoundException("Team not found");
+    }
+    if (!existingTeam.isActive) {
+      throw new BadRequestException("Team is already inactive");
+    }
+
+    // Delete all reservations associated with team before soft-deleting
+    const deletedReservationsCount = await this.reservationRepo
+      .findAll()
+      .raw()
+      .where("teamId", id)
+      .delete();
+
+    console.log(
+      `Deleted ${deletedReservationsCount} reservations for team ${id}`,
+    );
+
+    const team = await this.teamRepo.patchOne(id, { isActive: false }).exec();
+    return team;
   }
 }
