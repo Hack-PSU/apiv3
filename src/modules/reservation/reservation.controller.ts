@@ -110,7 +110,7 @@ export class ReservationController {
 
   @Delete("/:id")
   @HttpCode(HttpStatus.NO_CONTENT)
-  @Roles(Role.TEAM)
+  @Roles(Role.NONE)
   @ApiDoc({
     summary: "Cancel Reservation",
     params: [
