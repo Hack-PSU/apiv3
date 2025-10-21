@@ -5,6 +5,7 @@ import * as admin from "firebase-admin";
 import { ConfigToken } from "common/config";
 import { ResumeBucketConfig } from "common/gcp";
 import * as archiver from "archiver";
+import { User } from "entities/user.entity";
 
 @Injectable()
 export class UserService {
@@ -70,5 +71,35 @@ export class UserService {
 
     zip.finalize();
     return zip;
+  }
+
+  async getUsersRegistrationData(): Promise<any[]> {
+    // Execute raw SQL query to join users and registrations for active hackathon only
+    const results = await User.knex().raw(`
+      SELECT 
+        users.first_name, 
+        users.last_name, 
+        users.email,
+        users.phone, 
+        registrations.age, 
+        users.country, 
+        users.university, 
+        registrations.academic_year, 
+        registrations.mlh_coc, 
+        registrations.mlh_dcp, 
+        registrations.share_address_mlh, 
+        registrations.share_address_sponsors, 
+        registrations.share_email_mlh, 
+        registrations.driving, 
+        registrations.travel_reimbursement, 
+        registrations.first_hackathon 
+      FROM users 
+      JOIN registrations ON registrations.user_id = users.id
+      JOIN hackathons ON registrations.hackathon_id = hackathons.id
+      WHERE hackathons.active = true
+    `);
+
+    // Return the data array (MySQL returns results in first element)
+    return results[0] || [];
   }
 }
