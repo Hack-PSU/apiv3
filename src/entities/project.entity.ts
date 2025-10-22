@@ -60,6 +60,12 @@ export class Project extends Entity {
   @Column({ type: "string", required: false })
   teamId?: string;
 
+  @ApiProperty({ required: false, description: "Github submission link" })
+  @IsOptional()
+  @IsUrl({}, { message: "Must be a valid URL" })
+  @Column({ type: "string", required: false })
+  githubLink?: string;
+
   @ApiProperty({ required: false, description: "Devpost submission link" })
   @IsOptional()
   @IsUrl({}, { message: "Must be a valid URL" })
@@ -73,5 +79,6 @@ export class ProjectEntity extends PickType(Project, [
   "hackathonId",
   "categories",
   "teamId",
+  "githubLink",
   "devpostLink",
 ] as const) {}
