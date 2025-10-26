@@ -1,4 +1,5 @@
-import { Controller, Get, Param, Query, UseFilters } from "@nestjs/common";
+import { Controller, Get, Param, Query, UseFilters, Req } from "@nestjs/common";
+import { Request } from "express";
 import { InjectRepository, Repository } from "common/objection";
 import { Scan, ScanEntity } from "entities/scan.entity";
 import { ApiExtraModels, ApiProperty, ApiTags } from "@nestjs/swagger";
@@ -17,7 +18,7 @@ class AnalyticsEventsScansEntity extends EventEntity {
 // Endpoint will be used specifically for statistics
 // Creating a scan must be created from either an event or a user
 @ApiTags("Scans")
-@Controller("scans")
+@Controller("scanstest")
 @UseFilters(DBExceptionFilter)
 @ApiExtraModels(AnalyticsEventsScansEntity)
 export class ScanController {
@@ -67,6 +68,38 @@ export class ScanController {
   })
   async getOne(@Param("id") id: number) {
     return this.scanRepo.findOne(id).exec();
+  }
+
+  @Get("/validate")
+  @Roles(Role.NONE)
+  @ApiDoc({
+    summary: "Validate that a user has checked in",
+    response: {
+      ok: { type: ScanEntity },
+    },
+    auth: Role.NONE,
+  })
+  async validateCheckIn(
+    @Req() req: any
+  ) {
+    console.log("validateCheckIn called - req.user:", req.user);
+    console.log("Authorization header:", req.headers.authorization);
+    
+    if (!req.user || !req.user.sub) {
+      throw new Error("User not authenticated properly");
+    }
+
+    const checkIn = await this.eventRepo
+      .findAll()
+      .raw()
+      .where("name", "Check-In")
+      .first();
+
+    return this.scanRepo
+      .findAll()
+      .raw()
+      .where("user_id", req.user.sub)
+      .where("event_id", checkIn.id);
   }
 
   @Get("analytics/organizers")
