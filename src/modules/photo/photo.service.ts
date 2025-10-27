@@ -4,6 +4,7 @@ import * as admin from "firebase-admin";
 import { v4 as uuidv4 } from "uuid";
 import { ConfigToken } from "common/config";
 import { ConfigService } from "@nestjs/config";
+import { PaginatedPhotosResponse } from "./photo.types";
 
 @Injectable()
 export class PhotoService {
@@ -128,6 +129,59 @@ export class PhotoService {
           new Date().toISOString(),
       },
     });
+  }
+
+  async getPaginatedPhotos(
+    page: number = 1,
+    limit: number = 10,
+    status?: string,
+  ): Promise<PaginatedPhotosResponse> {
+    const [files] = await this.photoBucket.getFiles();
+
+    // Filter files based on status if provided
+    let filteredFiles = files;
+    if (status) {
+      filteredFiles = files.filter((file) => {
+        const fileStatus = file.metadata.metadata?.approvalStatus || "pending";
+        return fileStatus === status;
+      });
+    }
+
+    // Sort files by creation date (newest first)
+    filteredFiles.sort((a, b) => {
+      const dateA = new Date(a.metadata.timeCreated || 0);
+      const dateB = new Date(b.metadata.timeCreated || 0);
+      return dateB.getTime() - dateA.getTime();
+    });
+
+    // Calculate pagination
+    const totalItems = filteredFiles.length;
+    const totalPages = Math.ceil(totalItems / limit);
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const paginatedFiles = filteredFiles.slice(startIndex, endIndex);
+
+    // Map files to response format
+    const photos = paginatedFiles.map((file) => ({
+      name: file.name,
+      url: this.getPublicPhotoUrl(file.name),
+      createdAt: file.metadata.timeCreated
+        ? new Date(file.metadata.timeCreated)
+        : new Date(),
+      uploadedBy: String(file.metadata.metadata?.uploadedBy || ""),
+      approvalStatus: String(file.metadata.metadata?.approvalStatus || "pending"),
+    }));
+
+    return {
+      photos,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalItems,
+        hasNext: page < totalPages,
+        hasPrevious: page > 1,
+      },
+    };
   }
 
   deletePhoto(photoId: string, originalName: string) {
