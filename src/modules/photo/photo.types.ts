@@ -4,6 +4,7 @@ export interface PhotoItem {
   createdAt: Date;
   uploadedBy?: string;
   approvalStatus?: string;
+  derivatives?: Record<string, string>;
 }
 
 export interface PaginationMeta {
