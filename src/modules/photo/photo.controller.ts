@@ -28,6 +28,7 @@ export class PhotoController {
   constructor(private readonly photoService: PhotoService) {}
 
   @Post("/upload")
+  @Roles(Role.NONE)
   @UseInterceptors(FileInterceptor("photo"))
   @ApiDoc({
     summary: "Upload a photo",
