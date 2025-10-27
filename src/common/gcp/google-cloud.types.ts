@@ -18,6 +18,7 @@ export type ReimbursementFormBucketConfig = {
 
 export type PhotoBucketConfig = {
   photo_bucket?: string;
+  photo_cdn_url?: string;
 };
 
 export type GoogleCloudCoreModuleOptions = {
