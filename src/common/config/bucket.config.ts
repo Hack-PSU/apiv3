@@ -23,6 +23,7 @@ export const bucketConfig = registerAs<
     reimbursement_form_bucket: process.env.REIMBURSEMENT_FORM_BUCKET,
     resume_bucket: process.env.RESUME_BUCKET,
     photo_bucket: process.env.PHOTO_BUCKET,
+    photo_cdn_url: process.env.PHOTO_CDN_URL,
     drive_root_folder: process.env.DRIVE_ROOT_FOLDER,
   };
 });

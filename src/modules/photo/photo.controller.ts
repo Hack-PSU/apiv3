@@ -43,6 +43,12 @@ export class PhotoController {
           properties: {
             photoId: { type: "string" },
             photoUrl: { type: "string" },
+            derivatives: {
+              type: "object",
+              additionalProperties: { type: "string" },
+              description:
+                "Responsive image URLs (e.g., webp_480, webp_960, webp_1600)",
+            },
           },
         },
       },
@@ -52,7 +58,11 @@ export class PhotoController {
     @UploadedPhoto() photo: Express.Multer.File,
     @Req() req: Request,
     @Body("fileType") fileType: string,
-  ): Promise<{ photoId: string; photoUrl: string }> {
+  ): Promise<{
+    photoId: string;
+    photoUrl: string;
+    derivatives: Record<string, string>;
+  }> {
     if (!photo) {
       throw new BadRequestException("Photo is required");
     }
@@ -65,12 +75,9 @@ export class PhotoController {
     const type = fileType || "default";
 
     try {
-      const { photoId, photoUrl } = await this.photoService.uploadPhoto(
-        userId,
-        type,
-        photo,
-      );
-      return { photoId, photoUrl };
+      const { photoId, photoUrl, derivatives } =
+        await this.photoService.uploadPhoto(userId, type, photo);
+      return { photoId, photoUrl, derivatives };
     } catch (error) {
       console.error("Error uploading photo:", error);
       throw new InternalServerErrorException("Failed to upload photo");
@@ -92,6 +99,12 @@ export class PhotoController {
               name: { type: "string" },
               url: { type: "string" },
               createdAt: { type: "string", format: "date-time" },
+              derivatives: {
+                type: "object",
+                additionalProperties: { type: "string" },
+                description:
+                  "Responsive image URLs (e.g., webp_480, webp_960, webp_1600)",
+              },
             },
           },
         },
@@ -99,7 +112,12 @@ export class PhotoController {
     },
   })
   async getAllPhotos(): Promise<
-    { name: string; url: string; createdAt: Date }[]
+    {
+      name: string;
+      url: string;
+      createdAt: Date;
+      derivatives: Record<string, string>;
+    }[]
   > {
     try {
       return await this.photoService.getAllPhotos();
