@@ -76,15 +76,21 @@ export class PhotoService {
     format: "webp",
   ): Promise<Buffer> {
     const image = sharp(buffer);
-    const metadata = await image.metadata();
+
+    // Automatically rotate based on EXIF orientation
+    const rotatedImage = image.rotate();
+    const metadata = await rotatedImage.metadata();
 
     // Only resize if image is wider than target width
     if (metadata.width && metadata.width > width) {
-      return image.resize(width, null, { withoutEnlargement: true }).toFormat(format, { quality: 80 }).toBuffer();
+      return rotatedImage
+        .resize(width, null, { withoutEnlargement: true })
+        .toFormat(format, { quality: 80 })
+        .toBuffer();
     }
 
     // If image is smaller, just convert format without resizing
-    return image.toFormat(format, { quality: 80 }).toBuffer();
+    return rotatedImage.toFormat(format, { quality: 80 }).toBuffer();
   }
 
   private async uploadDerivatives(
@@ -215,23 +221,33 @@ export class PhotoService {
       createdAt: Date;
       uploadedBy: string;
       approvalStatus: string;
+      derivatives: Record<string, string>;
     }[]
   > {
     const [files] = await this.photoBucket.getFiles();
 
+    // Filter out derivative files
+    const photoFiles = files.filter(
+      (file) => !file.name.startsWith("derivatives/"),
+    );
+
     // Get all photos with their approval status
-    return files.map((file) => ({
-      name: file.name,
-      url: this.getPublicPhotoUrl(file.name),
-      createdAt: file.metadata.timeCreated
-        ? new Date(file.metadata.timeCreated)
-        : new Date(),
-      uploadedBy: String(file.metadata.metadata?.uploadedBy || "unknown"),
-      // If metadata is missing, treat as pending (backward compatibility)
-      approvalStatus: String(
-        file.metadata.metadata?.approvalStatus || "pending",
-      ),
-    }));
+    return photoFiles.map((file) => {
+      const photoId = this.extractPhotoIdFromFilename(file.name);
+      return {
+        name: file.name,
+        url: this.getPublicPhotoUrl(file.name),
+        createdAt: file.metadata.timeCreated
+          ? new Date(file.metadata.timeCreated)
+          : new Date(),
+        uploadedBy: String(file.metadata.metadata?.uploadedBy || "unknown"),
+        // If metadata is missing, treat as pending (backward compatibility)
+        approvalStatus: String(
+          file.metadata.metadata?.approvalStatus || "pending",
+        ),
+        derivatives: this.getDerivativeUrls(photoId),
+      };
+    });
   }
 
   async updatePhotoApprovalStatus(
@@ -267,10 +283,15 @@ export class PhotoService {
   ): Promise<PaginatedPhotosResponse> {
     const [files] = await this.photoBucket.getFiles();
 
+    // Filter out derivative files first
+    const photoFiles = files.filter(
+      (file) => !file.name.startsWith("derivatives/"),
+    );
+
     // Filter files based on status if provided
-    let filteredFiles = files;
+    let filteredFiles = photoFiles;
     if (status) {
-      filteredFiles = files.filter((file) => {
+      filteredFiles = photoFiles.filter((file) => {
         const fileStatus = file.metadata.metadata?.approvalStatus || "pending";
         return fileStatus === status;
       });
@@ -291,15 +312,21 @@ export class PhotoService {
     const paginatedFiles = filteredFiles.slice(startIndex, endIndex);
 
     // Map files to response format
-    const photos = paginatedFiles.map((file) => ({
-      name: file.name,
-      url: this.getPublicPhotoUrl(file.name),
-      createdAt: file.metadata.timeCreated
-        ? new Date(file.metadata.timeCreated)
-        : new Date(),
-      uploadedBy: String(file.metadata.metadata?.uploadedBy || ""),
-      approvalStatus: String(file.metadata.metadata?.approvalStatus || "pending"),
-    }));
+    const photos = paginatedFiles.map((file) => {
+      const photoId = this.extractPhotoIdFromFilename(file.name);
+      return {
+        name: file.name,
+        url: this.getPublicPhotoUrl(file.name),
+        createdAt: file.metadata.timeCreated
+          ? new Date(file.metadata.timeCreated)
+          : new Date(),
+        uploadedBy: String(file.metadata.metadata?.uploadedBy || ""),
+        approvalStatus: String(
+          file.metadata.metadata?.approvalStatus || "pending",
+        ),
+        derivatives: this.getDerivativeUrls(photoId),
+      };
+    });
 
     return {
       photos,

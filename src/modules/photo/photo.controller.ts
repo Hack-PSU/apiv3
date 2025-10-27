@@ -229,6 +229,12 @@ export class PhotoController {
               createdAt: { type: "string", format: "date-time" },
               uploadedBy: { type: "string" },
               approvalStatus: { type: "string" },
+              derivatives: {
+                type: "object",
+                additionalProperties: { type: "string" },
+                description:
+                  "Responsive image URLs (e.g., webp_480, webp_960, webp_1600)",
+              },
             },
           },
         },
@@ -242,6 +248,7 @@ export class PhotoController {
       createdAt: Date;
       uploadedBy: string;
       approvalStatus: string;
+      derivatives: Record<string, string>;
     }[]
   > {
     try {
