@@ -81,7 +81,7 @@
     "@types/multer": "^2.0.0",
     "@types/node": "^22.10.5",
     "@types/passport-jwt": "^4.0.1",
-    "@types/sharp": "^0.31.1",
+    "@types/sharp": "^0.32.0",
     "@types/supertest": "^6.0.2",
     "@typescript-eslint/eslint-plugin": "^8.19.1",
     "@typescript-eslint/parser": "^8.19.1",
