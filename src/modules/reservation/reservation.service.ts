@@ -23,7 +23,7 @@ export interface UpdateReservationDto {
 
 export interface CreateReservationDto {
   locationId: number;
-  teamId: string;
+  teamId?: string; // Make teamId optional since it can be null for organizer reservations
   startTime: number;
   endTime: number;
   hackathonId: string;
@@ -77,7 +77,7 @@ export class ReservationService {
     const reservation = this.reservationRepo
       .createOne({
         locationId: data.locationId,
-        teamId: data.teamId, // Organizer reservations are not team-specific
+        teamId: data.teamId && data.teamId.trim() !== '' ? data.teamId : null,
         startTime: data.startTime,
         endTime: data.endTime,
         hackathonId: data.hackathonId,
@@ -195,9 +195,13 @@ export class ReservationService {
     // 1. Validate basic constraints (hackathon bounds, location exists, duration)
     await this.validateBasicConstraints(data);
 
-    // 2. Validate team constraints
-    await this.validateTeamConstraints(data.teamId, userId, data.hackathonId);
-    console.log("validated team constraints");
+    // 2. Validate team constraints only if teamId is provided
+    if (data.teamId && data.teamId.trim() !== '') {
+      await this.validateTeamConstraints(data.teamId, userId, data.hackathonId);
+      console.log("validated team constraints");
+    } else {
+      console.log("skipping team validation - no teamId provided");
+    }
 
     // 3. Check for conflicts (blackouts, capacity, team double booking)
     await this.checkConflicts(data);
@@ -310,26 +314,31 @@ export class ReservationService {
     // If capacity is 0, skip capacity check (unlimited)
 
     // 2. Check team double booking (team can't have multiple reservations)
-    const teamConflicts = await Reservation.query()
-      .where("teamId", data.teamId)
-      .where("reservationType", ReservationType.PARTICIPANT)
-      .where("hackathonId", data.hackathonId)
-      .where(function (this) {
-        this.where(function (this) {
-          this.where("startTime", "<", data.endTime).where(
-            "endTime",
-            ">",
-            data.startTime,
-          );
+    // Only check team conflicts if teamId is provided
+    if (data.teamId && data.teamId.trim() !== '') {
+      const teamConflicts = await Reservation.query()
+        .where("teamId", data.teamId)
+        .where("reservationType", ReservationType.PARTICIPANT)
+        .where("hackathonId", data.hackathonId)
+        .where(function (this) {
+          this.where(function (this) {
+            this.where("startTime", "<", data.endTime).where(
+              "endTime",
+              ">",
+              data.startTime,
+            );
+          });
         });
-      });
 
-    console.log("teamConflicts:", teamConflicts);
+      console.log("teamConflicts:", teamConflicts);
 
-    if (teamConflicts.length > 0) {
-      throw new BadRequestException(
-        "Team already has a reservation during this time",
-      );
+      if (teamConflicts.length > 0) {
+        throw new BadRequestException(
+          "Team already has a reservation during this time",
+        );
+      }
+    } else {
+      console.log("skipping team conflict check - no teamId provided");
     }
   }
 

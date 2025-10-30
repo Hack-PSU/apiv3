@@ -28,9 +28,10 @@ class CreateReservationEntity {
   @Type(() => Number)
   locationId: number;
 
-  @ApiProperty()
+  @ApiProperty({ required: false })
+  @IsOptional()
   @IsString()
-  teamId: string;
+  teamId?: string;
 
   @ApiProperty()
   @IsNumber()
