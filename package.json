@@ -79,7 +79,7 @@
     "@types/luxon": "^3.4.2",
     "@types/mock-knex": "^0.4.8",
     "@types/multer": "^2.0.0",
-    "@types/node": "^22.10.5",
+    "@types/node": "^24.0.0",
     "@types/passport-jwt": "^4.0.1",
     "@types/sharp": "^0.32.0",
     "@types/supertest": "^6.0.2",
