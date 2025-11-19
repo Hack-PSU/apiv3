@@ -1612,9 +1612,9 @@
   integrity sha512-68pFJgu+/AZbWkGu65Z3r55bTsCPlgyKaV4BSG8yUAD72q1PPuyVRgUwFv6BxdnibTUHlyxm06FmYWNC+bjN7A==
 
 "@nestjs/cli@^11.0.2":
-  version "11.0.11"
-  resolved "https://registry.yarnpkg.com/@nestjs/cli/-/cli-11.0.11.tgz#f7c31d004ee9af9dd3ad3b5c6348e7a7afc26d9f"
-  integrity sha512-phKImmBK2qc0dqMPz+vnBlb+xcAxyZ5yiCKOdcgq9DwFsswL6jn3l2leKXQLIyM2bqIecE5T3tdWKLZl7wgW0w==
+  version "11.0.12"
+  resolved "https://registry.yarnpkg.com/@nestjs/cli/-/cli-11.0.12.tgz#62968e9220223e1524938ecfcd836d2028c53119"
+  integrity sha512-V3fD1xESlFcJ1xpwOtUhn0edLvIa76Sx8mkvdR1s8cM4c/rZO+yGmXP30ZQwPfIJPTgBvsw93F/i+87eV96wcQ==
   dependencies:
     "@angular-devkit/core" "19.2.19"
     "@angular-devkit/schematics" "19.2.19"
@@ -3180,9 +3180,9 @@ camelcase@^6.3.0:
   integrity sha512-Gmy6FhYlCY7uOElZUSbxo2UCDH8owEk996gkbrpsgGtrJLM3J7jGxl9Ic7Qwwj4ivOE5AWZWRMecDdF7hqGjFA==
 
 caniuse-lite@^1.0.30001754:
-  version "1.0.30001755"
-  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001755.tgz#c01cfb1c30f5acf1229391666ec03492f4c332ff"
-  integrity sha512-44V+Jm6ctPj7R52Na4TLi3Zri4dWUljJd+RDm+j8LtNCc/ihLCT+X1TzoOAkRETEWqjuLnh9581Tl80FvK7jVA==
+  version "1.0.30001756"
+  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001756.tgz#fe80104631102f88e58cad8aa203a2c3e5ec9ebd"
+  integrity sha512-4HnCNKbMLkLdhJz3TToeVWHSnfJvPaq6vu/eRP0Ahub/07n484XHhBF5AJoSGHdVrS8tKFauUQz8Bp9P7LVx7A==
 
 chalk@^4.0.0, chalk@^4.1.0, chalk@^4.1.2:
   version "4.1.2"
