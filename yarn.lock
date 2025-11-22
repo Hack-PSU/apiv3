@@ -2155,9 +2155,9 @@
     "@types/node" "*"
 
 "@types/lodash@^4.17.14":
-  version "4.17.20"
-  resolved "https://registry.npmjs.org/@types/lodash/-/lodash-4.17.20.tgz"
-  integrity sha512-H3MHACvFUEiujabxhaI/ImO6gUrd8oOurg7LQtS7mbwIXA/cUqWrvBsaeJ23aZEPk1TAYkurjfMbSELfoCXlGA==
+  version "4.17.21"
+  resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.17.21.tgz#b806831543d696b14f8112db600ea9d3a1df6ea4"
+  integrity sha512-FOvQ0YPD5NOfPgMzJihoT+Za5pdkDJWcbpuj1DjaKZIr/gxodQjY/uWEFlTNqW2ugXHUiL8lRQgw63dzKHZdeQ==
 
 "@types/long@^4.0.0":
   version "4.0.2"
@@ -2166,12 +2166,12 @@
 
 "@types/luxon@^3.4.2", "@types/luxon@~3.7.0":
   version "3.7.1"
-  resolved "https://registry.npmjs.org/@types/luxon/-/luxon-3.7.1.tgz"
+  resolved "https://registry.yarnpkg.com/@types/luxon/-/luxon-3.7.1.tgz#ef51b960ff86801e4e2de80c68813a96e529d531"
   integrity sha512-H3iskjFIAn5SlJU7OuxUmTEpebK6TKB8rxZShDslBMZJ5u9S//KM1sbdAisiSrqwLQncVjnpi2OK2J51h+4lsg==
 
 "@types/methods@^1.1.4":
   version "1.1.4"
-  resolved "https://registry.npmjs.org/@types/methods/-/methods-1.1.4.tgz"
+  resolved "https://registry.yarnpkg.com/@types/methods/-/methods-1.1.4.tgz#d3b7ac30ac47c91054ea951ce9eed07b1051e547"
   integrity sha512-ymXWVrDiCxTBE3+RIrrP533E70eA+9qu7zdWoHuOmGujkYtzf4HQF96b8nwHLqhuf4ykX61IGRIB38CC6/sImQ==
 
 "@types/mime@^1":
@@ -2181,7 +2181,7 @@
 
 "@types/mock-knex@^0.4.8":
   version "0.4.8"
-  resolved "https://registry.npmjs.org/@types/mock-knex/-/mock-knex-0.4.8.tgz"
+  resolved "https://registry.yarnpkg.com/@types/mock-knex/-/mock-knex-0.4.8.tgz#eddaaa7d772d388ff7444d6217c574eb17f8856f"
   integrity sha512-xRoaH9GmsgP5JBdMadzJSg/63HCifgJZsWmCJ5Z1rA36Fg3Y7Yb03dMzMIk5sHnBWcPkWqY/zyDO4nStI+Frbg==
   dependencies:
     "@types/node" "*"
