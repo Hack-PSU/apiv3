@@ -1,6 +1,5 @@
 import { apiFetch } from "../apiClient";
 import {
-	ExtraCreditAssignmentEntity,
 	ECClassResponse,
 	ExtraCreditClassEntity,
 	ECClassCreateEntity,
@@ -57,9 +56,9 @@ export async function deleteExtraCreditClass(id: number): Promise<void> {
 }
 
 export async function getAllExtraCreditAssignments(): Promise<
-	ExtraCreditAssignmentEntity[]
+	ECClassResponse[]
 > {
-	return apiFetch<ExtraCreditAssignmentEntity[]>("/extra-credit/assignments", {
+	return apiFetch<ECClassResponse[]>("/extra-credit/assignments", {
 		method: "GET",
 	});
 }

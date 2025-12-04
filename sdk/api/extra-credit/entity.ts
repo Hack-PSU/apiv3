@@ -1,8 +1,3 @@
-export interface ExtraCreditAssignmentEntity {
-	userId: string;
-	classId: number;
-}
-
 export interface ExtraCreditClassEntity {
 	id: number;
 	name: string;
