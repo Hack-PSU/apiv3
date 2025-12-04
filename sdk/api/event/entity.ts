@@ -26,6 +26,7 @@ export interface EventEntityResponse extends EventEntity {
 	location: {
 		id: number;
 		name: string;
+		capacity: number;
 	};
 }
 
