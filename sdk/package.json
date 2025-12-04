@@ -1,6 +1,6 @@
 {
   "name": "@hackpsu/react-sdk",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Shared React hooks, providers, and API clients for HackPSU projects",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
