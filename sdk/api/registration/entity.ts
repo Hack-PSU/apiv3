@@ -19,4 +19,9 @@ export interface RegistrationEntity {
 	shareEmailMlh?: boolean;
 	time: number;
 	veteran: string;
+	excitement?: string;
+	zip_code?: string;
+	travel_cost?: string;
+	travel_method?: string;
+	travel_additional?: string;
 }
