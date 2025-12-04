@@ -5,7 +5,7 @@ export async function up(knex: Knex): Promise<void> {
     await knex.schema.alterTable("registrations", (table) => {
         table.string("excitement").nullable();
         table.string("zip_code").nullable();
-        table.string("travel_cost").nullable();
+        table.integer("travel_cost").nullable();
         table.string("travel_method").nullable();
         table.string("travel_additional").nullable();
     });
