@@ -39,7 +39,7 @@ export function useTeam(id: string) {
 
 export function useCreateTeam() {
 	const queryClient = useQueryClient();
-	return useMutation({
+	return useMutation<TeamEntity, Error, TeamCreateEntity>({
 		mutationFn: (data: TeamCreateEntity) => createTeam(data),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: teamQueryKeys.all() });
@@ -49,9 +49,12 @@ export function useCreateTeam() {
 
 export function useUpdateTeam() {
 	const queryClient = useQueryClient();
-	return useMutation({
-		mutationFn: ({ id, data }: { id: string; data: TeamUpdateEntity }) =>
-			updateTeam(id, data),
+	return useMutation<
+		TeamEntity,
+		Error,
+		{ id: string; data: TeamUpdateEntity }
+	>({
+		mutationFn: ({ id, data }) => updateTeam(id, data),
 		onSuccess: (updated) => {
 			queryClient.invalidateQueries({ queryKey: teamQueryKeys.all() });
 			queryClient.invalidateQueries({
@@ -63,9 +66,12 @@ export function useUpdateTeam() {
 
 export function useAddUserByEmail() {
 	const queryClient = useQueryClient();
-	return useMutation({
-		mutationFn: ({ id, data }: { id: string; data: AddUserByEmailEntity }) =>
-			addUserByEmail(id, data),
+	return useMutation<
+		TeamEntity,
+		Error,
+		{ id: string; data: AddUserByEmailEntity }
+	>({
+		mutationFn: ({ id, data }) => addUserByEmail(id, data),
 		onSuccess: (updated) => {
 			queryClient.invalidateQueries({ queryKey: teamQueryKeys.all() });
 			queryClient.invalidateQueries({
@@ -77,7 +83,7 @@ export function useAddUserByEmail() {
 
 export function useDeleteTeam() {
 	const queryClient = useQueryClient();
-	return useMutation({
+	return useMutation<TeamEntity, Error, string>({
 		mutationFn: (id: string) => deleteTeam(id),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: teamQueryKeys.all() });
