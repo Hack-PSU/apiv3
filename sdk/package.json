@@ -1,6 +1,6 @@
 {
   "name": "@hackpsu/react-sdk",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Shared React hooks, providers, and API clients for HackPSU projects",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -59,7 +59,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/hackpsu/apiv3.git",
+    "url": "https://github.com/Hack-PSU/apiv3.git",
     "directory": "lib"
   },
   "publishConfig": {
