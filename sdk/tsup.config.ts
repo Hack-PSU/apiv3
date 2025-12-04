@@ -10,6 +10,7 @@ export default defineConfig({
     'context/index': 'context/index.ts',
     // API modules
     'api/analytics/index': 'api/analytics/index.ts',
+    'api/apple/index': 'api/apple/index.ts',
     'api/event/index': 'api/event/index.ts',
     'api/extra-credit/index': 'api/extra-credit/index.ts',
     'api/finance/index': 'api/finance/index.ts',
