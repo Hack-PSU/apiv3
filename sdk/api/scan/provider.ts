@@ -1,5 +1,9 @@
 import { apiFetch } from "../apiClient";
-import { ScanEntity, ScanAnalyticsEntity } from "./entity";
+import {
+	ScanEntity,
+	EventWithScans,
+	OrganizerWithScans,
+} from "./entity";
 
 export async function getAllScans(hackathonId?: string): Promise<ScanEntity[]> {
 	const queryParam = hackathonId ? `?hackathonId=${hackathonId}` : "";
@@ -10,8 +14,8 @@ export async function getScan(id: string): Promise<ScanEntity> {
 	return apiFetch<ScanEntity>(`/scans/${id}`, { method: "GET" });
 }
 
-export async function getAllScansByEvent(): Promise<ScanAnalyticsEntity[]> {
-	return apiFetch<ScanAnalyticsEntity[]>(`/scans/analytics/events`, {
+export async function getAllScansByEvent(): Promise<EventWithScans[]> {
+	return apiFetch<EventWithScans[]>(`/scans/analytics/events`, {
 		method: "GET",
 	});
 }
@@ -22,8 +26,8 @@ export async function getScansForEvent(eventId: string): Promise<ScanEntity[]> {
 	});
 }
 
-export async function getAllScansByOrganizer(): Promise<ScanEntity[]> {
-	return apiFetch<ScanEntity[]>(`/scans/analytics/organizers`, {
+export async function getAllScansByOrganizer(): Promise<OrganizerWithScans[]> {
+	return apiFetch<OrganizerWithScans[]>(`/scans/analytics/organizers`, {
 		method: "GET",
 	});
 }

@@ -7,10 +7,17 @@ import {
 	getAllScansByOrganizer,
 	getScansForOrganizer,
 } from "./provider";
-import { ScanEntity, ScanAnalyticsEntity } from "./entity";
+import {
+	ScanEntity,
+	EventWithScans,
+	OrganizerWithScans,
+} from "./entity";
 
 export const scanQueryKeys = {
-	all: ["scans"] as const,
+	all: (hackathonId?: string) =>
+		hackathonId !== undefined
+			? ["scans", hackathonId]
+			: (["scans"] as const),
 	detail: (id: string) => ["scans", id] as const,
 	eventAnalytics: ["scans", "events"] as const,
 	eventDetail: (eventId: string) => ["scans", "events", eventId] as const,
@@ -21,7 +28,7 @@ export const scanQueryKeys = {
 
 export function useAllScans(hackathonId?: string) {
 	return useQuery<ScanEntity[]>({
-		queryKey: scanQueryKeys.all,
+		queryKey: scanQueryKeys.all(hackathonId),
 		queryFn: () => getAllScans(hackathonId),
 	});
 }
@@ -35,7 +42,7 @@ export function useScan(id: string) {
 }
 
 export function useAllScansByEvent() {
-	return useQuery<ScanAnalyticsEntity[]>({
+	return useQuery<EventWithScans[]>({
 		queryKey: scanQueryKeys.eventAnalytics,
 		queryFn: getAllScansByEvent,
 	});
@@ -50,7 +57,7 @@ export function useScansForEvent(eventId: string) {
 }
 
 export function useAllScansByOrganizer() {
-	return useQuery<ScanEntity[]>({
+	return useQuery<OrganizerWithScans[]>({
 		queryKey: scanQueryKeys.organizerAnalytics,
 		queryFn: getAllScansByOrganizer,
 	});

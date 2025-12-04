@@ -11,19 +11,12 @@ export interface ReservationEntity {
 	endTime: number;
 	hackathonId: string;
 	reservationType: ReservationType;
-	createdAt?: number;
-	updatedAt?: number;
 }
 
 export interface ReservationCreateEntity {
 	locationId: number;
-	teamId: string;
+	teamId?: string;
 	startTime: number;
 	endTime: number;
 	hackathonId: string;
-}
-
-export interface ReservationUpdateEntity {
-	startTime?: number;
-	endTime?: number;
 }
