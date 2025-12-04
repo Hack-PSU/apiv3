@@ -11,6 +11,7 @@ export default defineConfig({
     // API modules
     'api/analytics/index': 'api/analytics/index.ts',
     'api/apple/index': 'api/apple/index.ts',
+    'api/drive/index': 'api/drive/index.ts',
     'api/event/index': 'api/event/index.ts',
     'api/extra-credit/index': 'api/extra-credit/index.ts',
     'api/finance/index': 'api/finance/index.ts',
@@ -18,6 +19,7 @@ export default defineConfig({
     'api/hackathon/index': 'api/hackathon/index.ts',
     'api/judging/index': 'api/judging/index.ts',
     'api/location/index': 'api/location/index.ts',
+    'api/mail/index': 'api/mail/index.ts',
     'api/organizer/index': 'api/organizer/index.ts',
     'api/photos/index': 'api/photos/index.ts',
     'api/registration/index': 'api/registration/index.ts',

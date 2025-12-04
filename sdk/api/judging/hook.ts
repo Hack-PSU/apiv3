@@ -4,16 +4,19 @@ import {
 	getScore,
 	createScore,
 	updateScore,
+	replaceScore,
 	deleteScore,
 	getAllProjects,
 	getProject,
 	createProject,
 	updateProject,
+	replaceProject,
 	deleteProject,
 	getProjectBreakdown,
 	assignJudging,
 	assignAdditionalJudging,
 	uploadProjectsCsv,
+	getProjectsByTeam,
 } from "./provider";
 import {
 	ScoreEntity,
@@ -60,15 +63,19 @@ export function useCreateScore() {
 export function useUpdateScore() {
 	const queryClient = useQueryClient();
 	return useMutation({
-		mutationFn: ({
-			id,
-			projectId,
-			data,
-		}: {
-			id: string;
-			projectId: number;
-			data: ScoreUpdateEntity;
-		}) => updateScore(id, projectId, data),
+		mutationFn: ({ id, data }: { id: number; data: ScoreUpdateEntity }) =>
+			updateScore(id, data),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: judgingQueryKeys.allScores });
+		},
+	});
+}
+
+export function useReplaceScore() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({ id, data }: { id: number; data: ScoreUpdateEntity }) =>
+			replaceScore(id, data),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: judgingQueryKeys.allScores });
 		},
@@ -118,6 +125,30 @@ export function useUpdateProject() {
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: judgingQueryKeys.allProjects });
 		},
+	});
+}
+
+export function useReplaceProject() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({
+			id,
+			data,
+		}: {
+			id: number;
+			data: Omit<ProjectEntity, "id">;
+		}) => replaceProject(id, data),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: judgingQueryKeys.allProjects });
+		},
+	});
+}
+
+export function useProjectsByTeam(teamId: string) {
+	return useQuery<ProjectEntity[]>({
+		queryKey: [...judgingQueryKeys.allProjects, "team", teamId],
+		queryFn: () => getProjectsByTeam(teamId),
+		enabled: Boolean(teamId),
 	});
 }
 

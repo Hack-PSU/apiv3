@@ -20,9 +20,3 @@ export interface RegistrationEntity {
 	time: number;
 	veteran: string;
 }
-
-export interface RegistrationCreateEntity
-	extends Omit<RegistrationEntity, "id"> {}
-
-export interface RegistrationUpdateEntity
-	extends Partial<RegistrationCreateEntity> {}

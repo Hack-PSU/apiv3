@@ -34,17 +34,24 @@ export const createScore = async (
 };
 
 export const updateScore = async (
-	id: string,
-	projectId: number,
+	id: number,
 	score: ScoreUpdateEntity
 ): Promise<ScoreEntity> => {
-	const data = await apiFetch<ScoreEntity>(
-		`/organizers/${id}/judging/projects/${projectId}`,
-		{
-			method: "PATCH",
-			body: JSON.stringify(score),
-		}
-	);
+	const data = await apiFetch<ScoreEntity>(`/judging/scores/${id}`, {
+		method: "PATCH",
+		body: JSON.stringify(score),
+	});
+	return data;
+};
+
+export const replaceScore = async (
+	id: number,
+	score: ScoreUpdateEntity
+): Promise<ScoreEntity> => {
+	const data = await apiFetch<ScoreEntity>(`/judging/scores/${id}`, {
+		method: "PUT",
+		body: JSON.stringify(score),
+	});
 	return data;
 };
 
@@ -87,6 +94,29 @@ export const updateProject = async (
 		method: "PATCH",
 		body: JSON.stringify(project),
 	});
+	return data;
+};
+
+export const replaceProject = async (
+	id: number,
+	project: Omit<ProjectEntity, "id">
+): Promise<ProjectEntity> => {
+	const data = await apiFetch<ProjectEntity>(`/judging/projects/${id}`, {
+		method: "PUT",
+		body: JSON.stringify(project),
+	});
+	return data;
+};
+
+export const getProjectsByTeam = async (
+	teamId: string
+): Promise<ProjectEntity[]> => {
+	const data = await apiFetch<ProjectEntity[]>(
+		`/judging/projects/team/${teamId}`,
+		{
+			method: "GET",
+		}
+	);
 	return data;
 };
 
