@@ -4,8 +4,13 @@ import {
 	getFinance,
 	createFinance,
 	updateFinanceStatus,
+	updateFinance,
 } from "./provider";
-import { FinanceEntity, FinancePatchEntity } from "./entity";
+import {
+	FinanceEntity,
+	FinancePatchEntity,
+	FinanceStatusPatchEntity,
+} from "./entity";
 
 export const financeQueryKeys = {
 	all: ["finances"] as const,
@@ -40,8 +45,22 @@ export function useCreateFinance() {
 export function useUpdateFinanceStatus() {
 	const queryClient = useQueryClient();
 	return useMutation({
-		mutationFn: ({ id, data }: { id: string; data: FinancePatchEntity }) =>
+		mutationFn: ({ id, data }: { id: string; data: FinanceStatusPatchEntity }) =>
 			updateFinanceStatus(id, data),
+		onSuccess: (updated) => {
+			queryClient.invalidateQueries({ queryKey: financeQueryKeys.all });
+			queryClient.invalidateQueries({
+				queryKey: financeQueryKeys.detail(updated.id),
+			});
+		},
+	});
+}
+
+export function useUpdateFinance() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({ id, data }: { id: string; data: FinancePatchEntity }) =>
+			updateFinance(id, data),
 		onSuccess: (updated) => {
 			queryClient.invalidateQueries({ queryKey: financeQueryKeys.all });
 			queryClient.invalidateQueries({

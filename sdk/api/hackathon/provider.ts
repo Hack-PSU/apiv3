@@ -3,6 +3,7 @@ import {
 	HackathonEntity,
 	HackathonCreateEntity,
 	HackathonUpdateEntity,
+	HackathonResponse,
 	StaticActiveHackathonEntity,
 } from "./entity";
 
@@ -19,8 +20,8 @@ export async function getHackathon(id: string): Promise<HackathonEntity> {
 
 export async function createHackathon(
 	data: HackathonCreateEntity
-): Promise<HackathonEntity> {
-	return apiFetch<HackathonEntity>("/hackathons", {
+): Promise<HackathonResponse> {
+	return apiFetch<HackathonResponse>("/hackathons", {
 		method: "POST",
 		body: JSON.stringify(data),
 	});

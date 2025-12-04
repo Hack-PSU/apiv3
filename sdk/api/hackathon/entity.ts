@@ -15,11 +15,15 @@ export interface HackathonCreateEntity {
 export type HackathonUpdateEntity = Partial<HackathonCreateEntity>;
 
 export interface HackathonCheckInResponse {
-	checkInId?: string;
+	checkInId: string;
 }
 
 export interface ConditionalHackathonResponse extends HackathonEntity {
 	checkInId?: string;
+}
+
+export interface HackathonResponse extends HackathonEntity {
+	checkInId: string;
 }
 
 export interface StaticEventLocationEntity {

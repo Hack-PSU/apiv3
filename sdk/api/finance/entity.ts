@@ -113,4 +113,20 @@ export interface FinanceCreateEntity {
 	postalCode: string;
 }
 
-export type FinancePatchEntity = Partial<Pick<FinanceEntity, "status">>;
+// For updating status only
+export type FinanceStatusPatchEntity = Partial<Pick<FinanceEntity, "status">>;
+
+// For editing reimbursement (everything but status & receipt)
+export type FinancePatchEntity = Partial<
+	Omit<
+		FinanceEntity,
+		| "hackathonId"
+		| "id"
+		| "createdAt"
+		| "updatedBy"
+		| "submitterId"
+		| "submitterType"
+		| "receiptUrl"
+		| "status"
+	>
+>;

@@ -13,6 +13,7 @@ import {
 	HackathonEntity,
 	HackathonCreateEntity,
 	HackathonUpdateEntity,
+	HackathonResponse,
 	StaticActiveHackathonEntity,
 } from "./entity";
 
@@ -42,7 +43,7 @@ export function useHackathon(id: string) {
 
 export function useCreateHackathon() {
 	const queryClient = useQueryClient();
-	return useMutation({
+	return useMutation<HackathonResponse, Error, HackathonCreateEntity>({
 		mutationFn: (data: HackathonCreateEntity) => createHackathon(data),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: hackathonQueryKeys.all });
