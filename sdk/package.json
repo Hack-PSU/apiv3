@@ -31,7 +31,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup",
+    "build": "NODE_OPTIONS='--max-old-space-size=8192' tsup",
     "prepublishOnly": "npm run build"
   },
   "peerDependencies": {
