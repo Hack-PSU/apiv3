@@ -54,3 +54,7 @@ cloud-sql-proxy
 
 # Cert
 certs/*
+
+# SDK Artifacts
+sdk/node_modules/
+sdk/dist/

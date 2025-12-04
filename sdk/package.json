@@ -1,0 +1,69 @@
+{
+  "name": "@hackpsu/react-sdk",
+  "version": "0.1.0",
+  "description": "Shared React hooks, providers, and API clients for HackPSU projects",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./config": {
+      "types": "./dist/config/index.d.ts",
+      "import": "./dist/config/index.mjs",
+      "require": "./dist/config/index.js"
+    },
+    "./context": {
+      "types": "./dist/context/index.d.ts",
+      "import": "./dist/context/index.mjs",
+      "require": "./dist/context/index.js"
+    },
+    "./api/*": {
+      "types": "./dist/api/*/index.d.ts",
+      "import": "./dist/api/*/index.mjs",
+      "require": "./dist/api/*/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "next": "^14.0.0 || ^15.0.0"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.0.0",
+    "@mui/material": "^6.0.0",
+    "firebase": "^12.0.0",
+    "jwt-decode": "^4.0.0",
+    "posthog-js": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0"
+  },
+  "keywords": [
+    "hackpsu",
+    "react",
+    "hooks",
+    "firebase",
+    "api-client"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hackpsu/apiv3.git",
+    "directory": "lib"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "license": "MIT"
+}
