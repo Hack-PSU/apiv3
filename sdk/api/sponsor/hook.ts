@@ -1,14 +1,19 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+	batchUpdateSponsors,
+	createSponsor,
+	deleteSponsor,
 	getAllSponsors,
 	getSponsor,
-	createSponsor,
-	updateSponsor,
 	replaceSponsor,
-	deleteSponsor,
-	batchUpdateSponsors,
+	updateSponsor,
 } from "./provider";
-import { SponsorEntity } from "./entity";
+import {
+	SponsorCreateEntity,
+	SponsorEntity,
+	SponsorPatchBatchEntity,
+	SponsorPatchEntity,
+} from "./entity";
 
 export const sponsorQueryKeys = {
 	all: ["sponsors"] as const,
@@ -32,8 +37,12 @@ export function useSponsor(id: number) {
 
 export function useCreateSponsor() {
 	const queryClient = useQueryClient();
-	return useMutation({
-		mutationFn: (newData: Omit<SponsorEntity, "id">) => createSponsor(newData),
+	return useMutation<
+		SponsorEntity,
+		Error,
+		{ data: SponsorCreateEntity; files?: { darkLogo?: File; lightLogo?: File } }
+	>({
+		mutationFn: ({ data, files }) => createSponsor(data, files),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: sponsorQueryKeys.all });
 		},
@@ -42,14 +51,16 @@ export function useCreateSponsor() {
 
 export function useUpdateSponsor() {
 	const queryClient = useQueryClient();
-	return useMutation({
-		mutationFn: ({
-			id,
-			data,
-		}: {
+	return useMutation<
+		SponsorEntity,
+		Error,
+		{
 			id: number;
-			data: Partial<Omit<SponsorEntity, "id">>;
-		}) => updateSponsor(id, data),
+			data: SponsorPatchEntity;
+			files?: { darkLogo?: File; lightLogo?: File };
+		}
+	>({
+		mutationFn: ({ id, data, files }) => updateSponsor(id, data, files),
 		onSuccess: (updated) => {
 			queryClient.invalidateQueries({ queryKey: sponsorQueryKeys.all });
 			queryClient.invalidateQueries({
@@ -61,14 +72,16 @@ export function useUpdateSponsor() {
 
 export function useReplaceSponsor() {
 	const queryClient = useQueryClient();
-	return useMutation({
-		mutationFn: ({
-			id,
-			data,
-		}: {
+	return useMutation<
+		SponsorEntity,
+		Error,
+		{
 			id: number;
-			data: Omit<SponsorEntity, "id">;
-		}) => replaceSponsor(id, data),
+			data: SponsorCreateEntity;
+			files?: { darkLogo?: File; lightLogo?: File };
+		}
+	>({
+		mutationFn: ({ id, data, files }) => replaceSponsor(id, data, files),
 		onSuccess: (updated) => {
 			queryClient.invalidateQueries({ queryKey: sponsorQueryKeys.all });
 			queryClient.invalidateQueries({
@@ -80,7 +93,7 @@ export function useReplaceSponsor() {
 
 export function useDeleteSponsor() {
 	const queryClient = useQueryClient();
-	return useMutation({
+	return useMutation<void, Error, number>({
 		mutationFn: (id: number) => deleteSponsor(id),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: sponsorQueryKeys.all });
@@ -90,8 +103,8 @@ export function useDeleteSponsor() {
 
 export function useBatchUpdateSponsors() {
 	const queryClient = useQueryClient();
-	return useMutation({
-		mutationFn: (data: Partial<SponsorEntity>[]) => batchUpdateSponsors(data),
+	return useMutation<SponsorEntity[], Error, SponsorPatchBatchEntity[]>({
+		mutationFn: (data: SponsorPatchBatchEntity[]) => batchUpdateSponsors(data),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: sponsorQueryKeys.all });
 		},

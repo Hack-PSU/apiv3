@@ -1,15 +1,25 @@
-export interface PhotoUploadResponse {
-	photoId: string;
-	photoUrl: string;
-}
-
 export interface PhotoEntity {
 	name: string;
 	url: string;
 	createdAt: string;
 	uploadedBy?: string;
-	approvalStatus?: "pending" | "approved" | "rejected" | "unknown";
-	derivatives?: {
-		[key: string]: string; // e.g., webp_480, webp_960, webp_1600, jpeg_480, etc.
+	approvalStatus?: string;
+	derivatives?: Record<string, string>;
+}
+
+export interface PhotoUploadResponse {
+	photoId: string;
+	photoUrl: string;
+	derivatives: Record<string, string>;
+}
+
+export interface PaginatedPhotosResponse {
+	photos: PhotoEntity[];
+	pagination: {
+		currentPage: number;
+		totalPages: number;
+		totalItems: number;
+		hasNext: boolean;
+		hasPrevious: boolean;
 	};
 }

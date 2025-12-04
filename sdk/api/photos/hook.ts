@@ -1,146 +1,99 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-	useMutation,
-	useQuery,
-	useQueryClient,
-	UseMutationResult,
-	UseQueryResult,
-} from "@tanstack/react-query";
-import { uploadPhoto, getAllPhotos, getPendingPhotos, approvePhoto, rejectPhoto } from "./provider";
-import { PhotoUploadResponse, PhotoEntity } from "./entity";
-
-export function useUploadPhoto(): UseMutationResult<
+	approvePhoto,
+	deletePhoto,
+	getAllPendingPhotos,
+	getAllPhotos,
+	getPaginatedPhotos,
+	rejectPhoto,
+	uploadPhoto,
+} from "./provider";
+import {
+	PaginatedPhotosResponse,
+	PhotoEntity,
 	PhotoUploadResponse,
-	Error,
-	{ file: File; fileType?: string }
-> {
-	const queryClient = useQueryClient();
+} from "./entity";
 
-	return useMutation({
+export const photoQueryKeys = {
+	all: ["photos"] as const,
+	paginated: (page: number, limit: number, status?: string) =>
+		["photos", "paginated", page, limit, status] as const,
+	pending: ["photos", "pending"] as const,
+};
+
+export function useUploadPhoto() {
+	const client = useQueryClient();
+	return useMutation<
+		PhotoUploadResponse,
+		Error,
+		{ file: File; fileType?: string }
+	>({
 		mutationFn: ({ file, fileType }) => uploadPhoto(file, fileType),
-		onSuccess: (data) => {
-			// Optimistically add the new photo to pending cache
-			queryClient.setQueryData<PhotoEntity[]>(["photos", "pending"], (old) => {
-				if (!old) return old;
-				// Add the newly uploaded photo to the pending list
-				const newPhoto: PhotoEntity = {
-					name: data.photoId,
-					url: data.photoUrl,
-					createdAt: new Date().toISOString(),
-					approvalStatus: "pending",
-				};
-				return [newPhoto, ...old];
-			});
-			// Trust the upload response - no need to refetch
+		onSuccess: () => {
+			client.invalidateQueries({ queryKey: photoQueryKeys.all });
+			client.invalidateQueries({ queryKey: ["photos", "paginated"] });
+			client.invalidateQueries({ queryKey: photoQueryKeys.pending });
 		},
 	});
 }
 
-export function useGetAllPhotos(): UseQueryResult<PhotoEntity[], Error> {
-	return useQuery({
-		queryKey: ["photos"],
+export function useAllPhotos() {
+	return useQuery<PhotoEntity[]>({
+		queryKey: photoQueryKeys.all,
 		queryFn: getAllPhotos,
 	});
 }
 
-export function useGetPendingPhotos(): UseQueryResult<PhotoEntity[], Error> {
-	return useQuery({
-		queryKey: ["photos", "pending"],
-		queryFn: getPendingPhotos,
+export function usePaginatedPhotos(
+	page: number = 1,
+	limit: number = 10,
+	status?: string,
+) {
+	return useQuery<PaginatedPhotosResponse>({
+		queryKey: photoQueryKeys.paginated(page, limit, status),
+		queryFn: () => getPaginatedPhotos(page, limit, status),
 	});
 }
 
-export function useApprovePhoto(): UseMutationResult<
-	{ message: string },
-	Error,
-	string
-> {
-	const queryClient = useQueryClient();
+export function usePendingPhotos() {
+	return useQuery<PhotoEntity[]>({
+		queryKey: photoQueryKeys.pending,
+		queryFn: getAllPendingPhotos,
+	});
+}
 
-	return useMutation({
+export function useApprovePhoto() {
+	const client = useQueryClient();
+	return useMutation<{ message: string }, Error, string>({
 		mutationFn: approvePhoto,
-		onMutate: async (filename) => {
-			// Cancel outgoing refetches
-			await queryClient.cancelQueries({ queryKey: ["photos"] });
-			await queryClient.cancelQueries({ queryKey: ["photos", "pending"] });
-
-			// Snapshot the previous values
-			const previousAllPhotos = queryClient.getQueryData<PhotoEntity[]>(["photos"]);
-			const previousPendingPhotos = queryClient.getQueryData<PhotoEntity[]>(["photos", "pending"]);
-
-			// Optimistically update both caches
-			queryClient.setQueryData<PhotoEntity[]>(["photos", "pending"], (old) => {
-				if (!old) return old;
-				// Remove from pending list immediately
-				return old.filter(photo => photo.name !== filename);
-			});
-
-			queryClient.setQueryData<PhotoEntity[]>(["photos"], (old) => {
-				if (!old) return old;
-				// Find the photo in pending and add it to the top of approved list
-				const pendingPhoto = previousPendingPhotos?.find(p => p.name === filename);
-				if (pendingPhoto) {
-					return [{ ...pendingPhoto, approvalStatus: "approved" }, ...old];
-				}
-				return old;
-			});
-
-			return { previousAllPhotos, previousPendingPhotos };
+		onSuccess: () => {
+			client.invalidateQueries({ queryKey: photoQueryKeys.all });
+			client.invalidateQueries({ queryKey: ["photos", "paginated"] });
+			client.invalidateQueries({ queryKey: photoQueryKeys.pending });
 		},
-		onError: (_err, _filename, context) => {
-			// Rollback on error - restore previous state
-			if (context?.previousAllPhotos) {
-				queryClient.setQueryData(["photos"], context.previousAllPhotos);
-			}
-			if (context?.previousPendingPhotos) {
-				queryClient.setQueryData(["photos", "pending"], context.previousPendingPhotos);
-			}
-		},
-		// No onSettled - trust optimistic update unless error occurs
 	});
 }
 
-export function useRejectPhoto(): UseMutationResult<
-	{ message: string },
-	Error,
-	string
-> {
-	const queryClient = useQueryClient();
-
-	return useMutation({
+export function useRejectPhoto() {
+	const client = useQueryClient();
+	return useMutation<{ message: string }, Error, string>({
 		mutationFn: rejectPhoto,
-		onMutate: async (filename) => {
-			// Cancel outgoing refetches
-			await queryClient.cancelQueries({ queryKey: ["photos"] });
-			await queryClient.cancelQueries({ queryKey: ["photos", "pending"] });
-
-			// Snapshot the previous values
-			const previousAllPhotos = queryClient.getQueryData<PhotoEntity[]>(["photos"]);
-			const previousPendingPhotos = queryClient.getQueryData<PhotoEntity[]>(["photos", "pending"]);
-
-			// Optimistically update both caches
-			queryClient.setQueryData<PhotoEntity[]>(["photos", "pending"], (old) => {
-				if (!old) return old;
-				// Remove from pending list immediately
-				return old.filter(photo => photo.name !== filename);
-			});
-
-			// Remove from approved photos if it was there
-			queryClient.setQueryData<PhotoEntity[]>(["photos"], (old) => {
-				if (!old) return old;
-				return old.filter(photo => photo.name !== filename);
-			});
-
-			return { previousAllPhotos, previousPendingPhotos };
+		onSuccess: () => {
+			client.invalidateQueries({ queryKey: photoQueryKeys.all });
+			client.invalidateQueries({ queryKey: ["photos", "paginated"] });
+			client.invalidateQueries({ queryKey: photoQueryKeys.pending });
 		},
-		onError: (_err, _filename, context) => {
-			// Rollback on error - restore previous state
-			if (context?.previousAllPhotos) {
-				queryClient.setQueryData(["photos"], context.previousAllPhotos);
-			}
-			if (context?.previousPendingPhotos) {
-				queryClient.setQueryData(["photos", "pending"], context.previousPendingPhotos);
-			}
+	});
+}
+
+export function useDeletePhoto() {
+	const client = useQueryClient();
+	return useMutation<void, Error, { photoId: string; originalName: string }>({
+		mutationFn: ({ photoId, originalName }) => deletePhoto(photoId, originalName),
+		onSuccess: () => {
+			client.invalidateQueries({ queryKey: photoQueryKeys.all });
+			client.invalidateQueries({ queryKey: ["photos", "paginated"] });
+			client.invalidateQueries({ queryKey: photoQueryKeys.pending });
 		},
-		// No onSettled - trust optimistic update unless error occurs
 	});
 }

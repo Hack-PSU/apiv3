@@ -1,43 +1,69 @@
 import { apiFetch } from "../apiClient";
-import { PhotoUploadResponse, PhotoEntity } from "./entity";
+import {
+	PaginatedPhotosResponse,
+	PhotoEntity,
+	PhotoUploadResponse,
+} from "./entity";
 
-export const uploadPhoto = async (file: File, customFileType?: string): Promise<PhotoUploadResponse> => {
+export async function uploadPhoto(
+	file: File,
+	fileType?: string,
+): Promise<PhotoUploadResponse> {
 	const formData = new FormData();
 	formData.append("photo", file);
+	if (fileType) {
+		formData.append("fileType", fileType);
+	}
 
-	const fileType = customFileType || file.type.split('/')[1] || 'unknown';
-	formData.append("fileType", fileType);
-	const data = await apiFetch<PhotoUploadResponse>("/photos/upload", {
+	return await apiFetch<PhotoUploadResponse>("photos/upload", {
 		method: "POST",
 		body: formData,
 	});
-	return data;
-};
+}
 
-export const getAllPhotos = async (): Promise<PhotoEntity[]> => {
-	const data = await apiFetch<PhotoEntity[]>("/photos", {
-		method: "GET",
+export async function getAllPhotos(): Promise<PhotoEntity[]> {
+	return await apiFetch<PhotoEntity[]>("photos");
+}
+
+export async function getPaginatedPhotos(
+	page: number = 1,
+	limit: number = 10,
+	status?: string,
+): Promise<PaginatedPhotosResponse> {
+	const params = new URLSearchParams({
+		page: page.toString(),
+		limit: limit.toString(),
 	});
-	return data;
-};
+	if (status) {
+		params.append("status", status);
+	}
+	return await apiFetch<PaginatedPhotosResponse>(
+		`photos/paginated?${params.toString()}`,
+	);
+}
 
-export const getPendingPhotos = async (): Promise<PhotoEntity[]> => {
-	const data = await apiFetch<PhotoEntity[]>("/photos/pending", {
-		method: "GET",
-	});
-	return data;
-};
+export async function getAllPendingPhotos(): Promise<PhotoEntity[]> {
+	return await apiFetch<PhotoEntity[]>("photos/pending");
+}
 
-export const approvePhoto = async (filename: string): Promise<{ message: string }> => {
-	const data = await apiFetch<{ message: string }>(`/photos/${filename}/approve`, {
+export async function approvePhoto(filename: string): Promise<{ message: string }> {
+	return await apiFetch<{ message: string }>(`photos/${filename}/approve`, {
 		method: "PATCH",
 	});
-	return data;
-};
+}
 
-export const rejectPhoto = async (filename: string): Promise<{ message: string }> => {
-	const data = await apiFetch<{ message: string }>(`/photos/${filename}/reject`, {
+export async function rejectPhoto(filename: string): Promise<{ message: string }> {
+	return await apiFetch<{ message: string }>(`photos/${filename}/reject`, {
 		method: "PATCH",
 	});
-	return data;
-};
+}
+
+export async function deletePhoto(
+	photoId: string,
+	originalName: string,
+): Promise<void> {
+	const params = new URLSearchParams({ originalName });
+	return await apiFetch<void>(`photos/${photoId}?${params.toString()}`, {
+		method: "DELETE",
+	});
+}
