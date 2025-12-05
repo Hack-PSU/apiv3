@@ -1,0 +1,15 @@
+# Source files (only publish dist/)
+**/*.ts
+**/*.tsx
+!**/*.d.ts
+
+# Config files
+tsconfig.json
+tsup.config.ts
+
+# Development files
+node_modules/
+*.log
+.DS_Store
+
+# Only publish the dist folder and package files

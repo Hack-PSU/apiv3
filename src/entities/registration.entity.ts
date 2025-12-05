@@ -153,6 +153,36 @@ export class Registration extends Entity {
   @Column({ type: "integer" })
   time: number;
 
+  @ApiProperty({ type: "string", required: false, nullable: true })
+  @IsOptional()
+  @IsString()
+  @Column({ type: "string", required: false, nullable: true })
+  excitement?: string;
+
+  @ApiProperty({ type: "string", required: false, nullable: true })
+  @IsOptional()
+  @IsString()
+  @Column({ type: "string", required: false, nullable: true })
+  zip_code?: string;
+
+  @ApiProperty({ type: "string", required: false, nullable: true })
+  @IsOptional()
+  @IsString()
+  @Column({ type: "string", required: false, nullable: true })
+  travel_cost?: string;
+
+  @ApiProperty({ type: "string", required: false, nullable: true })
+  @IsOptional()
+  @IsString()
+  @Column({ type: "string", required: false, nullable: true })
+  travel_method?: string;
+
+  @ApiProperty({ type: "string", required: false, nullable: true })
+  @IsOptional()
+  @IsString()
+  @Column({ type: "string", required: false, nullable: true })
+  travel_additional?: string;
+
   private parseBoolean(name: string, field?: number) {
     return field !== undefined ? { [name]: field === 1 } : {};
   }
@@ -196,4 +226,9 @@ export class RegistrationEntity extends PickType(Registration, [
   "shareEmailMlh",
   "time",
   "veteran",
+  "excitement",
+  "zip_code",
+  "travel_cost",
+  "travel_method",
+  "travel_additional",
 ] as const) {}
