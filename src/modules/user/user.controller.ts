@@ -497,6 +497,9 @@ export class UserController {
         whitelist: true,
         forbidNonWhitelisted: true,
         transform: true,
+        transformOptions: {
+          enableImplicitConversion: true,
+        },
       }),
     )
     data: CreateUserRegistrationEntity,
@@ -836,30 +839,30 @@ export class UserController {
       ok: {
         description: "Array of user and registration data for CSV export",
         schema: {
-          type: 'array',
+          type: "array",
           items: {
-            type: 'object',
+            type: "object",
             properties: {
-              first_name: { type: 'string' },
-              last_name: { type: 'string' },
-              email: {type: 'string' },
-              phone: { type: 'string' },
-              age: { type: 'number' },
-              country: { type: 'string' },
-              university: { type: 'string' },
-              academic_year: { type: 'string' },
-              mlh_coc: { type: 'boolean' },
-              mlh_dcp: { type: 'boolean' },
-              share_address_mlh: { type: 'boolean' },
-              share_address_sponsors: { type: 'boolean' },
-              share_email_mlh: { type: 'boolean' },
-              driving: { type: 'boolean' },
-              travel_reimbursement: { type: 'boolean' },
-              first_hackathon: { type: 'boolean' }
-            }
-          }
-        }
-      }
+              first_name: { type: "string" },
+              last_name: { type: "string" },
+              email: { type: "string" },
+              phone: { type: "string" },
+              age: { type: "number" },
+              country: { type: "string" },
+              university: { type: "string" },
+              academic_year: { type: "string" },
+              mlh_coc: { type: "boolean" },
+              mlh_dcp: { type: "boolean" },
+              share_address_mlh: { type: "boolean" },
+              share_address_sponsors: { type: "boolean" },
+              share_email_mlh: { type: "boolean" },
+              driving: { type: "boolean" },
+              travel_reimbursement: { type: "boolean" },
+              first_hackathon: { type: "boolean" },
+            },
+          },
+        },
+      },
     },
     auth: Role.EXEC,
   })
