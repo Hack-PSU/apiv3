@@ -165,7 +165,7 @@ export class Registration extends Entity {
   @Column({ type: "string", required: false, nullable: true })
   zip_code?: string;
 
-  @ApiProperty({ type: "string", required: false, nullable: true })
+  @ApiProperty({ type: "number", required: false, nullable: true })
   @IsOptional()
   @IsNumber()
   @Column({ type: "number", required: false, nullable: true })
