@@ -58,11 +58,10 @@ export class Registration extends Entity {
   @Column({ type: "string" })
   educationalInstitutionType: string;
 
-  @ApiProperty({ type: "string", required: false, nullable: true })
-  @IsOptional()
+  @ApiProperty()
   @IsString()
-  @Column({ type: "string", required: false, nullable: true })
-  codingExperience?: string;
+  @Column({ type: "string" })
+  codingExperience: string;
 
   @ApiProperty()
   @Type(() => Number)
@@ -82,23 +81,20 @@ export class Registration extends Entity {
   @Column({ type: "boolean" })
   mlhDcp: boolean;
 
-  @ApiProperty({ type: "string", required: false, nullable: true })
-  @IsOptional()
+  @ApiProperty()
   @IsString()
-  @Column({ type: "string", required: false, nullable: true })
-  referral?: string;
+  @Column({ type: "string" })
+  referral: string;
 
-  @ApiProperty({ type: "string", required: false, nullable: true })
-  @IsOptional()
+  @ApiProperty()
   @IsString()
-  @Column({ type: "string", required: false, nullable: true })
-  project?: string;
+  @Column({ type: "string" })
+  project: string;
 
-  @ApiProperty({ type: "string", required: false, nullable: true })
-  @IsOptional()
+  @ApiProperty()
   @IsString()
-  @Column({ type: "string", required: false, nullable: true })
-  expectations?: string;
+  @Column({ type: "string" })
+  expectations: string;
 
   @ApiProperty({
     type: "boolean",
@@ -153,11 +149,10 @@ export class Registration extends Entity {
   @Column({ type: "integer" })
   time: number;
 
-  @ApiProperty({ type: "string", required: false, nullable: true })
-  @IsOptional()
+  @ApiProperty()
   @IsString()
-  @Column({ type: "string", required: false, nullable: true })
-  excitement?: string;
+  @Column({ type: "string" })
+  excitement: string;
 
   @ApiProperty({ type: "string", required: false, nullable: true })
   @IsOptional()
