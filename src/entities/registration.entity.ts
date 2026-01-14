@@ -1,10 +1,23 @@
 import { Entity } from "entities/base.entity";
 import { Column, ID, Table } from "common/objection";
 import { ApiProperty, PickType } from "@nestjs/swagger";
-import { IsBoolean, IsNumber, IsOptional, IsString } from "class-validator";
+import { IsBoolean, IsNumber, IsOptional, IsString, IsEnum } from "class-validator";
 import { Type } from "class-transformer";
 import Objection from "objection";
 import { Hackathon } from "entities/hackathon.entity";
+
+
+export enum RegistrationReviewStatus {
+  PENDING_REVIEW = "pending_review",
+  IN_REVIEW = "in_review",
+  GRADED = "graded",
+}
+
+export enum RegistrationGrade {
+  TOP = "top",
+  MIDDLE = "middle",
+  BOTTOM = "bottom",
+}
 
 @Table({
   name: "registrations",
@@ -26,6 +39,27 @@ export class Registration extends Entity {
   @IsString()
   @Column({ type: "string" })
   userId: string;
+
+
+  @ApiProperty({ enum: RegistrationReviewStatus })
+  @IsEnum(RegistrationReviewStatus)
+  @Column({ type: "string" })
+  reviewStatus: RegistrationReviewStatus;
+
+  @ApiProperty({ enum: RegistrationGrade, required: false, nullable: true })
+  @IsOptional()
+  @IsEnum(RegistrationGrade)
+  @Column({ type: "string", required: false, nullable: true })
+  grade?: RegistrationGrade;
+
+  @ApiProperty({ required: false, nullable: true })
+  @IsOptional()
+  @IsString()
+  @Column({ type: "string", required: false, nullable: true })
+  gradedBy?: string;
+
+
+
 
   @ApiProperty({ default: false })
   @IsOptional()
@@ -226,4 +260,7 @@ export class RegistrationEntity extends PickType(Registration, [
   "travel_cost",
   "travel_method",
   "travel_additional",
+  "reviewStatus",
+  "grade",
+  "gradedBy",
 ] as const) {}
