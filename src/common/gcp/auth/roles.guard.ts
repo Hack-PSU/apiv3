@@ -18,7 +18,7 @@ import {
 import { Role } from "./firebase-auth.types";
 
 @Injectable()
-export class RolesGuard extends AuthGuard("jwt") {
+export class RolesGuard extends AuthGuard(["jwt", "api-key"]) {
   constructor(
     private readonly authService: FirebaseAuthService,
     private readonly reflector: Reflector,
