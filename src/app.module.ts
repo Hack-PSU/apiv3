@@ -41,6 +41,7 @@ import { NotificationSchedulerModule } from "modules/notification-scheduler/noti
 import { GotifyModule } from "common/gotify/gotify.module";
 import gotifyConfig from "common/gotify/gotify.config";
 import { OrganizerApplicationModule } from "modules/organizer-application/organizer-application.module";
+import { ApiKeyModule } from "modules/api-key/api-key.module";
 
 @Module({
   imports: [
@@ -112,6 +113,7 @@ import { OrganizerApplicationModule } from "modules/organizer-application/organi
     ReservationModule,
     DriveModule,
     OrganizerApplicationModule,
+    ApiKeyModule,
 
     // WebSocket
     SocketModule,

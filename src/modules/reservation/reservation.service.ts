@@ -77,7 +77,7 @@ export class ReservationService {
     const reservation = this.reservationRepo
       .createOne({
         locationId: data.locationId,
-        teamId: data.teamId && data.teamId.trim() !== '' ? data.teamId : null,
+        teamId: data.teamId && data.teamId.trim() !== "" ? data.teamId : null,
         startTime: data.startTime,
         endTime: data.endTime,
         hackathonId: data.hackathonId,
@@ -196,7 +196,7 @@ export class ReservationService {
     await this.validateBasicConstraints(data);
 
     // 2. Validate team constraints only if teamId is provided
-    if (data.teamId && data.teamId.trim() !== '') {
+    if (data.teamId && data.teamId.trim() !== "") {
       await this.validateTeamConstraints(data.teamId, userId, data.hackathonId);
       console.log("validated team constraints");
     } else {
@@ -315,7 +315,7 @@ export class ReservationService {
 
     // 2. Check team double booking (team can't have multiple reservations)
     // Only check team conflicts if teamId is provided
-    if (data.teamId && data.teamId.trim() !== '') {
+    if (data.teamId && data.teamId.trim() !== "") {
       const teamConflicts = await Reservation.query()
         .where("teamId", data.teamId)
         .where("reservationType", ReservationType.PARTICIPANT)

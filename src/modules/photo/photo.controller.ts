@@ -202,13 +202,19 @@ export class PhotoController {
         throw new BadRequestException("Limit must be between 1 and 100");
       }
 
-      return await this.photoService.getPaginatedPhotos(pageNum, limitNum, status);
+      return await this.photoService.getPaginatedPhotos(
+        pageNum,
+        limitNum,
+        status,
+      );
     } catch (error) {
       if (error instanceof BadRequestException) {
         throw error;
       }
       console.error("Error fetching paginated photos:", error);
-      throw new InternalServerErrorException("Failed to fetch paginated photos");
+      throw new InternalServerErrorException(
+        "Failed to fetch paginated photos",
+      );
     }
   }
 
