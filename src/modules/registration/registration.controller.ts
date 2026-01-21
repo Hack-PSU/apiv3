@@ -6,6 +6,7 @@ import { Role, Roles } from "common/gcp";
 import { ApiDoc } from "common/docs";
 import { IsBoolean, IsOptional } from "class-validator";
 import { Transform } from "class-transformer";
+import { User } from "entities/user.entity";
 
 class ActiveRegistrationParams {
   @ApiProperty()
@@ -30,6 +31,8 @@ export class RegistrationController {
   constructor(
     @InjectRepository(Registration)
     private readonly registrationRepo: Repository<Registration>,
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
   ) {}
 
   @Get("/")
@@ -58,5 +61,35 @@ export class RegistrationController {
     } else {
       return this.registrationRepo.findAll().byHackathon();
     }
+  }
+
+  @Get("/random")
+  @Roles(Role.TEAM)
+  @ApiDoc({
+    summary: "Get next random pending registration to review",
+    response: {
+      ok: { type: RegistrationEntity }
+    },
+    auth: Role.TEAM
+  })
+  async getRandom(
+    @Query(new ValidationPipe({ transform: true }))
+    { all }: ActiveRegistrationParams,
+  ) {
+    // Build the query builder
+    const staged = this.registrationRepo.findAll();
+    const query = all ? staged.raw() : staged.byHackathon();
+
+    // Get a random registration that is pending review
+    const result = await query.where("review_status", "pending_review").orderByRaw("RANDOM()").limit(1).first();
+
+    // Send a patch to update the review status to "in_review"
+    await this.registrationRepo.patchOne(result.id, { review_status: "in_review" });
+
+    // Return registration along with user details
+    return {
+      registration: result,
+      user: await this.userRepo.findOne(result.userId).exec(),
+    };
   }
 }
