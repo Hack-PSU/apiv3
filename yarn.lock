@@ -4741,10 +4741,10 @@ googleapis-common@^8.0.0:
     qs "^6.7.0"
     url-template "^2.0.8"
 
-googleapis@^167.0.0:
-  version "167.0.0"
-  resolved "https://registry.yarnpkg.com/googleapis/-/googleapis-167.0.0.tgz#8214bbbba358fdd31941de2f33d7d8bc1d9abc10"
-  integrity sha512-8Xqeki6K9u9jh6rGRA/OywRMXg8yXuv4ZLwSSuMBB3Ze1pErbR/iv00UmVtcrP2LcSW2Fqi+LUJ7WgFMDoxd7Q==
+googleapis@^170.0.0:
+  version "170.1.0"
+  resolved "https://registry.yarnpkg.com/googleapis/-/googleapis-170.1.0.tgz#0d7c7a5bbadaac55850b76416fd52f863e6f28a0"
+  integrity sha512-RLbc7yG6qzZqvAmGcgjvNIoZ7wpcCFxtc+HN+46etxDrlO4a8l5Cb7NxNQGhV91oRmL7mt56VoRoypAtEQEIKg==
   dependencies:
     google-auth-library "^10.2.0"
     googleapis-common "^8.0.0"
