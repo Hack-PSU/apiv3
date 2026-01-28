@@ -24,4 +24,9 @@ export interface RegistrationEntity {
 	travel_cost?: string;
 	travel_method?: string;
 	travel_additional?: string;
+	application_status: "pending" | "accepted" | "rejected" | "waitlisted" | "confirmed" | "declined";
+	accepted_at?: number;
+	rsvp_deadline?: number;
+	rsvp_at?: number;
+	accepted_by?: string;
 }

@@ -208,7 +208,13 @@ export class Registration extends Entity {
   @IsOptional()
   @Column({ type: "string", required: false, nullable: true })
   rsvp_at?: Date;
-
+  
+  @ApiProperty({ type: "string", required: false, nullable: true })
+  @IsOptional()
+  @IsString()
+  @Column({ type: "string", required: false, nullable: true })
+  accepted_by?: string;
+  
   private parseBoolean(name: string, field?: number) {
     return field !== undefined ? { [name]: field === 1 } : {};
   }
@@ -260,5 +266,6 @@ export class RegistrationEntity extends PickType(Registration, [
   "application_status",
   "accepted_at",
   "rsvp_deadline",
-  "rsvp_at"
+  "rsvp_at",
+  "accepted_by",
 ] as const) {}
