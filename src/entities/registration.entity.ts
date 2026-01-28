@@ -178,6 +178,35 @@ export class Registration extends Entity {
   @Column({ type: "string", required: false, nullable: true })
   travel_additional?: string;
 
+  @ApiProperty({ enum: ["pending", "accepted", "rejected", "waitlisted", "confirmed", "declined"], default: "pending" })
+  @IsString()
+  @Column({ type: "string" })
+  application_status: "pending" | "accepted" | "rejected" | "waitlisted" | "confirmed" | "declined" = "pending";
+
+  @ApiProperty({ type: "number", required: false, nullable: true })
+  @IsOptional()
+  @IsNumber()
+  @Column({ type: "number", required: false, nullable: true })
+  accepted_at?: number;
+
+  @ApiProperty({ type: "number", required: false, nullable: true })
+  @IsOptional()
+  @IsNumber()
+  @Column({ type: "number", required: false, nullable: true })
+  rsvp_deadline?: number;
+
+  @ApiProperty({ type: "number", required: false, nullable: true })
+  @IsOptional()
+  @IsNumber()
+  @Column({ type: "number", required: false, nullable: true })
+  rsvp_at?: number;
+
+  @ApiProperty({ type: "string", required: false, nullable: true })
+  @IsOptional()
+  @IsString()
+  @Column({ type: "string", required: false, nullable: true })
+  accepted_by?: string;
+  
   private parseBoolean(name: string, field?: number) {
     return field !== undefined ? { [name]: field === 1 } : {};
   }
@@ -226,4 +255,9 @@ export class RegistrationEntity extends PickType(Registration, [
   "travel_cost",
   "travel_method",
   "travel_additional",
+  "application_status",
+  "accepted_at",
+  "rsvp_deadline",
+  "rsvp_at",
+  "accepted_by",
 ] as const) {}
