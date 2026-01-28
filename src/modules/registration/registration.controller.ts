@@ -1,11 +1,19 @@
-import { Controller, Get, Query, ValidationPipe } from "@nestjs/common";
+import { Controller, Get, Patch, Query, Param, Body, ValidationPipe, NotFoundException } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
-import { Registration, RegistrationEntity } from "entities/registration.entity";
+import { Registration, RegistrationEntity, ApplicationStatus } from "entities/registration.entity";
 import { ApiProperty, ApiTags } from "@nestjs/swagger";
 import { Role, Roles } from "common/gcp";
 import { ApiDoc } from "common/docs";
-import { IsBoolean, IsOptional } from "class-validator";
+import { IsBoolean, IsEnum, IsOptional } from "class-validator";
 import { Transform } from "class-transformer";
+
+
+class UpdateStatusDto {
+  @ApiProperty({ enum: ApplicationStatus })
+  @IsEnum(ApplicationStatus)
+  status: ApplicationStatus;
+}
+
 
 class ActiveRegistrationParams {
   @ApiProperty()
@@ -59,4 +67,52 @@ export class RegistrationController {
       return this.registrationRepo.findAll().byHackathon();
     }
   }
+
+  @Patch("/:userId/application-status")
+  @Roles(Role.TEAM)
+  @ApiDoc({
+    summary: "Update Application Status",
+    auth: Role.TEAM,
+    params: [
+      {
+        name: "userId",
+        type: "string",
+        description: "The ID of the user to update",
+      },
+    ],
+    response: {
+      ok: { type: RegistrationEntity },
+    },
+  })
+  async updateApplicationStatus(
+    @Param("userId") userId: string,
+    @Body(new ValidationPipe()) body: UpdateStatusDto,
+  ) {
+    const registration = await this.registrationRepo
+      .findAll()
+      .byHackathon()
+      .where("userId", userId)
+      .first();
+
+    if (!registration) {
+      throw new NotFoundException(`Registration for user ${userId} not found`);
+    }
+
+    const updateData: Partial<Registration> = {
+      application_status: body.status,
+    };
+
+    if (body.status === ApplicationStatus.ACCEPTED) {
+      const now = new Date();
+      const oneWeekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+      updateData.accepted_at = now;
+      updateData.rsvp_deadline = oneWeekFromNow;
+    }
+
+    await registration.$query().patch(updateData);
+
+    return registration.$query();
+  }
+
 }
