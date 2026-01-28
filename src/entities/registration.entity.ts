@@ -1,10 +1,21 @@
 import { Entity } from "entities/base.entity";
 import { Column, ID, Table } from "common/objection";
 import { ApiProperty, PickType } from "@nestjs/swagger";
-import { IsBoolean, IsNumber, IsOptional, IsString } from "class-validator";
+import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString } from "class-validator";
 import { Type } from "class-transformer";
 import Objection from "objection";
 import { Hackathon } from "entities/hackathon.entity";
+
+
+export enum ApplicationStatus {
+  PENDING = "pending",
+  ACCEPTED = "accepted",
+  REJECTED = "rejected",
+  WAITLISTED = "waitlisted",
+  CONFIRMED = "confirmed",
+  DECLINED = "declined",
+}
+
 
 @Table({
   name: "registrations",
@@ -178,6 +189,26 @@ export class Registration extends Entity {
   @Column({ type: "string", required: false, nullable: true })
   travel_additional?: string;
 
+  @ApiProperty({ enum: ApplicationStatus, default: ApplicationStatus.PENDING })
+  @IsEnum(ApplicationStatus)
+  @Column({ type: "string" })
+  application_status: ApplicationStatus = ApplicationStatus.PENDING;
+
+  @ApiProperty({ required: false, nullable: true })
+  @IsOptional()
+  @Column({ type: "string", required: false, nullable: true })
+  accepted_at?: Date;
+
+  @ApiProperty({ required: false, nullable: true })
+  @IsOptional()
+  @Column({ type: "string", required: false, nullable: true })
+  rsvp_deadline?: Date;
+
+  @ApiProperty({ required: false, nullable: true })
+  @IsOptional()
+  @Column({ type: "string", required: false, nullable: true })
+  rsvp_at?: Date;
+
   private parseBoolean(name: string, field?: number) {
     return field !== undefined ? { [name]: field === 1 } : {};
   }
@@ -226,4 +257,8 @@ export class RegistrationEntity extends PickType(Registration, [
   "travel_cost",
   "travel_method",
   "travel_additional",
+  "application_status",
+  "accepted_at",
+  "rsvp_deadline",
+  "rsvp_at"
 ] as const) {}
