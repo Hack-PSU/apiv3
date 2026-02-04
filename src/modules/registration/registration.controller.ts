@@ -7,6 +7,12 @@ import { ApiDoc } from "common/docs";
 import { IsBoolean, IsEnum, IsOptional } from "class-validator";
 import { Transform } from "class-transformer";
 
+import { User } from "entities/user.entity";
+import {
+  DefaultFromEmail,
+  DefaultTemplate,
+  SendGridService,
+} from "common/sendgrid";
 
 class UpdateStatusDto {
   @ApiProperty({ enum: ApplicationStatus })
@@ -38,6 +44,9 @@ export class RegistrationController {
   constructor(
     @InjectRepository(Registration)
     private readonly registrationRepo: Repository<Registration>,
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
+    private readonly sendGridService: SendGridService, 
   ) {}
 
   @Get("/")
@@ -108,6 +117,30 @@ export class RegistrationController {
 
       updateData.accepted_at = now;
       updateData.rsvp_deadline = oneWeekFromNow;
+
+      const user = await this.userRepo.findOne(userId).exec();
+      if (
+        user &&
+        process.env.RUNTIME_INSTANCE &&
+        process.env.RUNTIME_INSTANCE === "production"
+      ) {
+        const message = await this.sendGridService.populateTemplate(
+          DefaultTemplate.participantAccepted,
+          {
+            previewText: "You have been accepted to HackPSU!",
+            date: "March 28-29, 2026",
+            address: "ECore Building, University Park PA",
+            firstName: user.firstName,
+          },
+        );
+
+        await this.sendGridService.send({
+          from: DefaultFromEmail,
+          to: user.email,
+          subject: "You're In! - HackPSU Spring 2026",
+          message,
+        });
+      }
     }
 
     await registration.$query().patch(updateData);
