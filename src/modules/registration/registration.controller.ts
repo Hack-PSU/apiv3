@@ -6,7 +6,8 @@ import { Role, Roles } from "common/gcp";
 import { ApiDoc } from "common/docs";
 import { IsBoolean, IsEnum, IsOptional } from "class-validator";
 import { Transform } from "class-transformer";
-
+import { User } from "entities/user.entity";
+import { SendGridService, DefaultTemplate, DefaultFromEmail } from "common/sendgrid";
 
 class UpdateStatusDto {
   @ApiProperty({ enum: ApplicationStatus })
@@ -38,6 +39,9 @@ export class RegistrationController {
   constructor(
     @InjectRepository(Registration)
     private readonly registrationRepo: Repository<Registration>,
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
+    private readonly sendGridService: SendGridService,
   ) {}
 
   @Get("/")
@@ -108,6 +112,39 @@ export class RegistrationController {
 
       updateData.accepted_at = now;
       updateData.rsvp_deadline = oneWeekFromNow;
+    }
+
+    if(body.status == ApplicationStatus.REJECTED) {
+
+      if (
+      process.env.RUNTIME_INSTANCE &&
+      process.env.RUNTIME_INSTANCE === "production"
+      ){
+
+        const user = await this.userRepo.findOne(userId).exec();
+
+        if (user) {
+          try {
+            const message = await this.sendGridService.populateTemplate(
+              DefaultTemplate.participant_rejected, // Change Template Name
+              {
+                firstName: user.firstName,
+                // Addd more variables needed
+              },
+            );
+
+            await this.sendGridService.send({
+              from: DefaultFromEmail,
+              to: user.email,
+              subject: "Update regarding your HackPSU application",
+              message,
+            });
+          } catch (error) {
+            console.error(`Failed to send rejection email to ${user.email}:`, error);
+          }
+        }
+      }
+
     }
 
     await registration.$query().patch(updateData);
