@@ -99,15 +99,15 @@ export class RegistrationController {
     }
 
     const updateData: Partial<Registration> = {
-      application_status: body.status,
+      applicationStatus: body.status,
     };
 
     if (body.status === ApplicationStatus.ACCEPTED) {
       const now = new Date();
       const oneWeekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
-      updateData.accepted_at = now;
-      updateData.rsvp_deadline = oneWeekFromNow;
+      updateData.acceptedAt = now;
+      updateData.rsvpDeadline = oneWeekFromNow;
     }
 
     await registration.$query().patch(updateData);
