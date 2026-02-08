@@ -169,51 +169,51 @@ export class Registration extends Entity {
   @IsOptional()
   @IsString()
   @Column({ type: "string", required: false, nullable: true })
-  zip_code?: string;
+  zipCode?: string;
 
   @ApiProperty({ type: "number", required: false, nullable: true })
   @IsOptional()
   @IsNumber()
   @Column({ type: "number", required: false, nullable: true })
-  travel_cost?: number;
+  travelCost?: number;
 
   @ApiProperty({ type: "string", required: false, nullable: true })
   @IsOptional()
   @IsString()
   @Column({ type: "string", required: false, nullable: true })
-  travel_method?: string;
+  travelMethod?: string;
 
   @ApiProperty({ type: "string", required: false, nullable: true })
   @IsOptional()
   @IsString()
   @Column({ type: "string", required: false, nullable: true })
-  travel_additional?: string;
+  travelAdditional?: string;
 
   @ApiProperty({ enum: ApplicationStatus, default: ApplicationStatus.PENDING })
   @IsEnum(ApplicationStatus)
   @Column({ type: "string" })
-  application_status: ApplicationStatus = ApplicationStatus.PENDING;
+  applicationStatus: ApplicationStatus = ApplicationStatus.PENDING;
 
   @ApiProperty({ required: false, nullable: true })
   @IsOptional()
   @Column({ type: "string", required: false, nullable: true })
-  accepted_at?: Date;
+  acceptedAt?: Date;
 
   @ApiProperty({ required: false, nullable: true })
   @IsOptional()
   @Column({ type: "string", required: false, nullable: true })
-  rsvp_deadline?: Date;
+  rsvpDeadline?: Date;
 
   @ApiProperty({ required: false, nullable: true })
   @IsOptional()
   @Column({ type: "string", required: false, nullable: true })
-  rsvp_at?: Date;
+  rsvpAt?: Date;
   
   @ApiProperty({ type: "string", required: false, nullable: true })
   @IsOptional()
   @IsString()
   @Column({ type: "string", required: false, nullable: true })
-  accepted_by?: string;
+  acceptedBy?: string;
   
   private parseBoolean(name: string, field?: number) {
     return field !== undefined ? { [name]: field === 1 } : {};
@@ -259,13 +259,13 @@ export class RegistrationEntity extends PickType(Registration, [
   "time",
   "veteran",
   "excitement",
-  "zip_code",
-  "travel_cost",
-  "travel_method",
-  "travel_additional",
-  "application_status",
-  "accepted_at",
-  "rsvp_deadline",
-  "rsvp_at",
-  "accepted_by",
+  "zipCode",
+  "travelCost",
+  "travelMethod",
+  "travelAdditional",
+  "applicationStatus",
+  "acceptedAt",
+  "rsvpDeadline",
+  "rsvpAt",
+  "acceptedBy",
 ] as const) {}
