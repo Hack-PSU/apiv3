@@ -1,10 +1,21 @@
 import { Entity } from "entities/base.entity";
 import { Column, ID, Table } from "common/objection";
 import { ApiProperty, PickType } from "@nestjs/swagger";
-import { IsBoolean, IsNumber, IsOptional, IsString } from "class-validator";
+import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString } from "class-validator";
 import { Type } from "class-transformer";
 import Objection from "objection";
 import { Hackathon } from "entities/hackathon.entity";
+
+
+export enum ApplicationStatus {
+  PENDING = "pending",
+  ACCEPTED = "accepted",
+  REJECTED = "rejected",
+  WAITLISTED = "waitlisted",
+  CONFIRMED = "confirmed",
+  DECLINED = "declined",
+}
+
 
 @Table({
   name: "registrations",
@@ -158,26 +169,52 @@ export class Registration extends Entity {
   @IsOptional()
   @IsString()
   @Column({ type: "string", required: false, nullable: true })
-  zip_code?: string;
+  zipCode?: string;
 
   @ApiProperty({ type: "number", required: false, nullable: true })
   @IsOptional()
   @IsNumber()
   @Column({ type: "number", required: false, nullable: true })
-  travel_cost?: number;
+  travelCost?: number;
 
   @ApiProperty({ type: "string", required: false, nullable: true })
   @IsOptional()
   @IsString()
   @Column({ type: "string", required: false, nullable: true })
-  travel_method?: string;
+  travelMethod?: string;
 
   @ApiProperty({ type: "string", required: false, nullable: true })
   @IsOptional()
   @IsString()
   @Column({ type: "string", required: false, nullable: true })
-  travel_additional?: string;
+  travelAdditional?: string;
 
+  @ApiProperty({ enum: ApplicationStatus, default: ApplicationStatus.PENDING })
+  @IsEnum(ApplicationStatus)
+  @Column({ type: "string" })
+  applicationStatus: ApplicationStatus = ApplicationStatus.PENDING;
+
+  @ApiProperty({ required: false, nullable: true })
+  @IsOptional()
+  @Column({ type: "string", required: false, nullable: true })
+  acceptedAt?: Date;
+
+  @ApiProperty({ required: false, nullable: true })
+  @IsOptional()
+  @Column({ type: "string", required: false, nullable: true })
+  rsvpDeadline?: Date;
+
+  @ApiProperty({ required: false, nullable: true })
+  @IsOptional()
+  @Column({ type: "string", required: false, nullable: true })
+  rsvpAt?: Date;
+  
+  @ApiProperty({ type: "string", required: false, nullable: true })
+  @IsOptional()
+  @IsString()
+  @Column({ type: "string", required: false, nullable: true })
+  acceptedBy?: string;
+  
   private parseBoolean(name: string, field?: number) {
     return field !== undefined ? { [name]: field === 1 } : {};
   }
@@ -222,8 +259,13 @@ export class RegistrationEntity extends PickType(Registration, [
   "time",
   "veteran",
   "excitement",
-  "zip_code",
-  "travel_cost",
-  "travel_method",
-  "travel_additional",
+  "zipCode",
+  "travelCost",
+  "travelMethod",
+  "travelAdditional",
+  "applicationStatus",
+  "acceptedAt",
+  "rsvpDeadline",
+  "rsvpAt",
+  "acceptedBy",
 ] as const) {}

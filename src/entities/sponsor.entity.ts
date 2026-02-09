@@ -2,9 +2,13 @@ import { Column, ID, Table } from "common/objection";
 import { Entity } from "entities/base.entity";
 import { ApiProperty, PickType } from "@nestjs/swagger";
 import { Expose, Type } from "class-transformer";
-import { IsNumber, IsOptional, IsString, IsUrl } from "class-validator";
+import { IsEnum, IsNumber, IsOptional, IsString, IsUrl } from "class-validator";
 import { ControllerMethod } from "common/validation";
 
+export enum SponsorType {
+  SPONSOR = "sponsor",
+  PARTNER = "partner",
+}
 @Table({
   name: "sponsors",
 })
@@ -54,6 +58,11 @@ export class Sponsor extends Entity {
   @IsString()
   @Column({ type: "string", required: false })
   hackathonId: string;
+
+  @ApiProperty()
+  @IsEnum(SponsorType)
+  @Column({ type: "string" })
+  sponsorType: SponsorType;
 }
 
 export class SponsorEntity extends PickType(Sponsor, [
@@ -65,4 +74,5 @@ export class SponsorEntity extends PickType(Sponsor, [
   "order",
   "level",
   "name",
+  "sponsorType",
 ] as const) {}
