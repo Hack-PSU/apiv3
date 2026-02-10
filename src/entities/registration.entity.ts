@@ -196,18 +196,18 @@ export class Registration extends Entity {
 
   @ApiProperty({ required: false, nullable: true })
   @IsOptional()
-  @Column({ type: "string", required: false, nullable: true })
-  acceptedAt?: Date;
+  @Column({ type: "integer", required: false, nullable: true })
+  acceptedAt?: number;
 
   @ApiProperty({ required: false, nullable: true })
   @IsOptional()
-  @Column({ type: "string", required: false, nullable: true })
-  rsvpDeadline?: Date;
+  @Column({ type: "integer", required: false, nullable: true })
+  rsvpDeadline?: number;
 
   @ApiProperty({ required: false, nullable: true })
   @IsOptional()
-  @Column({ type: "string", required: false, nullable: true })
-  rsvpAt?: Date;
+  @Column({ type: "integer", required: false, nullable: true })
+  rsvpAt?: number;
   
   @ApiProperty({ type: "string", required: false, nullable: true })
   @IsOptional()

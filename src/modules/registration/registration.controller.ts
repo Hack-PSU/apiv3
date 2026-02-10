@@ -69,10 +69,10 @@ export class RegistrationController {
   }
 
   @Patch("/:userId/application-status")
-  @Roles(Role.TEAM)
+  @Roles(Role.NONE)
   @ApiDoc({
     summary: "Update Application Status",
-    auth: Role.TEAM,
+    auth: Role.NONE,
     params: [
       {
         name: "userId",
@@ -106,8 +106,8 @@ export class RegistrationController {
       const now = new Date();
       const oneWeekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
-      updateData.acceptedAt = now;
-      updateData.rsvpDeadline = oneWeekFromNow;
+      updateData.acceptedAt = now.getTime();
+      updateData.rsvpDeadline = oneWeekFromNow.getTime();
     }
 
     await registration.$query().patch(updateData);

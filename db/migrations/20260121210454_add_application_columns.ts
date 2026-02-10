@@ -8,13 +8,13 @@ export async function up(knex: Knex): Promise<void> {
             .notNullable()
             .defaultTo("pending");
         table
-            .timestamp("accepted_at")
+            .bigInteger("accepted_at")
             .nullable();
         table
-            .timestamp("rsvp_deadline")
+            .bigInteger("rsvp_deadline")
             .nullable();
         table
-            .timestamp("rsvp_at")
+            .bigInteger("rsvp_at")
             .nullable();
         table
             .uuid("accepted_by")
