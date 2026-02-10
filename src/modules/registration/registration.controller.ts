@@ -110,6 +110,9 @@ export class RegistrationController {
       updateData.rsvpDeadline = oneWeekFromNow.getTime();
     }
 
+    if(body.status === ApplicationStatus.CONFIRMED || body.status === ApplicationStatus.DECLINED) {
+      updateData.rsvpAt = new Date().getTime();
+    }
     await registration.$query().patch(updateData);
 
     return registration.$query();
