@@ -42,7 +42,7 @@ import { GotifyModule } from "common/gotify/gotify.module";
 import gotifyConfig from "common/gotify/gotify.config";
 import { OrganizerApplicationModule } from "modules/organizer-application/organizer-application.module";
 import { ApiKeyModule } from "modules/api-key/api-key.module";
-
+import { ApplicantScoreModule } from "modules/applicant-score/applicant-score.module";
 @Module({
   imports: [
     // Configs
@@ -124,6 +124,7 @@ import { ApiKeyModule } from "modules/api-key/api-key.module";
     // Gotify & Notifications
     GotifyModule,
     NotificationSchedulerModule,
+    ApplicantScoreModule
   ],
 })
 export class AppModule {}
