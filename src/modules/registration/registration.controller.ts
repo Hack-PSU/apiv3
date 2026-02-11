@@ -1,5 +1,6 @@
 import { Controller, Get, Patch, Query, Param, Body, ValidationPipe, NotFoundException } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
+import { Hackathon } from "entities/hackathon.entity";
 import { Registration, RegistrationEntity, ApplicationStatus } from "entities/registration.entity";
 import { ApiProperty, ApiTags } from "@nestjs/swagger";
 import { Role, Roles } from "common/gcp";
@@ -32,6 +33,8 @@ class ActiveRegistrationParams {
   })
   all?: boolean;
 }
+
+
 
 @ApiTags("Registrations")
 @Controller("registrations")
@@ -122,14 +125,14 @@ export class RegistrationController {
       ){
 
         const user = await this.userRepo.findOne(userId).exec();
-
+        const activeHackathonName = await Hackathon.query().findOne({ is_active: true }).select("name").first();
         if (user) {
           try {
             const message = await this.sendGridService.populateTemplate(
-              DefaultTemplate.participant_rejected, // Change Template Name
+              DefaultTemplate.participantRejected,
               {
                 firstName: user.firstName,
-                // Addd more variables needed
+                hackathon: activeHackathonName ? activeHackathonName.name : "",
               },
             );
 
