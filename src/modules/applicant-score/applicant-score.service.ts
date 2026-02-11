@@ -17,12 +17,22 @@ export class ApplicantScoreService {
       // 1. Delete all existing records
       await ApplicantScore.query(trx).delete();
 
-      // 2. Insert new records
+      // 2. Insert new records using Raw Knex (Bypassing Objection's Fetch logic)
       if (scores.length > 0) {
-        return ApplicantScore.query(trx).insert(scores).returning("*");
+        
+        const rows = scores.map((score) =>
+          ApplicantScore.fromJson(score).$toDatabaseJson(),
+        );
+
+        
+        await knex("applicant_scores")
+          .transacting(trx)
+          .insert(rows);
       }
 
-      return [];
+      // 3. Manually return the input data
+      
+      return scores as unknown as ApplicantScore[];
     });
   }
 }

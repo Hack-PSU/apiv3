@@ -14,7 +14,7 @@ export class ApplicantScoreController {
   @Post("/bulk")
   @ApiDoc({
     summary: "Overwrite all applicant scores",
-    auth: Role.NONE, // NOTE: check w joe about this. what permissions...
+    auth: Role.EXEC,
     response: {
       created: { type: [ApplicantScoreEntity] },
     },
