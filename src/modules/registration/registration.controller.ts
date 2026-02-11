@@ -1,6 +1,7 @@
 import { Controller, Get, Patch, Query, Param, Body, ValidationPipe, NotFoundException } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
 import { Registration, RegistrationEntity, ApplicationStatus } from "entities/registration.entity";
+import { Hackathon } from "entities/hackathon.entity";
 import { ApiProperty, ApiTags } from "@nestjs/swagger";
 import { Role, Roles } from "common/gcp";
 import { ApiDoc } from "common/docs";
@@ -118,6 +119,7 @@ export class RegistrationController {
       updateData.accepted_at = now;
       updateData.rsvp_deadline = oneWeekFromNow;
 
+      const activeHackathonName = await Hackathon.query().findOne({ active: true }).select("name").first();
       const user = await this.userRepo.findOne(userId).exec();
       if (
         user &&
@@ -127,17 +129,18 @@ export class RegistrationController {
         const message = await this.sendGridService.populateTemplate(
           DefaultTemplate.participantAccepted,
           {
-            previewText: "You've been accepted to HackPSU Spring 2026!",
+            previewText: `You've been accepted to HackPSU ${activeHackathonName.name}!`,
             date: "March 28-29, 2026",
             address: "ECore Building, University Park PA",
             firstName: user.firstName,
+            hackathon: activeHackathonName.name,
           },
         );
 
         await this.sendGridService.send({
           from: DefaultFromEmail,
           to: user.email,
-          subject: "ACTION REQUIRED: Awaiting your RSVP for HackPSU!",
+          subject: `ACTION REQUIRED: RSVP for HackPSU ${activeHackathonName.name}!`,
           message,
         });
       }
