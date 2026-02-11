@@ -31,3 +31,9 @@ export class BulkApplicantScoreDto {
   @Type(() => ApplicantScoreDto)
   scores: ApplicantScoreDto[];
 }
+
+export class UpdatePrioritizedDto {
+  @ApiProperty()
+  @IsBoolean()
+  prioritized: boolean;
+}

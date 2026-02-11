@@ -35,4 +35,24 @@ export class ApplicantScoreService {
       return scores as unknown as ApplicantScore[];
     });
   }
+
+  async updatePrioritized(
+    userId: string,
+    hackathonId: string,
+    prioritized: boolean,
+    ): Promise<ApplicantScore> {
+      const updated = await ApplicantScore.query()
+        .patch({ prioritized })
+        .where({ userId, hackathonId })
+        .returning("*")
+        .first();
+
+      if (!updated) {
+        throw new Error(
+          `Applicant score not found for userId: ${userId}, hackathonId: ${hackathonId}`,
+        );
+      }
+
+      return updated;
+    }
 }

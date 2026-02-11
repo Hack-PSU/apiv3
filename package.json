@@ -28,7 +28,7 @@
     "@nestjs/passport": "^11.0.0",
     "@nestjs/platform-express": "^11.0.0",
     "@nestjs/platform-socket.io": "^11.0.0",
-    "@nestjs/schedule": "^6.0.1",
+    "@nestjs/schedule": "^6.1.1",
     "@nestjs/swagger": "^11.0.0",
     "@nestjs/websockets": "^11.0.0",
     "@sendgrid/mail": "^8.1.4",
@@ -64,7 +64,7 @@
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "sanitize-html": "^2.14.0",
-    "sharp": "^0.34.4",
+    "sharp": "^0.34.5",
     "url": "^0.11.4",
     "uuid": "^13.0.0",
     "webpack": "^5.97.1"
