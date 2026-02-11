@@ -127,7 +127,7 @@ export class RegistrationController {
         const message = await this.sendGridService.populateTemplate(
           DefaultTemplate.participantAccepted,
           {
-            previewText: "You have been accepted to HackPSU!",
+            previewText: "You've been accepted to HackPSU Spring 2026!",
             date: "March 28-29, 2026",
             address: "ECore Building, University Park PA",
             firstName: user.firstName,
@@ -137,7 +137,7 @@ export class RegistrationController {
         await this.sendGridService.send({
           from: DefaultFromEmail,
           to: user.email,
-          subject: "You're In! - HackPSU Spring 2026",
+          subject: "ACTION REQUIRED: Awaiting your RSVP for HackPSU!",
           message,
         });
       }
