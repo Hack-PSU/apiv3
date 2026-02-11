@@ -43,6 +43,7 @@ export class FlagController {
     return flagDocs.map((flag) => ({
       name: flag.name,
       isEnabled: flag.isEnabled,
+      description: flag.description,
     }));
   }
 

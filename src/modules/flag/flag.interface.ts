@@ -18,10 +18,15 @@ export class FlagEntity {
   @ApiProperty()
   @IsBoolean()
   isEnabled: boolean;
+
+  @ApiProperty()
+  @IsString()
+  description: string;
 }
 
 export class ActivateFlagBody extends OmitType(FlagEntity, [
   "isEnabled",
+  "description",
 ] as const) {
   @ApiProperty()
   @IsBoolean()
