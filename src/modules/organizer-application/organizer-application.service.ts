@@ -7,6 +7,14 @@ import {
   OrganizerTeam,
 } from "entities/organizer-application.entity";
 import { InjectRepository, Repository } from "common/objection";
+import { Organizer } from "entities/organizer.entity";
+import { Role, FirebaseAuthService } from "common/gcp";
+import { nanoid } from "nanoid";
+import {
+  DefaultFromEmail,
+  DefaultTemplate,
+  SendGridService,
+} from "common/sendgrid";
 
 @Injectable()
 export class OrganizerApplicationService {
@@ -15,6 +23,10 @@ export class OrganizerApplicationService {
   constructor(
     @InjectRepository(OrganizerApplication)
     private readonly applicationRepo: Repository<OrganizerApplication>,
+    @InjectRepository(Organizer)
+    private readonly organizerRepo: Repository<Organizer>,
+    private readonly sendGridService: SendGridService,
+    private readonly firebaseAuth: FirebaseAuthService,
   ) {}
 
   private get resumeBucket() {
@@ -55,6 +67,7 @@ export class OrganizerApplicationService {
    * Logic:
    * - If the team is firstChoiceTeam and firstChoiceStatus is pending, accept it
    * - If the team is secondChoiceTeam, secondChoiceStatus is pending, and firstChoiceStatus is rejected, accept it
+   * - When accepted, automatically create an organizer account
    * - Otherwise, throw an error
    */
   async acceptApplication(
@@ -69,6 +82,8 @@ export class OrganizerApplicationService {
       throw new BadRequestException("Application not found");
     }
 
+    let updatedApplication: OrganizerApplication;
+
     // Case 1: Accepting for first choice team
     if (application.firstChoiceTeam === team) {
       const status = application.firstChoiceStatus || ApplicationStatus.PENDING;
@@ -79,12 +94,15 @@ export class OrganizerApplicationService {
         );
       }
 
-      return this.applicationRepo
+      updatedApplication = await this.applicationRepo
         .patchOne(applicationId, {
           firstChoiceStatus: ApplicationStatus.ACCEPTED,
           assignedTeam: team,
         })
         .exec();
+
+      await this.createOrganizerFromApplication(application, team);
+      return updatedApplication;
     }
 
     // Case 2: Accepting for second choice team
@@ -109,12 +127,15 @@ export class OrganizerApplicationService {
         );
       }
 
-      return this.applicationRepo
+      updatedApplication = await this.applicationRepo
         .patchOne(applicationId, {
           secondChoiceStatus: ApplicationStatus.ACCEPTED,
           assignedTeam: team,
         })
         .exec();
+
+      await this.createOrganizerFromApplication(application, team);
+      return updatedApplication;
     }
 
     // Team doesn't match either first or second choice
@@ -122,6 +143,88 @@ export class OrganizerApplicationService {
       `Team ${team} is not a choice for application ${applicationId}. ` +
         `First choice: ${application.firstChoiceTeam}, second choice: ${application.secondChoiceTeam}`,
     );
+  }
+
+  /**
+   * Create an organizer account from an accepted application
+   */
+  private async createOrganizerFromApplication(
+    application: OrganizerApplication,
+    team: OrganizerTeam,
+  ): Promise<void> {
+    // Parse name into first and last name
+    const nameParts = application.name.trim().split(/\s+/);
+    const firstName = nameParts[0];
+    const lastName = nameParts.slice(1).join(" ") || "";
+
+    let uid: string;
+
+    try {
+      // Check if user already exists with this email
+      const existingUser = await this.firebaseAuth.getUserByEmail(
+        application.email,
+      );
+      uid = existingUser.uid;
+
+      // Update user's privilege to TEAM role
+      await this.firebaseAuth.updateUserPrivilege(uid, Role.TEAM);
+    } catch (error) {
+      // If user doesn't exist, create a new one
+      const tempPassword = nanoid(16);
+      uid = await this.firebaseAuth.createUserWithPrivilege(
+        application.email,
+        tempPassword,
+        Role.TEAM,
+      );
+    }
+
+    // Check if organizer already exists
+    const existingOrganizer = await this.organizerRepo.findOne(uid).exec();
+
+    if (!existingOrganizer) {
+      // Create organizer in database
+      await this.organizerRepo
+        .createOne({
+          id: uid,
+          firstName,
+          lastName,
+          email: application.email,
+          privilege: Role.TEAM,
+          team,
+          isActive: true,
+        })
+        .exec();
+    } else {
+      // Update existing organizer
+      await this.organizerRepo
+        .patchOne(uid, {
+          privilege: Role.TEAM,
+          team,
+          isActive: true,
+        })
+        .exec();
+    }
+
+    // Send welcome email with password reset link
+    const passwordResetLink = await this.firebaseAuth.generatePasswordResetLink(
+      application.email,
+    );
+
+    const message = await this.sendGridService.populateTemplate(
+      DefaultTemplate.organizerFirstLogin,
+      {
+        previewText: "HackPSU Organizer Account",
+        passwordResetLink,
+        firstName,
+      },
+    );
+
+    await this.sendGridService.send({
+      to: application.email,
+      from: DefaultFromEmail,
+      subject: "HackPSU Organizer Account",
+      message,
+    });
   }
 
   /**
