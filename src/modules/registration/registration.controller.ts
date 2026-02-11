@@ -125,14 +125,14 @@ export class RegistrationController {
       ){
 
         const user = await this.userRepo.findOne(userId).exec();
-        const activeHackathonName = await Hackathon.query().findOne({ is_active: true }).select("name").first();
+        const activeHackathonName = await Hackathon.query().findOne({ active: true }).select("name").first();
         if (user) {
           try {
             const message = await this.sendGridService.populateTemplate(
               DefaultTemplate.participantRejected,
               {
                 firstName: user.firstName,
-                hackathon: activeHackathonName ? activeHackathonName.name : "",
+                hackathon: activeHackathonName.name
               },
             );
 
