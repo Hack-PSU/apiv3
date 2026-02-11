@@ -14,7 +14,7 @@ export class ApplicantScoreController {
   @Post("/bulk")
   @ApiDoc({
     summary: "Overwrite all applicant scores",
-    auth: Role.NONE,
+    auth: Role.EXEC,
     response: {
       created: { type: [ApplicantScoreEntity] },
     },
@@ -28,7 +28,7 @@ export class ApplicantScoreController {
   @Patch("/:hackathonId/:userId/prioritized")
   @ApiDoc({
     summary: "Update prioritized status for an applicant score",
-    auth: Role.NONE,
+    auth: Role.EXEC,
     response: {
       ok: { type: ApplicantScoreEntity },
     },
