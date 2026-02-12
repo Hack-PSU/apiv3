@@ -1,19 +1,14 @@
 import { Controller, Get, Patch, Query, Param, Body, ValidationPipe, NotFoundException } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
-import { Registration, RegistrationEntity, ApplicationStatus } from "entities/registration.entity";
 import { Hackathon } from "entities/hackathon.entity";
+import { Registration, RegistrationEntity, ApplicationStatus } from "entities/registration.entity";
 import { ApiProperty, ApiTags } from "@nestjs/swagger";
 import { Role, Roles } from "common/gcp";
 import { ApiDoc } from "common/docs";
 import { IsBoolean, IsEnum, IsOptional } from "class-validator";
 import { Transform } from "class-transformer";
-
 import { User } from "entities/user.entity";
-import {
-  DefaultFromEmail,
-  DefaultTemplate,
-  SendGridService,
-} from "common/sendgrid";
+import { SendGridService, DefaultTemplate, DefaultFromEmail } from "common/sendgrid";
 
 class UpdateStatusDto {
   @ApiProperty({ enum: ApplicationStatus })
@@ -39,6 +34,8 @@ class ActiveRegistrationParams {
   all?: boolean;
 }
 
+
+
 @ApiTags("Registrations")
 @Controller("registrations")
 export class RegistrationController {
@@ -47,7 +44,7 @@ export class RegistrationController {
     private readonly registrationRepo: Repository<Registration>,
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
-    private readonly sendGridService: SendGridService, 
+    private readonly sendGridService: SendGridService,
   ) {}
 
   @Get("/")
@@ -144,6 +141,39 @@ export class RegistrationController {
           message,
         });
       }
+    }
+
+    if(body.status == ApplicationStatus.REJECTED) {
+
+      if (
+      process.env.RUNTIME_INSTANCE &&
+      process.env.RUNTIME_INSTANCE === "production"
+      ){
+
+        const user = await this.userRepo.findOne(userId).exec();
+        const activeHackathonName = await Hackathon.query().findOne({ active: true }).select("name").first();
+        if (user) {
+          try {
+            const message = await this.sendGridService.populateTemplate(
+              DefaultTemplate.participantRejected,
+              {
+                firstName: user.firstName,
+                hackathon: activeHackathonName.name
+              },
+            );
+
+            await this.sendGridService.send({
+              from: DefaultFromEmail,
+              to: user.email,
+              subject: "Update regarding your HackPSU application",
+              message,
+            });
+          } catch (error) {
+            console.error(`Failed to send rejection email to ${user.email}:`, error);
+          }
+        }
+      }
+
     }
 
     if(body.status === ApplicationStatus.CONFIRMED || body.status === ApplicationStatus.DECLINED) {
