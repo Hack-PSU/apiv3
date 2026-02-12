@@ -2,7 +2,6 @@ import { Controller, Get, Patch, Query, Param, Body, ValidationPipe, NotFoundExc
 import { InjectRepository, Repository } from "common/objection";
 import { Hackathon } from "entities/hackathon.entity";
 import { Registration, RegistrationEntity, ApplicationStatus } from "entities/registration.entity";
-import { Hackathon } from "entities/hackathon.entity";
 import { ApiProperty, ApiTags } from "@nestjs/swagger";
 import { Role, Roles } from "common/gcp";
 import { ApiDoc } from "common/docs";
