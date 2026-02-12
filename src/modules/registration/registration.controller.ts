@@ -2,6 +2,7 @@ import { Controller, Get, Patch, Query, Param, Body, ValidationPipe, NotFoundExc
 import { InjectRepository, Repository } from "common/objection";
 import { Hackathon } from "entities/hackathon.entity";
 import { Registration, RegistrationEntity, ApplicationStatus } from "entities/registration.entity";
+import { Hackathon } from "entities/hackathon.entity";
 import { ApiProperty, ApiTags } from "@nestjs/swagger";
 import { Role, Roles } from "common/gcp";
 import { ApiDoc } from "common/docs";
@@ -76,10 +77,10 @@ export class RegistrationController {
   }
 
   @Patch("/:userId/application-status")
-  @Roles(Role.TEAM)
+  @Roles(Role.NONE)
   @ApiDoc({
     summary: "Update Application Status",
-    auth: Role.TEAM,
+    auth: Role.NONE,
     params: [
       {
         name: "userId",
@@ -106,15 +107,41 @@ export class RegistrationController {
     }
 
     const updateData: Partial<Registration> = {
-      application_status: body.status,
+      applicationStatus: body.status,
     };
 
     if (body.status === ApplicationStatus.ACCEPTED) {
       const now = new Date();
       const oneWeekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
-      updateData.accepted_at = now;
-      updateData.rsvp_deadline = oneWeekFromNow;
+      updateData.acceptedAt = now.getTime();
+      updateData.rsvpDeadline = oneWeekFromNow.getTime();
+
+      const activeHackathonName = await Hackathon.query().findOne({ active: true }).select("name").first();
+      const user = await this.userRepo.findOne(userId).exec();
+      if (
+        user &&
+        process.env.RUNTIME_INSTANCE &&
+        process.env.RUNTIME_INSTANCE === "production"
+      ) {
+        const message = await this.sendGridService.populateTemplate(
+          DefaultTemplate.participantAccepted,
+          {
+            previewText: `You've been accepted to HackPSU ${activeHackathonName.name}!`,
+            date: "March 28-29, 2026",
+            address: "ECore Building, University Park PA",
+            firstName: user.firstName,
+            hackathon: activeHackathonName.name,
+          },
+        );
+
+        await this.sendGridService.send({
+          from: DefaultFromEmail,
+          to: user.email,
+          subject: `ACTION REQUIRED: RSVP for HackPSU ${activeHackathonName.name}!`,
+          message,
+        });
+      }
     }
 
     if(body.status == ApplicationStatus.REJECTED) {
@@ -150,6 +177,9 @@ export class RegistrationController {
 
     }
 
+    if(body.status === ApplicationStatus.CONFIRMED || body.status === ApplicationStatus.DECLINED) {
+      updateData.rsvpAt = new Date().getTime();
+    }
     await registration.$query().patch(updateData);
 
     return registration.$query();
