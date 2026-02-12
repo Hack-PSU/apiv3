@@ -79,10 +79,10 @@ export class RegistrationController {
   }
 
   @Patch("/:userId/application-status")
-  @Roles(Role.TEAM)
+  @Roles(Role.NONE)
   @ApiDoc({
     summary: "Update Application Status",
-    auth: Role.TEAM,
+    auth: Role.NONE,
     params: [
       {
         name: "userId",
@@ -109,15 +109,15 @@ export class RegistrationController {
     }
 
     const updateData: Partial<Registration> = {
-      application_status: body.status,
+      applicationStatus: body.status,
     };
 
     if (body.status === ApplicationStatus.ACCEPTED) {
       const now = new Date();
       const oneWeekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
-      updateData.accepted_at = now;
-      updateData.rsvp_deadline = oneWeekFromNow;
+      updateData.acceptedAt = now;
+      updateData.rsvpDeadline = oneWeekFromNow;
 
       const activeHackathonName = await Hackathon.query().findOne({ active: true }).select("name").first();
       const user = await this.userRepo.findOne(userId).exec();
@@ -146,6 +146,9 @@ export class RegistrationController {
       }
     }
 
+    if(body.status === ApplicationStatus.CONFIRMED || body.status === ApplicationStatus.DECLINED) {
+      updateData.rsvpAt = new Date().getTime();
+    }
     await registration.$query().patch(updateData);
 
     return registration.$query();

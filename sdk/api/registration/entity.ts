@@ -20,13 +20,13 @@ export interface RegistrationEntity {
 	time: number;
 	veteran: string;
 	excitement: string;
-	zip_code?: string;
-	travel_cost?: string;
-	travel_method?: string;
-	travel_additional?: string;
-	application_status: "pending" | "accepted" | "rejected" | "waitlisted" | "confirmed" | "declined";
-	accepted_at?: number;
-	rsvp_deadline?: number;
-	rsvp_at?: number;
-	accepted_by?: string;
+	zipCode?: string;
+	travelCost?: string;
+	travelMethod?: string;
+	travelAdditional?: string;
+	applicationStatus: "pending" | "accepted" | "rejected" | "waitlisted" | "confirmed" | "declined";
+	acceptedAt?: number;
+	rsvpDeadline?: number;
+	rsvpAt?: number;
+	acceptedBy?: string;
 }
