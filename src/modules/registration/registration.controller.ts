@@ -116,8 +116,8 @@ export class RegistrationController {
       const now = new Date();
       const oneWeekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
-      updateData.acceptedAt = now;
-      updateData.rsvpDeadline = oneWeekFromNow;
+      updateData.acceptedAt = now.getTime();
+      updateData.rsvpDeadline = oneWeekFromNow.getTime();
 
       const activeHackathonName = await Hackathon.query().findOne({ active: true }).select("name").first();
       const user = await this.userRepo.findOne(userId).exec();
