@@ -1,9 +1,9 @@
-import { Body, Controller, Post, ValidationPipe } from "@nestjs/common";
+import { Body, Controller, Post, Patch, Param, ValidationPipe } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { ApiDoc } from "common/docs";
 import { Role } from "common/gcp";
 import { ApplicantScoreService } from "./applicant-score.service";
-import { BulkApplicantScoreDto } from "./dto/applicant-score.dto";
+import { BulkApplicantScoreDto, UpdatePrioritizedDto } from "./dto/applicant-score.dto";
 import { ApplicantScoreEntity } from "entities/applicant-score.entity";
 
 @ApiTags("Applicants")
@@ -23,5 +23,24 @@ export class ApplicantScoreController {
     @Body(new ValidationPipe({ transform: true })) body: BulkApplicantScoreDto,
   ) {
     return this.applicantScoreService.overwriteAll(body.scores);
+  }
+  @Patch("/:hackathonId/:userId/prioritized")
+  @ApiDoc({
+    summary: "Update prioritized status for an applicant score",
+    auth: Role.EXEC,
+    response: {
+      ok: { type: ApplicantScoreEntity },
+    },
+  })
+  async updatePrioritized(
+    @Param("hackathonId") hackathonId: string,
+    @Param("userId") userId: string,
+    @Body(new ValidationPipe({ transform: true })) body: UpdatePrioritizedDto,
+  ) {
+    return this.applicantScoreService.updatePrioritized(
+      userId,
+      hackathonId,
+      body.prioritized,
+    );
   }
 }
