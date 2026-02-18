@@ -195,7 +195,7 @@ export class RegistrationController {
     return registration.$query();
   }
 
-  @Patch("/:userId/application-status-bulk")
+  @Patch("/application-status-bulk")
   @Roles(Role.NONE)
   @ApiDoc({
     summary: "Bulk Update Application Status",
@@ -207,13 +207,16 @@ export class RegistrationController {
   async updateApplicationStatusBulk(
     @Body(new ValidationPipe()) body: UpdateStatusBulkDto
   ) {
-    const registrations: Registration[] = await this.registrationRepo
+
+    const registrations = await this.registrationRepo
       .findAll()
       .byHackathon()
       .whereIn("userId", body.userIds);
 
-    if (registrations.length != body.userIds.length) {
-      throw new NotFoundException(`Not all registrations could be retrieved.`);
+    if (registrations.length !== body.userIds.length) {
+      throw new NotFoundException(
+        `Not all registrations could be retrieved. Expected ${body.userIds.length}, found ${registrations.length}.`
+      );
     }
 
     const updateData: Partial<Registration> = {
@@ -288,6 +291,7 @@ export class RegistrationController {
                 message,
               });
             });
+            await Promise.all(messages);
           } catch (error) {
             console.error(`Failed to send rejection emails to ${body.userIds}:`, error);
           }
@@ -301,13 +305,11 @@ export class RegistrationController {
     }
     
     // Get the ids from registration
-    const ids = registrations.map(reg => reg.id);
+    const userIds = registrations.map(reg => reg.userId);
 
     // Perform a batch patch update
-    await Registration.query().whereIn('id', ids).patch(updateData);
+    await this.registrationRepo.findAll().byHackathon().whereIn("userId", userIds).patch(updateData);
 
-    // Return updated records
-    await Registration.query().whereIn('id', ids)
+    return this.registrationRepo.findAll().byHackathon().whereIn("userId", userIds);
   }
-
 }
