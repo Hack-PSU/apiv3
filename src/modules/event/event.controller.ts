@@ -40,7 +40,7 @@ import { DBExceptionFilter } from "common/filters";
 import { FirebaseMessagingService } from "common/gcp/messaging";
 import { User } from "entities/user.entity";
 import { LocationEntity } from "entities/location.entity";
-import { Registration } from "entities/registration.entity";
+import { Registration, ApplicationStatus } from "entities/registration.entity";
 import { GotifyService } from "common/gotify/gotify.service";
 
 class EventEntityResponse extends OmitType(EventEntity, ["wsUrls"] as const) {
@@ -442,6 +442,12 @@ export class EventController {
       throw new HttpException(
         "User is not registered for the current hackathon",
         HttpStatus.BAD_REQUEST,
+      );
+    }
+    if (userRegistration.applicationStatus !== ApplicationStatus.CONFIRMED) {
+      throw new HttpException(
+        `User is not confirmed. status: ${userRegistration.applicationStatus}`,
+        HttpStatus.FORBIDDEN,
       );
     }
 
