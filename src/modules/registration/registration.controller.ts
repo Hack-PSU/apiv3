@@ -357,3 +357,4 @@ export class RegistrationController {
     return this.registrationRepo.findAll().byHackathon().whereIn("userId", userIds);
   }
 }
+ 
