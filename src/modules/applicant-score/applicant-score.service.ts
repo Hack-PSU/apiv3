@@ -14,24 +14,20 @@ export class ApplicantScoreService {
     const knex = ApplicantScore.knex();
 
     return knex.transaction(async (trx) => {
-      // 1. Delete all existing records
-      await ApplicantScore.query(trx).delete();
-
-      // 2. Insert new records using Raw Knex (Bypassing Objection's Fetch logic)
+      // Insert or update records based on composite primary key (hackathonId, userId)
       if (scores.length > 0) {
-        
         const rows = scores.map((score) =>
           ApplicantScore.fromJson(score).$toDatabaseJson(),
         );
 
-        
+        // Use onConflict to handle upsert on composite primary key
         await knex("applicant_scores")
           .transacting(trx)
-          .insert(rows);
+          .insert(rows)
+          .onConflict(["hackathon_id", "user_id"])
+          .merge();
       }
 
-      // 3. Manually return the input data
-      
       return scores as unknown as ApplicantScore[];
     });
   }
