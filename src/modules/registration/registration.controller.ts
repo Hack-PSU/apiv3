@@ -293,7 +293,7 @@ export class RegistrationController {
             });
             await Promise.all(messages);
           } catch (error) {
-            console.error(`Failed to send rejection emails to ${body.userIds}:`, error);
+            console.error("Failed to send rejection emails to %s:", body.userIds, error);
           }
         }
       }
