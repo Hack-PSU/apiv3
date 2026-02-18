@@ -1,8 +1,14 @@
 import { Column, ID, Table } from "common/objection";
 import { Entity } from "entities/base.entity";
 import { ApiProperty, PickType } from "@nestjs/swagger";
-import { IsNumber, IsOptional, IsString } from "class-validator";
+import { IsEnum, IsNumber, IsOptional, IsString } from "class-validator";
 
+export enum Requirements {
+  CHECK_IN = "check-in",
+  SUBMIT = "submit",
+  EXPO = "expo",
+  OTHER = "other",
+}
 @Table({
   name: "extraCreditClasses",
   relationMappings: {
@@ -47,10 +53,16 @@ export class ExtraCreditClass extends Entity {
   @IsString()
   @Column({ type: "string", nullable: true, required: false })
   hackathonId: string;
+
+  @ApiProperty({ enum: Requirements, default: Requirements.CHECK_IN })
+  @IsEnum(Requirements)
+  @Column({ type: "string", nullable: true, required: false })
+  requirement: Requirements = Requirements.CHECK_IN;
 }
 
 export class ExtraCreditClassEntity extends PickType(ExtraCreditClass, [
   "id",
   "name",
   "hackathonId",
+  "requirement",
 ] as const) {}
