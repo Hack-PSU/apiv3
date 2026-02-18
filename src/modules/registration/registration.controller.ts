@@ -2,6 +2,8 @@ import { Controller, Get, Patch, Query, Param, Body, ValidationPipe, NotFoundExc
 import { InjectRepository, Repository } from "common/objection";
 import { Hackathon } from "entities/hackathon.entity";
 import { Registration, RegistrationEntity, ApplicationStatus } from "entities/registration.entity";
+import { RegistrationWithScoreDto } from "./dto/registration-with-score.dto";
+import { UpdateStatusDto } from "./dto/update-status.dto";
 import { ApiProperty, ApiTags } from "@nestjs/swagger";
 import { Role, Roles } from "common/gcp";
 import { ApiDoc } from "common/docs";
@@ -9,13 +11,6 @@ import { IsBoolean, IsEnum, IsOptional } from "class-validator";
 import { Transform } from "class-transformer";
 import { User } from "entities/user.entity";
 import { SendGridService, DefaultTemplate, DefaultFromEmail } from "common/sendgrid";
-
-class UpdateStatusDto {
-  @ApiProperty({ enum: ApplicationStatus })
-  @IsEnum(ApplicationStatus)
-  status: ApplicationStatus;
-}
-
 
 class ActiveRegistrationParams {
   @ApiProperty()
@@ -34,8 +29,6 @@ class ActiveRegistrationParams {
   all?: boolean;
 }
 
-
-
 @ApiTags("Registrations")
 @Controller("registrations")
 export class RegistrationController {
@@ -44,8 +37,46 @@ export class RegistrationController {
     private readonly registrationRepo: Repository<Registration>,
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
+    @InjectRepository(Hackathon)
+    private readonly hackathonRepo: Repository<Hackathon>,
     private readonly sendGridService: SendGridService,
   ) {}
+
+  @Get("/scores")
+  @Roles(Role.TEAM)
+  @ApiDoc({
+    summary: "Get Registrations with Applicant Scores",
+    auth: Role.TEAM,
+    response: {
+      ok: { type: [RegistrationWithScoreDto] },
+    },
+  })
+  async getRegistrationsWithScores() {
+    const activeHackathon = await this.hackathonRepo
+      .findAll()
+      .raw()
+      .where("active", true)
+      .first();
+
+    if (!activeHackathon) {
+      throw new NotFoundException("No active hackathon found");
+    }
+
+    const result = await Registration.knex().raw(`
+        SELECT 
+          r.*, 
+          s.mu, 
+          s.sigma_squared as "sigmaSquared", 
+          s.prioritized
+        FROM registrations r
+        LEFT JOIN applicant_scores s 
+          ON r.user_id = s.user_id 
+          AND r.hackathon_id = s.hackathon_id
+        WHERE r.hackathon_id = ?
+      `, [activeHackathon.id]);
+
+    return result;
+  }
 
   @Get("/")
   @Roles(Role.TEAM)
