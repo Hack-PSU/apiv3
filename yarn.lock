@@ -6433,9 +6433,9 @@ mute-stream@^2.0.0:
   integrity sha512-WWdIxpyjEn+FhQJQQv9aQAYlHoNVdzIzUySNV1gHUPDSdZJ3yZn7pAAbQcV7B56Mvu881q9FZV+0Vx2xC44VWA==
 
 mysql2@^3.6.5:
-  version "3.17.3"
-  resolved "https://registry.yarnpkg.com/mysql2/-/mysql2-3.17.3.tgz#aa19f55dd7efc5b28e19f020153d0fb64535539f"
-  integrity sha512-uCLmQMe1l96Sb6J3Ii8YJTOWJkhRmxlLJFdOfhD68jPpGTzK2fxEkFMpf5gewyHgUB0FJKzuAuPhYS+oPB0/vA==
+  version "3.17.4"
+  resolved "https://registry.yarnpkg.com/mysql2/-/mysql2-3.17.4.tgz#c88ff408019eda32431136da52556d9df3c25542"
+  integrity sha512-RnfuK5tyIuaiPMWOCTTl4vQX/mQXqSA8eoIbwvWccadvPGvh+BYWWVecInMS5s7wcLUkze8LqJzwB/+A4uwuAA==
   dependencies:
     aws-ssl-profiles "^1.1.2"
     denque "^2.1.0"
