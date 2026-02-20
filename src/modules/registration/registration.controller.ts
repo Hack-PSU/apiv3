@@ -232,34 +232,36 @@ export class RegistrationController {
 
       const activeHackathonName = await Hackathon.query().findOne({ active: true }).select("name").first();
       const users = await this.userRepo.findAll().byHackathon().whereIn("userId", body.userIds);
-      if (
-        users.length == body.userIds &&
-        process.env.RUNTIME_INSTANCE &&
-        process.env.RUNTIME_INSTANCE === "production"
+      if (true
+        // users.length == body.userIds &&
+        // process.env.RUNTIME_INSTANCE &&
+        // process.env.RUNTIME_INSTANCE === "production"
       ) {
-        // Build the email to each user
-        const messages = users.map(async (user) => {
-          const message = await this.sendGridService.populateTemplate(
-            DefaultTemplate.participantAccepted,
-            {
-              previewText: `You've been accepted to HackPSU ${activeHackathonName.name}!`,
-              date: "March 28-29, 2026",
-              address: "ECore Building, University Park PA",
-              firstName: user.firstName,
-              hackathon: activeHackathonName.name,
-            },
-          );
+        // Build all emails in parallel
+        const emails = await Promise.all(
+          users.map(async (user) => {
+            const message = await this.sendGridService.populateTemplate(
+              DefaultTemplate.participantAccepted,
+              {
+                previewText: `You've been accepted to HackPSU ${activeHackathonName.name}!`,
+                date: "March 28-29, 2026",
+                address: "ECore Building, University Park PA",
+                firstName: user.firstName,
+                hackathon: activeHackathonName.name,
+              },
+            );
 
-          return await this.sendGridService.send({
-            from: DefaultFromEmail,
-            to: user.email,
-            subject: `ACTION REQUIRED: RSVP for HackPSU ${activeHackathonName.name}!`,
-            message,
-          });
-        });
-        
-        // Send all the message emails
-        await Promise.all(messages);
+            return {
+              from: DefaultFromEmail,
+              to: user.email,
+              subject: `ACTION REQUIRED: RSVP for HackPSU ${activeHackathonName.name}!`,
+              message,
+            };
+          })
+        );
+
+        // Send all emails in batch
+        await this.sendGridService.sendBatch(emails);
       }
     }
 
@@ -274,24 +276,28 @@ export class RegistrationController {
         const activeHackathonName = await Hackathon.query().findOne({ active: true }).select("name").first();
         if (users.length == body.userIds.length) {
           try {
-            // Build the email to each user
-            const messages = users.map(async (user) => {
-              const message = await this.sendGridService.populateTemplate(
-                DefaultTemplate.participantRejected,
-                {
-                  firstName: user.firstName,
-                  hackathon: activeHackathonName.name
-                },
-              );
+            // Build all emails in parallel
+            const emails = await Promise.all(
+              users.map(async (user) => {
+                const message = await this.sendGridService.populateTemplate(
+                  DefaultTemplate.participantRejected,
+                  {
+                    firstName: user.firstName,
+                    hackathon: activeHackathonName.name
+                  },
+                );
 
-              return await this.sendGridService.send({
-                from: DefaultFromEmail,
-                to: user.email,
-                subject: "Update regarding your HackPSU application",
-                message,
-              });
-            });
-            await Promise.all(messages);
+                return {
+                  from: DefaultFromEmail,
+                  to: user.email,
+                  subject: "Update regarding your HackPSU application",
+                  message,
+                };
+              })
+            );
+
+            // Send all emails in batch
+            await this.sendGridService.sendBatch(emails);
           } catch (error) {
             console.error("Failed to send rejection emails to %s:", body.userIds, error);
           }
