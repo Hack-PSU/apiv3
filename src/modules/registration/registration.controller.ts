@@ -12,12 +12,6 @@ import { Transform } from "class-transformer";
 import { User } from "entities/user.entity";
 import { SendGridService, DefaultTemplate, DefaultFromEmail } from "common/sendgrid";
 
-class UpdateStatusDto {
-  @ApiProperty({ enum: ApplicationStatus })
-  @IsEnum(ApplicationStatus)
-  status: ApplicationStatus;
-}
-
 class UpdateStatusBulkDto {
   @ApiProperty({ type: [String] })
   @IsArray()
