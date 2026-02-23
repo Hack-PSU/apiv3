@@ -54,16 +54,16 @@ export class RegistrationController {
     private readonly sendGridService: SendGridService,
   ) {}
 
-  @Get("/scores")
+  @Get("/scores/psu")
   @Roles(Role.TEAM)
   @ApiDoc({
-    summary: "Get Registrations with Applicant Scores",
+    summary: "Get Penn State Registrations with Applicant Scores",
     auth: Role.TEAM,
     response: {
       ok: { type: [RegistrationWithScoreDto] },
     },
   })
-  async getRegistrationsWithScores() {
+  async getPennStateRegistrationsWithScores() {
     const activeHackathon = await this.hackathonRepo
       .findAll()
       .raw()
@@ -84,8 +84,48 @@ export class RegistrationController {
         LEFT JOIN applicant_scores s 
           ON r.user_id = s.user_id 
           AND r.hackathon_id = s.hackathon_id
-        WHERE r.hackathon_id = ?
-      `, [activeHackathon.id]);
+        INNER JOIN users u
+          ON r.user_id = u.id
+        WHERE r.hackathon_id = ? AND u.university = ?
+      `, [activeHackathon.id, 'The Pennsylvania State University - Main Campus']);
+
+    return result;
+  }
+
+  @Get("/scores/other")
+  @Roles(Role.TEAM)
+  @ApiDoc({
+    summary: "Get Other Registrations with Applicant Scores",
+    auth: Role.TEAM,
+    response: {
+      ok: { type: [RegistrationWithScoreDto] },
+    },
+  })
+  async getOtherRegistrationsWithScores() {
+    const activeHackathon = await this.hackathonRepo
+      .findAll()
+      .raw()
+      .where("active", true)
+      .first();
+
+    if (!activeHackathon) {
+      throw new NotFoundException("No active hackathon found");
+    }
+
+    const result = await Registration.knex().raw(`
+        SELECT 
+          r.*, 
+          s.mu, 
+          s.sigma_squared as "sigmaSquared", 
+          s.prioritized
+        FROM registrations r
+        LEFT JOIN applicant_scores s 
+          ON r.user_id = s.user_id 
+          AND r.hackathon_id = s.hackathon_id
+        INNER JOIN users u
+          ON r.user_id = u.id
+        WHERE r.hackathon_id = ? AND u.university != ?
+      `, [activeHackathon.id, 'The Pennsylvania State University - Main Campus']);
 
     return result;
   }
