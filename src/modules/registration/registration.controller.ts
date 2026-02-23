@@ -310,10 +310,10 @@ export class RegistrationController {
 
       const activeHackathonName = await Hackathon.query().findOne({ active: true }).select("name").first();
       const users = await this.userRepo.findAll().byHackathon().whereIn("userId", body.userIds);
-      if (true
-        // users.length == body.userIds &&
-        // process.env.RUNTIME_INSTANCE &&
-        // process.env.RUNTIME_INSTANCE === "production"
+      if (
+        users.length == body.userIds &&
+        process.env.RUNTIME_INSTANCE &&
+        process.env.RUNTIME_INSTANCE === "production"
       ) {
         // Build all emails in parallel
         const emails = await Promise.all(
