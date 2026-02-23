@@ -55,10 +55,10 @@ export class RegistrationController {
   ) {}
 
   @Get("/scores/psu")
-  @Roles(Role.TEAM)
+  @Roles(Role.NONE)
   @ApiDoc({
     summary: "Get Penn State Registrations with Applicant Scores",
-    auth: Role.TEAM,
+    auth: Role.NONE,
     response: {
       ok: { type: [RegistrationWithScoreDto] },
     },
@@ -79,7 +79,9 @@ export class RegistrationController {
           r.*, 
           s.mu, 
           s.sigma_squared as "sigmaSquared", 
-          s.prioritized
+          s.prioritized,
+          u.first_name as "firstName",
+          u.last_name as "lastName"
         FROM registrations r
         LEFT JOIN applicant_scores s 
           ON r.user_id = s.user_id 
@@ -117,7 +119,9 @@ export class RegistrationController {
           r.*, 
           s.mu, 
           s.sigma_squared as "sigmaSquared", 
-          s.prioritized
+          s.prioritized,
+          u.first_name as "firstName",
+          u.last_name as "lastName"
         FROM registrations r
         LEFT JOIN applicant_scores s 
           ON r.user_id = s.user_id 
