@@ -246,7 +246,6 @@ export class Registration extends Entity {
       ...json,
       ...this.parseBoolean("travelReimbursement", json.travelReimbursement),
       ...this.parseBoolean("driving", json.driving),
-      ...this.parseBoolean("age", json.age),
       ...this.parseBoolean("mlhCoc", json.mlhCoc),
       ...this.parseBoolean("mlhDcp", json.mlhDcp),
       ...this.parseBoolean("shareAddressMlh", json.shareAddressMlh),
