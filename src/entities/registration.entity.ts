@@ -5,6 +5,8 @@ import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString } from "class-validat
 import { Type } from "class-transformer";
 import Objection from "objection";
 import { Hackathon } from "entities/hackathon.entity";
+import { User } from "entities/user.entity";
+import { ApplicantScore } from "entities/applicant-score.entity";
 
 
 export enum ApplicationStatus {
@@ -25,6 +27,24 @@ export enum ApplicationStatus {
         "hackathonId",
         Hackathon.query().select("id").where("active", true),
       ),
+  },
+  relationMappings: {
+    user: {
+      relation: Entity.BelongsToOneRelation,
+      modelClass: User,
+      join: {
+        from: "registrations.userId",
+        to: "users.id",
+      },
+    },
+    applicantScore: {
+      relation: Entity.BelongsToOneRelation,
+      modelClass: ApplicantScore,
+      join: {
+        from: ["registrations.userId", "registrations.hackathonId"],
+        to: ["applicant_scores.userId", "applicant_scores.hackathonId"],
+      },
+    },
   },
 })
 export class Registration extends Entity {

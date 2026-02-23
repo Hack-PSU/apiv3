@@ -10,6 +10,7 @@ import { ApiDoc } from "common/docs";
 import { ArrayMinSize, IsArray, IsBoolean, IsEnum, IsOptional, IsString } from "class-validator";
 import { Transform } from "class-transformer";
 import { User } from "entities/user.entity";
+import { ApplicantScore } from "entities/applicant-score.entity";
 import { SendGridService, DefaultTemplate, DefaultFromEmail } from "common/sendgrid";
 
 class UpdateStatusBulkDto {
@@ -49,16 +50,18 @@ export class RegistrationController {
     private readonly registrationRepo: Repository<Registration>,
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
+    @InjectRepository(ApplicantScore)
+    private readonly applicantScoreRepo: Repository<ApplicantScore>,
     @InjectRepository(Hackathon)
     private readonly hackathonRepo: Repository<Hackathon>,
     private readonly sendGridService: SendGridService,
   ) {}
 
   @Get("/scores/psu")
-  @Roles(Role.NONE)
+  @Roles(Role.TEAM)
   @ApiDoc({
     summary: "Get Penn State Registrations with Applicant Scores",
-    auth: Role.NONE,
+    auth: Role.TEAM,
     response: {
       ok: { type: [RegistrationWithScoreDto] },
     },
@@ -74,22 +77,19 @@ export class RegistrationController {
       throw new NotFoundException("No active hackathon found");
     }
 
-    const result = await Registration.knex().raw(`
-        SELECT 
-          r.*, 
-          s.mu, 
-          s.sigma_squared as "sigmaSquared", 
-          s.prioritized,
-          u.first_name as "firstName",
-          u.last_name as "lastName"
-        FROM registrations r
-        LEFT JOIN applicant_scores s 
-          ON r.user_id = s.user_id 
-          AND r.hackathon_id = s.hackathon_id
-        INNER JOIN users u
-          ON r.user_id = u.id
-        WHERE r.hackathon_id = ? AND u.university = ?
-      `, [activeHackathon.id, 'The Pennsylvania State University - Main Campus']);
+    const result = await Registration.query()
+      .where("registrations.hackathonId", activeHackathon.id)
+      .joinRelated("user")
+      .where("user.university", "The Pennsylvania State University - Main Campus")
+      .leftJoinRelated("applicantScore")
+      .select(
+        "registrations.*",
+        "applicantScore.mu",
+        "applicantScore.sigmaSquared",
+        "applicantScore.prioritized",
+        "user.firstName",
+        "user.lastName"
+      );
 
     return result;
   }
@@ -114,22 +114,19 @@ export class RegistrationController {
       throw new NotFoundException("No active hackathon found");
     }
 
-    const result = await Registration.knex().raw(`
-        SELECT 
-          r.*, 
-          s.mu, 
-          s.sigma_squared as "sigmaSquared", 
-          s.prioritized,
-          u.first_name as "firstName",
-          u.last_name as "lastName"
-        FROM registrations r
-        LEFT JOIN applicant_scores s 
-          ON r.user_id = s.user_id 
-          AND r.hackathon_id = s.hackathon_id
-        INNER JOIN users u
-          ON r.user_id = u.id
-        WHERE r.hackathon_id = ? AND u.university != ?
-      `, [activeHackathon.id, 'The Pennsylvania State University - Main Campus']);
+    const result = await Registration.query()
+      .where("registrations.hackathonId", activeHackathon.id)
+      .joinRelated("user")
+      .whereNot("user.university", "The Pennsylvania State University - Main Campus")
+      .leftJoinRelated("applicantScore")
+      .select(
+        "registrations.*",
+        "applicantScore.mu",
+        "applicantScore.sigmaSquared",
+        "applicantScore.prioritized",
+        "user.firstName",
+        "user.lastName"
+      );
 
     return result;
   }
