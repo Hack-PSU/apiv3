@@ -46,6 +46,40 @@ export class SendGridService {
     });
   }
 
+  async sendBatch(emails: SendEmailOptions[]) {
+    const messages = emails.map((options) => {
+      const { from, fromName, to, subject, reply, message, attachments } =
+        options;
+
+      return {
+        from: {
+          email: from ?? DefaultFromEmail,
+          name: fromName ?? DefaultFromName,
+        },
+        to,
+        subject,
+        replyTo: reply ?? from,
+        html: message,
+        attachments: attachments?.map((attachment) => ({
+          content: attachment.content,
+          filename: attachment.filename,
+          type: attachment.type,
+          disposition: attachment.disposition,
+        })),
+      };
+    });
+
+    return this.sendGrid.sendMultiple({
+      ...messages[0],
+      personalizations: messages.map((msg) => ({
+        to: Array.isArray(msg.to)
+          ? msg.to.map((email) => ({ email }))
+          : [{ email: msg.to }],
+        subject: msg.subject,
+      })),
+    });
+  }
+
   async createTemplate(template: Express.Multer.File, previewText?: string) {
     const base = await this.getBaseTemplate();
     const emailTemplate = Handlebars.compile(base.toString());
