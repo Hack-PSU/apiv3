@@ -263,9 +263,9 @@ export class RegistrationController {
     if(body.status === ApplicationStatus.CONFIRMED || body.status === ApplicationStatus.DECLINED) {
       updateData.rsvpAt = new Date().getTime();
     }
-    await registration.$query().patch(updateData);
+    await registration.$patch(updateData);
 
-    return registration.$query();
+    return registration;
   }
 
   @Patch("/application-status-bulk")
