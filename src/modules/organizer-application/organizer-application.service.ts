@@ -7,6 +7,11 @@ import {
   OrganizerTeam,
 } from "entities/organizer-application.entity";
 import { InjectRepository, Repository } from "common/objection";
+import {
+  DefaultFromEmail,
+  DefaultTemplate,
+  SendGridService,
+} from "common/sendgrid";
 
 @Injectable()
 export class OrganizerApplicationService {
@@ -134,6 +139,7 @@ export class OrganizerApplicationService {
   async rejectApplication(
     applicationId: number,
     team: OrganizerTeam,
+    sendGridService: SendGridService
   ): Promise<OrganizerApplication> {
     const application = await this.applicationRepo
       .findOne(applicationId)
@@ -153,6 +159,9 @@ export class OrganizerApplicationService {
         );
       }
 
+      // Send the rejection email
+      this.sendRejectionEmail(sendGridService, application, DefaultTemplate.organizerReject);
+
       return this.applicationRepo
         .patchOne(applicationId, {
           firstChoiceStatus: ApplicationStatus.REJECTED,
@@ -170,6 +179,9 @@ export class OrganizerApplicationService {
             `Current status: ${status}`,
         );
       }
+
+      // Send the rejection email for second team
+      this.sendRejectionEmail(sendGridService, application, DefaultTemplate.organizerReject2);
 
       return this.applicationRepo
         .patchOne(applicationId, {
@@ -210,5 +222,35 @@ export class OrganizerApplicationService {
       firstChoiceApplications,
       secondChoiceApplications,
     };
+  }
+
+  /**
+   * Sends the rejection email for organizer applications
+   * @param sendGridService service to send email with
+   * @param application applicant information
+   * @param template email template that should be used
+   */
+  private async sendRejectionEmail(
+    sendGridService: SendGridService,
+    application: OrganizerApplication,
+    template: DefaultTemplate
+  ) {
+    // Send the rejection email for second team
+      try {
+        const message = await sendGridService.populateTemplate(template, {
+            firstName: application.name
+          }
+        );
+
+        await sendGridService.send({
+          from: DefaultFromEmail,
+          to: application.email,
+          subject: "HackPSU Spring 2026 Organizer Application Update",
+          message
+        });
+
+      } catch (error) {
+        console.log(`Failed to send email to ${application.email}: ${error}`);
+      }
   }
 }
