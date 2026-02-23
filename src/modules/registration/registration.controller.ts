@@ -184,7 +184,6 @@ export class RegistrationController {
       .byHackathon()
       .where("userId", userId)
       .first();
-
     if (!registration) {
       throw new NotFoundException(`Registration for user ${userId} not found`);
     }
@@ -263,9 +262,15 @@ export class RegistrationController {
     if(body.status === ApplicationStatus.CONFIRMED || body.status === ApplicationStatus.DECLINED) {
       updateData.rsvpAt = new Date().getTime();
     }
-    await Registration.query().findById(registration.id).patch(updateData);
+    await Registration.query()
+      .where("userId", registration.userId)
+      .where("hackathonId", registration.hackathonId)
+      .patch(updateData);
 
-    return Registration.query().findById(registration.id);
+    return Registration.query()
+      .where("userId", registration.userId)
+      .where("hackathonId", registration.hackathonId)
+      .first();
   }
 
   @Patch("/application-status-bulk")
