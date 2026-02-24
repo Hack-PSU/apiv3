@@ -187,12 +187,23 @@ export class RegistrationController {
     if (!registration) {
       throw new NotFoundException(`Registration for user ${userId} not found`);
     }
+    const currentStatus = await this.registrationRepo
+      .findAll()
+      .byHackathon()
+      .where("userId", userId)
+      .select("applicationStatus")
+      .first();
 
     const updateData: Partial<Registration> = {
       applicationStatus: body.status,
     };
 
     if (body.status === ApplicationStatus.ACCEPTED) {
+      if (currentStatus.applicationStatus !== ApplicationStatus.PENDING) {
+        throw new Error(
+          `Cannot change application status to accepted from ${currentStatus.applicationStatus}`,
+        );
+      }
       const now = new Date();
       const oneWeekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
@@ -227,7 +238,11 @@ export class RegistrationController {
     }
 
     if(body.status == ApplicationStatus.REJECTED) {
-
+      if (currentStatus.applicationStatus !== ApplicationStatus.PENDING) {
+        throw new Error(
+          `Cannot change application status to rejected from ${currentStatus.applicationStatus}`,
+        );
+      }
       if (
       process.env.RUNTIME_INSTANCE &&
       process.env.RUNTIME_INSTANCE === "production"
@@ -260,6 +275,11 @@ export class RegistrationController {
     }
 
     if(body.status === ApplicationStatus.CONFIRMED || body.status === ApplicationStatus.DECLINED) {
+      if (currentStatus.applicationStatus !== ApplicationStatus.ACCEPTED) {
+        throw new Error(
+          `Cannot change application status to ${body.status} from ${currentStatus.applicationStatus}`,
+        );
+      }
       updateData.rsvpAt = new Date().getTime();
     }
     await Registration.query()
@@ -297,6 +317,12 @@ export class RegistrationController {
       );
     }
 
+    if (registrations.some(reg => reg.applicationStatus !== ApplicationStatus.PENDING)) {
+      throw new Error(
+        `All registrations must be in pending status to update to ${body.status}.`
+      );
+    }
+
     const updateData: Partial<Registration> = {
       applicationStatus: body.status,
     };
@@ -311,7 +337,6 @@ export class RegistrationController {
       const activeHackathonName = await Hackathon.query().findOne({ active: true }).select("name").first();
       const users = await this.userRepo.findAll().byHackathon().whereIn("userId", body.userIds);
       if (
-        users.length == body.userIds &&
         process.env.RUNTIME_INSTANCE &&
         process.env.RUNTIME_INSTANCE === "production"
       ) {
@@ -381,11 +406,6 @@ export class RegistrationController {
           }
         }
       }
-
-    }
-
-    if(body.status === ApplicationStatus.CONFIRMED || body.status === ApplicationStatus.DECLINED) {
-      updateData.rsvpAt = new Date().getTime();
     }
     
     // Get the ids from registration
