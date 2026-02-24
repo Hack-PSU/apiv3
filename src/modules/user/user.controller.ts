@@ -570,7 +570,7 @@ export class UserController {
       await this.sendGridService.send({
         from: DefaultFromEmail,
         to: user.email,
-        subject: "Thank you for your Registration",
+        subject: "Thank you for your Application",
         message,
       });
     }

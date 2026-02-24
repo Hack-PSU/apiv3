@@ -3,9 +3,11 @@ import { AppModule } from "./app.module";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { DocsModule } from "common/docs/docs.module";
 import { ConfigService } from "@nestjs/config";
+import * as express from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.use(express.json({ limit: '50mb' }));
   const options = new DocumentBuilder()
     .setTitle("HackPSU Documentation")
     .setDescription("Official HackPSU API V3")

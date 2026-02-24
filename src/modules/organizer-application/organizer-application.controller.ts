@@ -23,6 +23,7 @@ import { FileInterceptor } from "@nestjs/platform-express";
 import { UploadedResume } from "./uploaded-resume.decorator";
 import { OrganizerApplicationService } from "./organizer-application.service";
 import { IsEmail, IsEnum, IsString } from "class-validator";
+import { SendGridService } from "common/sendgrid";
 
 class OrganizerApplicationCreateEntity extends OmitType(
   OrganizerApplicationEntity,
@@ -50,6 +51,7 @@ export class OrganizerApplicationController {
     @InjectRepository(OrganizerApplication)
     private readonly applicationRepo: Repository<OrganizerApplication>,
     private readonly applicationService: OrganizerApplicationService,
+    private readonly sendGridService: SendGridService
   ) {}
 
   @Post("/")
@@ -179,6 +181,6 @@ export class OrganizerApplicationController {
     @Param("id", ParseIntPipe) id: number,
     @Body(new ValidationPipe({ transform: true })) action: ApplicationActionDto,
   ): Promise<OrganizerApplication> {
-    return this.applicationService.rejectApplication(id, action.team);
+    return this.applicationService.rejectApplication(id, action.team, this.sendGridService);
   }
 }

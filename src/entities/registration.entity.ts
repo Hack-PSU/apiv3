@@ -5,6 +5,8 @@ import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString } from "class-validat
 import { Type } from "class-transformer";
 import Objection from "objection";
 import { Hackathon } from "entities/hackathon.entity";
+import { User } from "entities/user.entity";
+import { ApplicantScore } from "entities/applicant-score.entity";
 
 
 export enum ApplicationStatus {
@@ -25,6 +27,24 @@ export enum ApplicationStatus {
         "hackathonId",
         Hackathon.query().select("id").where("active", true),
       ),
+  },
+  relationMappings: {
+    user: {
+      relation: Entity.BelongsToOneRelation,
+      modelClass: User,
+      join: {
+        from: "registrations.userId",
+        to: "users.id",
+      },
+    },
+    applicantScore: {
+      relation: Entity.BelongsToOneRelation,
+      modelClass: ApplicantScore,
+      join: {
+        from: ["registrations.userId", "registrations.hackathonId"],
+        to: ["applicant_scores.userId", "applicant_scores.hackathonId"],
+      },
+    },
   },
 })
 export class Registration extends Entity {
@@ -196,18 +216,18 @@ export class Registration extends Entity {
 
   @ApiProperty({ required: false, nullable: true })
   @IsOptional()
-  @Column({ type: "string", required: false, nullable: true })
-  acceptedAt?: Date;
+  @Column({ type: "integer", required: false, nullable: true })
+  acceptedAt?: number;
 
   @ApiProperty({ required: false, nullable: true })
   @IsOptional()
-  @Column({ type: "string", required: false, nullable: true })
-  rsvpDeadline?: Date;
+  @Column({ type: "integer", required: false, nullable: true })
+  rsvpDeadline?: number;
 
   @ApiProperty({ required: false, nullable: true })
   @IsOptional()
-  @Column({ type: "string", required: false, nullable: true })
-  rsvpAt?: Date;
+  @Column({ type: "integer", required: false, nullable: true })
+  rsvpAt?: number;
   
   @ApiProperty({ type: "string", required: false, nullable: true })
   @IsOptional()
@@ -226,7 +246,6 @@ export class Registration extends Entity {
       ...json,
       ...this.parseBoolean("travelReimbursement", json.travelReimbursement),
       ...this.parseBoolean("driving", json.driving),
-      ...this.parseBoolean("age", json.age),
       ...this.parseBoolean("mlhCoc", json.mlhCoc),
       ...this.parseBoolean("mlhDcp", json.mlhDcp),
       ...this.parseBoolean("shareAddressMlh", json.shareAddressMlh),
