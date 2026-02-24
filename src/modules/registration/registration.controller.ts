@@ -213,7 +213,6 @@ export class RegistrationController {
       const activeHackathonName = await Hackathon.query().findOne({ active: true }).select("name").first();
       const user = await this.userRepo.findOne(userId).exec();
       if (
-        user &&
         process.env.RUNTIME_INSTANCE &&
         process.env.RUNTIME_INSTANCE === "production"
       ) {
