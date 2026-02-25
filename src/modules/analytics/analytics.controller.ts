@@ -216,10 +216,10 @@ export class AnalyticsController {
   }
 
   @Get("/applications")
-  @Roles(Role.NONE)
+  @Roles(Role.TEAM)
   @ApiDoc({
     summary: "Get application metrics for each event",
-    auth: Role.NONE,
+    auth: Role.TEAM,
     response: {
       ok: { type: AnalyticsApplicationsResponse },
     },
