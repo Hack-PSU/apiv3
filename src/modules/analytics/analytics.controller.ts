@@ -2,6 +2,7 @@ import { Controller, Get } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
 import { Hackathon } from "entities/hackathon.entity";
 import { User } from "entities/user.entity";
+import { Scan } from "entities/scan.entity";
 import { Registration } from "entities/registration.entity";
 import {
   ApiExtraModels,
@@ -47,6 +48,22 @@ class CodingExpCounts extends CountsResponse {
   codingExperience: string;
 }
 
+class AnalyticsApplicationsResponse {
+  @ApiProperty()
+  attendanceRate: number;
+
+  @ApiProperty()
+  confirmRate: number;
+
+  @ApiProperty()
+  averageConfirmTime: number;
+
+  @ApiProperty()
+  acceptanceTotal: number;
+
+  @ApiProperty()
+  acceptanceRate: number;
+}
 class AnalyticsSummaryResponse {
   @ApiProperty({ type: [RegistrationCounts] })
   registrations: RegistrationCounts[];
@@ -97,6 +114,8 @@ export class AnalyticsController {
     private readonly registrationRepo: Repository<Registration>,
     @InjectRepository(Event)
     private readonly eventRepo: Repository<Event>,
+    @InjectRepository(Scan)
+    private readonly scanRepo: Repository<Scan>,
   ) {}
 
   @Get("/summary")
@@ -193,5 +212,62 @@ export class AnalyticsController {
         "=",
         this.hackathonRepo.findAll().raw().where("active", true).select("id"),
       );
+  }
+
+  @Get("/applications")
+  @Roles(Role.TEAM)
+  @ApiDoc({
+    summary: "Get application metrics for each event",
+    auth: Role.TEAM,
+    response: {
+      ok: { type: AnalyticsApplicationsResponse },
+    },
+  })
+  async getApplicationAnalytics() {
+    // Get the total count of applicants for the active hackathon
+    const totalApplicants = await this.registrationRepo
+      .findAll()
+      .byHackathon()
+      .count("id", { as: "count" })
+      .first();
+
+    // Get application statuses and rsvp for the current hackathon
+    const applications = await this.registrationRepo
+      .findAll()
+      .byHackathon()
+      .select(
+        "user_id",
+        "application_status",
+        "accepted_at",
+        "rsvp_at",
+        "rsvp_deadline"
+      );
+
+    // Get all the confirmed, declined, accpted applicants
+    const confirmedApplicants = applications.filter(app => app.applicationStatus === "confirmed");
+    const declinedApplicants = applications.filter(app => app.applicationStatus === "declined");
+    const acceptedApplicants = applications.filter(app => app.applicationStatus === "accepted");
+    
+    // Total is all 3 added together
+    const totalAccepted = confirmedApplicants.length + declinedApplicants.length + acceptedApplicants.length;
+
+    // Filter all users that have confirmed and scanned in with checkIn
+    const confirmedAndScannedApplicants = await this.scanRepo
+      .findAll()
+      .byHackathon()
+      .joinRelated("event")
+      .whereIn("user_id", confirmedApplicants.map(app => app.userId))
+      .where("event.type", "checkIn")
+      .groupBy("user_id")
+      .select("user_id");
+
+    // Calculate metrics; (average confirm time in nanoseconds)
+    return {
+      attendanceRate: confirmedAndScannedApplicants.length / confirmedApplicants.length,
+      confirmRate: confirmedApplicants.length / totalAccepted,
+      averageConfirmTime: confirmedApplicants.reduce((acc, app) => acc + (app.rsvpAt - app.acceptedAt), 0) / confirmedApplicants.length,
+      acceptanceTotal: totalAccepted,
+      acceptanceRate: totalAccepted / totalApplicants.count,
+    };
   }
 }
