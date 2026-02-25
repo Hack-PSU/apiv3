@@ -152,6 +152,13 @@ export class FinanceController {
     if (finance.submitterType === SubmitterType.USER) {
       const user = await this.userRepo.findOne(finance.submitterId).exec();
       if (!user) throw new NotFoundException("User not found");
+      
+      // Prevent users from Penn State Main Campus from submitting reimbursements
+      if (user.university === "The Pennsylvania State University - Main Campus") {
+        throw new BadRequestException(
+          "Users from The Pennsylvania State University - Main Campus are not eligible for reimbursement",
+        );
+      }
     } else if (finance.submitterType === SubmitterType.ORGANIZER) {
       const organizer = await this.organizerRepo
         .findOne(finance.submitterId)
