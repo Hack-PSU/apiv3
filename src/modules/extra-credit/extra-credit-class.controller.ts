@@ -5,6 +5,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  NotFoundException,
   Param,
   ParseIntPipe,
   Patch,
@@ -28,6 +29,14 @@ import {
 import { Role, Roles } from "common/gcp";
 import { ApiDoc } from "common/docs";
 import { DBExceptionFilter } from "common/filters";
+
+
+import { ref } from "objection";
+import { User, UserEntity } from "entities/user.entity";
+import { Scan } from "entities/scan.entity";
+import { Team } from "entities/team.entity";
+import { Requirements } from "entities/extra-credit-class.entity";
+
 
 class ECClassCreateEntity extends OmitType(ExtraCreditClass, ["id"] as const) {}
 
@@ -201,5 +210,69 @@ export class ExtraCreditClassController {
   })
   async deleteOne(@Param("id") id: number) {
     return this.ecClassRepo.deleteOne(id).exec();
+  }
+
+
+@Get(":id/list")
+  @Roles(Role.TEAM)
+  @ApiDoc({
+    summary: "Get a list of qualified users for an Extra Credit Class",
+    params: [
+      {
+        name: "id",
+        description: "ID must be set to a class's ID",
+      },
+    ],
+    response: {
+      ok: { type: [UserEntity] },
+    },
+    auth: Role.TEAM,
+  })
+  async getQualifiedList(@Param("id", ParseIntPipe) id: number) {
+    const ecClass = await this.ecClassRepo.findOne(id).exec();
+    
+    if (!ecClass) {
+      throw new NotFoundException("Extra credit class not found");
+    }
+
+    const qb = User.query()
+      .select("users.id", "users.firstName", "users.lastName", "users.email")
+      .joinRelated("extraCreditClasses")
+      .where("extraCreditClasses.id", id);
+
+    if (ecClass.requirement === Requirements.CHECK_IN) {
+      qb.whereExists(
+        Scan.query()
+          .join("events", "events.id", "scans.eventId")
+          .where("events.name", "Check-in")
+          .where("scans.userId", ref("users.id"))
+      );
+    }
+    
+    else if (ecClass.requirement === Requirements.SUBMIT) {
+      qb.whereExists(
+        Team.query()
+          .where(function () {
+            this.where("teams.member1", ref("users.id"))
+              .orWhere("teams.member2", ref("users.id"))
+              .orWhere("teams.member3", ref("users.id"))
+              .orWhere("teams.member4", ref("users.id"))
+              .orWhere("teams.member5", ref("users.id"));
+          })
+          .join("projects", "projects.teamId", "teams.id")
+      );
+    }
+    
+    else if (ecClass.requirement === Requirements.EXPO) {
+      qb.whereExists(
+        Scan.query()
+          .join("events", "events.id", "scans.eventId")
+          .where("events.name", "Judging Expo")
+          .where("scans.userId", ref("users.id"))
+      );
+    }
+    // else case is if the requirement is other in which they dont need any proof 
+
+    return qb;
   }
 }
