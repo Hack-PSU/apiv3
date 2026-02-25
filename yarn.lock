@@ -3303,13 +3303,13 @@ class-transformer@^0.5.1:
   integrity sha512-SQa1Ws6hUbfC98vKGxZH3KFY0Y1lm5Zm0SY8XX9zbK7FJCyVEac3ATW0RIpwzW+oOfmHE5PMPufDG9hCfoEOMw==
 
 class-validator@^0.14.1:
-  version "0.14.3"
-  resolved "https://registry.yarnpkg.com/class-validator/-/class-validator-0.14.3.tgz#834a4caafa8359aed73d7708badb4cf271be50fe"
-  integrity sha512-rXXekcjofVN1LTOSw+u4u9WXVEUvNBVjORW154q/IdmYWy1nMbOU9aNtZB0t8m+FJQ9q91jlr2f9CwwUFdFMRA==
+  version "0.14.4"
+  resolved "https://registry.yarnpkg.com/class-validator/-/class-validator-0.14.4.tgz#d0084ae847a96264ad5158451a4e66c1c544de96"
+  integrity sha512-AwNusCCam51q703dW82x95tOqQp6oC9HNUl724KxJJOfnKscI8dOloXFgyez7LbTTKWuRBA37FScqVbJEoq8Yw==
   dependencies:
     "@types/validator" "^13.15.3"
     libphonenumber-js "^1.11.1"
-    validator "^13.15.20"
+    validator "^13.15.22"
 
 clean-css@^4.2.1:
   version "4.2.4"
@@ -5719,9 +5719,9 @@ levn@^0.4.1:
     type-check "~0.4.0"
 
 libphonenumber-js@^1.11.1:
-  version "1.12.29"
-  resolved "https://registry.yarnpkg.com/libphonenumber-js/-/libphonenumber-js-1.12.29.tgz#1de335eff8f7c8b9e7467bb510aab1e123c09ef5"
-  integrity sha512-P2aLrbeqHbmh8+9P35LXQfXOKc7XJ0ymUKl7tyeyQjdRNfzunXWxQXGc4yl3fUf28fqLRfPY+vIVvFXK7KEBTw==
+  version "1.12.37"
+  resolved "https://registry.yarnpkg.com/libphonenumber-js/-/libphonenumber-js-1.12.37.tgz#a60e3f14ce79f5df4c9a16bede3608d3eab37a5f"
+  integrity sha512-rDU6bkpuMs8YRt/UpkuYEAsYSoNuDEbrE41I3KNvmXREGH6DGBJ8Wbak4by29wNOQ27zk4g4HL82zf0OGhwRuw==
 
 limiter@^1.1.5:
   version "1.1.5"
@@ -8109,10 +8109,10 @@ valid-data-url@^3.0.0:
   resolved "https://registry.yarnpkg.com/valid-data-url/-/valid-data-url-3.0.1.tgz#826c1744e71b5632e847dd15dbd45b9fb38aa34f"
   integrity sha512-jOWVmzVceKlVVdwjNSenT4PbGghU0SBIizAev8ofZVgivk/TVHXSbNL8LP6M3spZvkR9/QolkyJavGSX5Cs0UA==
 
-validator@^13.15.20:
-  version "13.15.23"
-  resolved "https://registry.yarnpkg.com/validator/-/validator-13.15.23.tgz#59a874f84e4594588e3409ab1edbe64e96d0c62d"
-  integrity sha512-4yoz1kEWqUjzi5zsPbAS/903QXSYp0UOtHsPpp7p9rHAw/W+dkInskAE386Fat3oKRROwO98d9ZB0G4cObgUyw==
+validator@^13.15.22:
+  version "13.15.26"
+  resolved "https://registry.yarnpkg.com/validator/-/validator-13.15.26.tgz#36c3deeab30e97806a658728a155c66fcaa5b944"
+  integrity sha512-spH26xU080ydGggxRyR1Yhcbgx+j3y5jbNXk/8L+iRvdIEQ4uTRH2Sgf2dokud6Q4oAtsbNvJ1Ft+9xmm6IZcA==
 
 vary@^1, vary@^1.1.2:
   version "1.1.2"
