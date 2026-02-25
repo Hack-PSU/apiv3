@@ -187,7 +187,5 @@ export class LocationController {
   async deleteOne(@Param("id", ParseIntPipe) id: number) {
     const location = await this.locationRepo.deleteOne(id).exec();
     this.socket.emit("delete:location", location);
-
-    return location;
   }
 }
