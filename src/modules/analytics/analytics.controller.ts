@@ -2,7 +2,7 @@ import { Controller, Get, Query } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
 import { Hackathon } from "entities/hackathon.entity";
 import { User } from "entities/user.entity";
-import { Scan } from "entities/scan.entity";
+import { Scan, ScanEntity } from "entities/scan.entity";
 import { Registration } from "entities/registration.entity";
 import {
   ApiExtraModels,
@@ -14,8 +14,6 @@ import { ApiDoc } from "common/docs";
 import { Role, Roles } from "common/gcp";
 import { Organizer, OrganizerEntity } from "entities/organizer.entity";
 import { Event, EventEntity } from "entities/event.entity";
-
-import { Scan, ScanEntity } from "entities/scan.entity";
 import { ApiQuery } from "@nestjs/swagger";
 
 class CountsResponse {
@@ -255,6 +253,7 @@ export class AnalyticsController {
       timestamps: scans.map((scan) => scan.timestamp),
     };
   }
+  
   @Get("/applications")
   @Roles(Role.TEAM)
   @ApiDoc({
