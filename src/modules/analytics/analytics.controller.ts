@@ -1,4 +1,4 @@
-import { Controller, Get } from "@nestjs/common";
+import { Controller, Get, Query } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
 import { Hackathon } from "entities/hackathon.entity";
 import { User } from "entities/user.entity";
@@ -13,6 +13,9 @@ import { ApiDoc } from "common/docs";
 import { Role, Roles } from "common/gcp";
 import { Organizer, OrganizerEntity } from "entities/organizer.entity";
 import { Event, EventEntity } from "entities/event.entity";
+
+import { Scan, ScanEntity } from "entities/scan.entity";
+import { ApiQuery } from "@nestjs/swagger";
 
 class CountsResponse {
   @ApiProperty()
@@ -84,7 +87,7 @@ class AnalyticsEventsResponse extends PickType(EventEntity, [
 
 @ApiTags("Analytics")
 @Controller("analytics")
-@ApiExtraModels(AnalyticsSummaryResponse)
+@ApiExtraModels(AnalyticsSummaryResponse, ScanEntity)
 export class AnalyticsController {
   constructor(
     @InjectRepository(Hackathon)
@@ -97,6 +100,8 @@ export class AnalyticsController {
     private readonly registrationRepo: Repository<Registration>,
     @InjectRepository(Event)
     private readonly eventRepo: Repository<Event>,
+    @InjectRepository(Scan)
+    private readonly scanRepo: Repository<Scan>,
   ) {}
 
   @Get("/summary")
@@ -193,5 +198,26 @@ export class AnalyticsController {
         "=",
         this.hackathonRepo.findAll().raw().where("active", true).select("id"),
       );
+  }
+
+  @Get("/check-ins")
+  @Roles(Role.TEAM)
+  @ApiQuery({
+    name: "hackathonId",
+    required: true,
+    type: String,
+    description: "The hackathon ID to fetch check-ins for",
+  })
+  @ApiDoc({
+    summary: "All check‑in scan entries for a hackathon",
+    auth: Role.TEAM,
+    response: { ok: { type: [ScanEntity] } },
+  })
+  async getCheckIns(@Query("hackathonId") hackathonId: string) {
+    return this.scanRepo
+      .findAll()
+      .raw()
+      .where("hackathonId", "=", hackathonId)
+      .orderBy("timestamp");
   }
 }
