@@ -85,6 +85,11 @@ class AnalyticsEventsResponse extends PickType(EventEntity, [
   count: number;
 }
 
+class CheckInsResponse {
+  @ApiProperty({ type: [String] })
+  timestamps: string[];
+}
+
 @ApiTags("Analytics")
 @Controller("analytics")
 @ApiExtraModels(AnalyticsSummaryResponse, ScanEntity)
@@ -211,13 +216,26 @@ export class AnalyticsController {
   @ApiDoc({
     summary: "All check‑in scan entries for a hackathon",
     auth: Role.TEAM,
-    response: { ok: { type: [ScanEntity] } },
+    response: { ok: { type: CheckInsResponse } },
   })
   async getCheckIns(@Query("hackathonId") hackathonId: string) {
-    return this.scanRepo
+    const checkInId = await this.eventRepo
+      .findAll()
+      .raw()
+      .where("hackathonId", hackathonId)
+      .where("type", "checkIn")
+      .select("id");
+
+    const scans = await this.scanRepo
       .findAll()
       .raw()
       .where("hackathonId", "=", hackathonId)
-      .orderBy("timestamp");
+      .where("eventId", "=", checkInId[0].id)
+      .orderBy("timestamp")
+      .select("timestamp");
+
+    return {
+      timestamps: scans.map((scan) => scan.timestamp),
+    };
   }
 }
