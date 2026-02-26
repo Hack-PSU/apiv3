@@ -152,6 +152,13 @@ export class FinanceController {
     if (finance.submitterType === SubmitterType.USER) {
       const user = await this.userRepo.findOne(finance.submitterId).exec();
       if (!user) throw new NotFoundException("User not found");
+      
+      // Prevent users from Penn State Main Campus from submitting reimbursements
+      if (user.university === "The Pennsylvania State University - Main Campus") {
+        throw new BadRequestException(
+          "Users from The Pennsylvania State University - Main Campus are not eligible for reimbursement",
+        );
+      }
     } else if (finance.submitterType === SubmitterType.ORGANIZER) {
       const organizer = await this.organizerRepo
         .findOne(finance.submitterId)
@@ -261,6 +268,12 @@ export class FinanceController {
     }
 
     if (updatedFinance.status === Status.APPROVED) {
+      let address1 = updatedFinance.street;
+      let address2 = `${updatedFinance.city}, ${updatedFinance.state} ${updatedFinance.postalCode}`
+      if (updatedFinance.submitterType === SubmitterType.ORGANIZER) {
+        address1 = "";
+        address2 = "";
+      }
       const formData: ReimbursementForm = {
         unrestricted30: true,
         orgAcct: 1657,
@@ -269,8 +282,8 @@ export class FinanceController {
         total: updatedFinance.amount,
         organization: "HackPSU",
         payeeName: payee,
-        mailingAddress1: updatedFinance.street,
-        mailingAddress2: `${updatedFinance.city}, ${updatedFinance.state} ${updatedFinance.postalCode}`,
+        mailingAddress1: address1,
+        mailingAddress2: address2,
         email: "finance@hackpsu.org",
         description1: updatedFinance.description,
         objectCode1: CategoryMap[updatedFinance.category],

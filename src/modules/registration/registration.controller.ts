@@ -1,19 +1,29 @@
 import { Controller, Get, Patch, Query, Param, Body, ValidationPipe, NotFoundException } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
+import { Hackathon } from "entities/hackathon.entity";
 import { Registration, RegistrationEntity, ApplicationStatus } from "entities/registration.entity";
+import { RegistrationWithScoreDto } from "./dto/registration-with-score.dto";
+import { UpdateStatusDto } from "./dto/update-status.dto";
 import { ApiProperty, ApiTags } from "@nestjs/swagger";
 import { Role, Roles } from "common/gcp";
 import { ApiDoc } from "common/docs";
-import { IsBoolean, IsEnum, IsOptional } from "class-validator";
+import { ArrayMinSize, IsArray, IsBoolean, IsEnum, IsOptional, IsString } from "class-validator";
 import { Transform } from "class-transformer";
+import { User } from "entities/user.entity";
+import { ApplicantScore } from "entities/applicant-score.entity";
+import { SendGridService, DefaultTemplate, DefaultFromEmail } from "common/sendgrid";
 
+class UpdateStatusBulkDto {
+  @ApiProperty({ type: [String] })
+  @IsArray()
+  @IsString({ each: true })
+  @ArrayMinSize(1) // Must be updating at least one user
+  userIds: string[];
 
-class UpdateStatusDto {
   @ApiProperty({ enum: ApplicationStatus })
   @IsEnum(ApplicationStatus)
   status: ApplicationStatus;
 }
-
 
 class ActiveRegistrationParams {
   @ApiProperty()
@@ -38,7 +48,88 @@ export class RegistrationController {
   constructor(
     @InjectRepository(Registration)
     private readonly registrationRepo: Repository<Registration>,
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
+    @InjectRepository(ApplicantScore)
+    private readonly applicantScoreRepo: Repository<ApplicantScore>,
+    @InjectRepository(Hackathon)
+    private readonly hackathonRepo: Repository<Hackathon>,
+    private readonly sendGridService: SendGridService,
   ) {}
+
+  @Get("/scores/psu")
+  @Roles(Role.TEAM)
+  @ApiDoc({
+    summary: "Get Penn State Registrations with Applicant Scores",
+    auth: Role.TEAM,
+    response: {
+      ok: { type: [RegistrationWithScoreDto] },
+    },
+  })
+  async getPennStateRegistrationsWithScores() {
+    const activeHackathon = await this.hackathonRepo
+      .findAll()
+      .raw()
+      .where("active", true)
+      .first();
+
+    if (!activeHackathon) {
+      throw new NotFoundException("No active hackathon found");
+    }
+
+    const result = await Registration.query()
+      .where("registrations.hackathonId", activeHackathon.id)
+      .joinRelated("user")
+      .where("user.university", "The Pennsylvania State University - Main Campus")
+      .leftJoinRelated("applicantScore")
+      .select(
+        "registrations.*",
+        "applicantScore.mu",
+        "applicantScore.sigmaSquared",
+        "applicantScore.prioritized",
+        "user.firstName",
+        "user.lastName"
+      );
+
+    return result;
+  }
+
+  @Get("/scores/other")
+  @Roles(Role.TEAM)
+  @ApiDoc({
+    summary: "Get Other Registrations with Applicant Scores",
+    auth: Role.TEAM,
+    response: {
+      ok: { type: [RegistrationWithScoreDto] },
+    },
+  })
+  async getOtherRegistrationsWithScores() {
+    const activeHackathon = await this.hackathonRepo
+      .findAll()
+      .raw()
+      .where("active", true)
+      .first();
+
+    if (!activeHackathon) {
+      throw new NotFoundException("No active hackathon found");
+    }
+
+    const result = await Registration.query()
+      .where("registrations.hackathonId", activeHackathon.id)
+      .joinRelated("user")
+      .whereNot("user.university", "The Pennsylvania State University - Main Campus")
+      .leftJoinRelated("applicantScore")
+      .select(
+        "registrations.*",
+        "applicantScore.mu",
+        "applicantScore.sigmaSquared",
+        "applicantScore.prioritized",
+        "user.firstName",
+        "user.lastName"
+      );
+
+    return result;
+  }
 
   @Get("/")
   @Roles(Role.TEAM)
@@ -69,10 +160,10 @@ export class RegistrationController {
   }
 
   @Patch("/:userId/application-status")
-  @Roles(Role.TEAM)
+  @Roles(Role.EXEC)
   @ApiDoc({
     summary: "Update Application Status",
-    auth: Role.TEAM,
+    auth: Role.EXEC,
     params: [
       {
         name: "userId",
@@ -93,26 +184,236 @@ export class RegistrationController {
       .byHackathon()
       .where("userId", userId)
       .first();
-
     if (!registration) {
       throw new NotFoundException(`Registration for user ${userId} not found`);
     }
+    const currentStatus = await this.registrationRepo
+      .findAll()
+      .byHackathon()
+      .where("userId", userId)
+      .select("applicationStatus")
+      .first();
 
     const updateData: Partial<Registration> = {
-      application_status: body.status,
+      applicationStatus: body.status,
+    };
+
+    if (body.status === ApplicationStatus.ACCEPTED) {
+      if (currentStatus.applicationStatus !== ApplicationStatus.PENDING) {
+        throw new Error(
+          `Cannot change application status to accepted from ${currentStatus.applicationStatus}`,
+        );
+      }
+      const now = new Date();
+      const oneWeekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+      updateData.acceptedAt = now.getTime();
+      updateData.rsvpDeadline = oneWeekFromNow.getTime();
+
+      const activeHackathonName = await Hackathon.query().findOne({ active: true }).select("name").first();
+      const user = await this.userRepo.findOne(userId).exec();
+      if (
+        process.env.RUNTIME_INSTANCE &&
+        process.env.RUNTIME_INSTANCE === "production"
+      ) {
+        const message = await this.sendGridService.populateTemplate(
+          DefaultTemplate.participantAccepted,
+          {
+            previewText: `You've been accepted to HackPSU ${activeHackathonName.name}!`,
+            date: "March 28-29, 2026",
+            address: "ECore Building, University Park PA",
+            firstName: user.firstName,
+            hackathon: activeHackathonName.name,
+          },
+        );
+
+        await this.sendGridService.send({
+          from: DefaultFromEmail,
+          to: user.email,
+          subject: `ACTION REQUIRED: RSVP for HackPSU ${activeHackathonName.name}!`,
+          message,
+        });
+      }
+    }
+
+    if(body.status == ApplicationStatus.REJECTED) {
+      if (currentStatus.applicationStatus !== ApplicationStatus.PENDING) {
+        throw new Error(
+          `Cannot change application status to rejected from ${currentStatus.applicationStatus}`,
+        );
+      }
+      if (
+      process.env.RUNTIME_INSTANCE &&
+      process.env.RUNTIME_INSTANCE === "production"
+      ){
+
+        const user = await this.userRepo.findOne(userId).exec();
+        const activeHackathonName = await Hackathon.query().findOne({ active: true }).select("name").first();
+        if (user) {
+          try {
+            const message = await this.sendGridService.populateTemplate(
+              DefaultTemplate.participantRejected,
+              {
+                firstName: user.firstName,
+                hackathon: activeHackathonName.name
+              },
+            );
+
+            await this.sendGridService.send({
+              from: DefaultFromEmail,
+              to: user.email,
+              subject: "Update regarding your HackPSU application",
+              message,
+            });
+          } catch (error) {
+            console.error(`Failed to send rejection email to ${user.email}:`, error);
+          }
+        }
+      }
+
+    }
+
+    if(body.status === ApplicationStatus.CONFIRMED || body.status === ApplicationStatus.DECLINED) {
+      if (currentStatus.applicationStatus !== ApplicationStatus.ACCEPTED) {
+        throw new Error(
+          `Cannot change application status to ${body.status} from ${currentStatus.applicationStatus}`,
+        );
+      }
+      updateData.rsvpAt = new Date().getTime();
+    }
+    await Registration.query()
+      .where("userId", registration.userId)
+      .where("hackathonId", registration.hackathonId)
+      .patch(updateData);
+
+    return Registration.query()
+      .where("userId", registration.userId)
+      .where("hackathonId", registration.hackathonId)
+      .first();
+  }
+
+  @Patch("/application-status-bulk")
+  @Roles(Role.EXEC)
+  @ApiDoc({
+    summary: "Bulk Update Application Status",
+    auth: Role.EXEC,
+    response: {
+      ok: { type: [RegistrationEntity] },
+    },
+  })
+  async updateApplicationStatusBulk(
+    @Body(new ValidationPipe()) body: UpdateStatusBulkDto
+  ) {
+
+    const registrations = await this.registrationRepo
+      .findAll()
+      .byHackathon()
+      .whereIn("userId", body.userIds);
+
+    if (registrations.length !== body.userIds.length) {
+      throw new NotFoundException(
+        `Not all registrations could be retrieved. Expected ${body.userIds.length}, found ${registrations.length}.`
+      );
+    }
+
+    if (registrations.some(reg => reg.applicationStatus !== ApplicationStatus.PENDING)) {
+      throw new Error(
+        `All registrations must be in pending status to update to ${body.status}.`
+      );
+    }
+
+    const updateData: Partial<Registration> = {
+      applicationStatus: body.status,
     };
 
     if (body.status === ApplicationStatus.ACCEPTED) {
       const now = new Date();
       const oneWeekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
-      updateData.accepted_at = now;
-      updateData.rsvp_deadline = oneWeekFromNow;
+      updateData.acceptedAt = now.getTime();
+      updateData.rsvpDeadline = oneWeekFromNow.getTime();
+
+      const activeHackathonName = await Hackathon.query().findOne({ active: true }).select("name").first();
+      const users = await this.userRepo.findAll().byHackathon().whereIn("userId", body.userIds);
+      if (
+        process.env.RUNTIME_INSTANCE &&
+        process.env.RUNTIME_INSTANCE === "production"
+      ) {
+        // Build all emails in parallel
+        const emails = await Promise.all(
+          users.map(async (user) => {
+            const message = await this.sendGridService.populateTemplate(
+              DefaultTemplate.participantAccepted,
+              {
+                previewText: `You've been accepted to HackPSU ${activeHackathonName.name}!`,
+                date: "March 28-29, 2026",
+                address: "ECore Building, University Park PA",
+                firstName: user.firstName,
+                hackathon: activeHackathonName.name,
+              },
+            );
+
+            return {
+              from: DefaultFromEmail,
+              to: user.email,
+              subject: `ACTION REQUIRED: RSVP for HackPSU ${activeHackathonName.name}!`,
+              message,
+            };
+          })
+        );
+
+        // Send all emails in batch
+        await this.sendGridService.sendBatch(emails);
+      }
     }
 
-    await registration.$query().patch(updateData);
+    if(body.status == ApplicationStatus.REJECTED) {
 
-    return registration.$query();
+      if (
+      process.env.RUNTIME_INSTANCE &&
+      process.env.RUNTIME_INSTANCE === "production"
+      ){
+
+        const users = await this.userRepo.findAll().byHackathon().whereIn("userId", body.userIds);
+        const activeHackathonName = await Hackathon.query().findOne({ active: true }).select("name").first();
+        if (users.length == body.userIds.length) {
+          try {
+            // Build all emails in parallel
+            const emails = await Promise.all(
+              users.map(async (user) => {
+                const message = await this.sendGridService.populateTemplate(
+                  DefaultTemplate.participantRejected,
+                  {
+                    firstName: user.firstName,
+                    hackathon: activeHackathonName.name
+                  },
+                );
+
+                return {
+                  from: DefaultFromEmail,
+                  to: user.email,
+                  subject: "Update regarding your HackPSU application",
+                  message,
+                };
+              })
+            );
+
+            // Send all emails in batch
+            await this.sendGridService.sendBatch(emails);
+          } catch (error) {
+            console.error("Failed to send rejection emails to %s:", body.userIds, error);
+          }
+        }
+      }
+    }
+    
+    // Get the ids from registration
+    const userIds = registrations.map(reg => reg.userId);
+
+    // Perform a batch patch update
+    await this.registrationRepo.findAll().byHackathon().whereIn("userId", userIds).patch(updateData);
+
+    return this.registrationRepo.findAll().byHackathon().whereIn("userId", userIds);
   }
-
 }
+ 

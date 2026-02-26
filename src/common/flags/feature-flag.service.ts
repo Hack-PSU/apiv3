@@ -16,6 +16,7 @@ export class FeatureFlagService {
         id: doc.id,
         name: data.name,
         isEnabled: data.isEnabled,
+        description: data.description,
       };
     });
   }

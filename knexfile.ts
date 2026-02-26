@@ -6,7 +6,7 @@ const config: { [key: string]: Knex.Config } = {
   staging: {
     client: "mysql",
     connection: {
-      database: "prod",
+      database: "staging",
       host: "127.0.0.1",
       user: "",
       password: "",
@@ -24,8 +24,8 @@ const config: { [key: string]: Knex.Config } = {
   production: {
     client: "mysql",
     connection: {
-      database: "production",
-      user: "apiv3_production",
+      database: "prod",
+      user: "",
       password: "",
     },
     pool: {

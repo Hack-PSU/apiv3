@@ -5,6 +5,8 @@ import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString } from "class-validat
 import { Type } from "class-transformer";
 import Objection from "objection";
 import { Hackathon } from "entities/hackathon.entity";
+import { User } from "entities/user.entity";
+import { ApplicantScore } from "entities/applicant-score.entity";
 
 
 export enum ApplicationStatus {
@@ -25,6 +27,24 @@ export enum ApplicationStatus {
         "hackathonId",
         Hackathon.query().select("id").where("active", true),
       ),
+  },
+  relationMappings: {
+    user: {
+      relation: Entity.BelongsToOneRelation,
+      modelClass: User,
+      join: {
+        from: "registrations.userId",
+        to: "users.id",
+      },
+    },
+    applicantScore: {
+      relation: Entity.BelongsToOneRelation,
+      modelClass: ApplicantScore,
+      join: {
+        from: ["registrations.userId", "registrations.hackathonId"],
+        to: ["applicant_scores.userId", "applicant_scores.hackathonId"],
+      },
+    },
   },
 })
 export class Registration extends Entity {
@@ -169,51 +189,51 @@ export class Registration extends Entity {
   @IsOptional()
   @IsString()
   @Column({ type: "string", required: false, nullable: true })
-  zip_code?: string;
+  zipCode?: string;
 
   @ApiProperty({ type: "number", required: false, nullable: true })
   @IsOptional()
   @IsNumber()
   @Column({ type: "number", required: false, nullable: true })
-  travel_cost?: number;
+  travelCost?: number;
 
   @ApiProperty({ type: "string", required: false, nullable: true })
   @IsOptional()
   @IsString()
   @Column({ type: "string", required: false, nullable: true })
-  travel_method?: string;
+  travelMethod?: string;
 
   @ApiProperty({ type: "string", required: false, nullable: true })
   @IsOptional()
   @IsString()
   @Column({ type: "string", required: false, nullable: true })
-  travel_additional?: string;
+  travelAdditional?: string;
 
   @ApiProperty({ enum: ApplicationStatus, default: ApplicationStatus.PENDING })
   @IsEnum(ApplicationStatus)
   @Column({ type: "string" })
-  application_status: ApplicationStatus = ApplicationStatus.PENDING;
+  applicationStatus: ApplicationStatus = ApplicationStatus.PENDING;
 
   @ApiProperty({ required: false, nullable: true })
   @IsOptional()
-  @Column({ type: "string", required: false, nullable: true })
-  accepted_at?: Date;
+  @Column({ type: "integer", required: false, nullable: true })
+  acceptedAt?: number;
 
   @ApiProperty({ required: false, nullable: true })
   @IsOptional()
-  @Column({ type: "string", required: false, nullable: true })
-  rsvp_deadline?: Date;
+  @Column({ type: "integer", required: false, nullable: true })
+  rsvpDeadline?: number;
 
   @ApiProperty({ required: false, nullable: true })
   @IsOptional()
-  @Column({ type: "string", required: false, nullable: true })
-  rsvp_at?: Date;
+  @Column({ type: "integer", required: false, nullable: true })
+  rsvpAt?: number;
   
   @ApiProperty({ type: "string", required: false, nullable: true })
   @IsOptional()
   @IsString()
   @Column({ type: "string", required: false, nullable: true })
-  accepted_by?: string;
+  acceptedBy?: string;
   
   private parseBoolean(name: string, field?: number) {
     return field !== undefined ? { [name]: field === 1 } : {};
@@ -226,7 +246,6 @@ export class Registration extends Entity {
       ...json,
       ...this.parseBoolean("travelReimbursement", json.travelReimbursement),
       ...this.parseBoolean("driving", json.driving),
-      ...this.parseBoolean("age", json.age),
       ...this.parseBoolean("mlhCoc", json.mlhCoc),
       ...this.parseBoolean("mlhDcp", json.mlhDcp),
       ...this.parseBoolean("shareAddressMlh", json.shareAddressMlh),
@@ -259,13 +278,13 @@ export class RegistrationEntity extends PickType(Registration, [
   "time",
   "veteran",
   "excitement",
-  "zip_code",
-  "travel_cost",
-  "travel_method",
-  "travel_additional",
-  "application_status",
-  "accepted_at",
-  "rsvp_deadline",
-  "rsvp_at",
-  "accepted_by",
+  "zipCode",
+  "travelCost",
+  "travelMethod",
+  "travelAdditional",
+  "applicationStatus",
+  "acceptedAt",
+  "rsvpDeadline",
+  "rsvpAt",
+  "acceptedBy",
 ] as const) {}
