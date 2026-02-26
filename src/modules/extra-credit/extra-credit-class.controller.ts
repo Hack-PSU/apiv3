@@ -58,6 +58,11 @@ export class ECClassResponse extends ExtraCreditClassEntity {
   users: ECClassAssignedUser[];
 }
 
+class QualifiedListResponse {
+  @ApiProperty({ type: [String] })
+  names: string[];
+}
+
 @ApiTags("Extra Credit")
 @Controller("extra-credit/classes")
 @UseFilters(DBExceptionFilter)
@@ -213,7 +218,7 @@ export class ExtraCreditClassController {
   }
 
 
-@Get(":id/list")
+@Get("list/:id")
   @Roles(Role.TEAM)
   @ApiDoc({
     summary: "Get a list of qualified users for an Extra Credit Class",
@@ -224,7 +229,7 @@ export class ExtraCreditClassController {
       },
     ],
     response: {
-      ok: { type: [UserEntity] },
+      ok: { type: QualifiedListResponse },
     },
     auth: Role.TEAM,
   })
@@ -236,7 +241,7 @@ export class ExtraCreditClassController {
     }
 
     const qb = User.query()
-      .select("users.id", "users.firstName", "users.lastName", "users.email")
+      .select("users.firstName", "users.lastName")
       .joinRelated("extraCreditClasses")
       .where("extraCreditClasses.id", id);
 
@@ -271,8 +276,12 @@ export class ExtraCreditClassController {
           .where("scans.userId", ref("users.id"))
       );
     }
-    // else case is if the requirement is other in which they dont need any proof 
-
-    return qb;
+    // else case is if the requirement is other, in which they have special requirements
+    // that cannot be determined by the system.
+    
+    const users = await qb;
+    const names = users.map(user => `${user.lastName}, ${user.firstName}`);
+    
+    return { names };
   }
 }
