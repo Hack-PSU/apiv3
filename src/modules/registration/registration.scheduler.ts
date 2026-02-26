@@ -40,56 +40,61 @@ export class RegistrationScheduler {
     this.logger.log(`Found ${expiredRegistrations.length} expired registrations`);
 
     // Update all to declined
-    await Registration.query()
-      .whereIn('id', expiredRegistrations.map(r => r.id))
-      .patch({
-        applicationStatus: ApplicationStatus.DECLINED,
-      });
+    await Promise.all(
+      expiredRegistrations.map(reg =>
+        Registration.query()
+          .where({ userId: reg.userId, hackathonId: reg.hackathonId })
+          .patch({
+            applicationStatus: ApplicationStatus.DECLINED,
+          })
+      )
+    );
 
-    // Send notification emails (optional)
-    // if (
-    //   process.env.RUNTIME_INSTANCE === 'production'
-    // ) {
-    //   await this.sendExpirationNotifications(expiredRegistrations);
-    // }
+    if (
+      process.env.RUNTIME_INSTANCE &&
+      process.env.RUNTIME_INSTANCE === 'production'
+    ) {
+      await this.sendExpirationNotifications(expiredRegistrations);
+    }
 
     this.logger.log(`Successfully expired ${expiredRegistrations.length} registrations`);
   }
 
-  // private async sendExpirationNotifications(registrations: Registration[]) {
-  //   const activeHackathon = await this.hackathonRepo
-  //     .findAll()
-  //     .raw()
-  //     .where('active', true)
-  //     .first();
+  private async sendExpirationNotifications(registrations: Registration[]) {
+    const activeHackathon = await this.hackathonRepo
+      .findAll()
+      .raw()
+      .where('active', true)
+      .first();
 
-  //   if (!activeHackathon) return;
+    if (!activeHackathon) return;
 
-  //   const emails = await Promise.all(
-  //     registrations.map(async (reg) => {
-  //       const user = await this.userRepo.findOne(reg.userId).exec();
-  //       if (!user) return null;
+    const emails = await Promise.all(
+      registrations.map(async (reg) => {
+        const user = await this.userRepo.findOne(reg.userId).exec();
+        if (!user) return null;
+        
+        const message = await this.sendGridService.populateTemplate(
+          DefaultTemplate.participantExpired,
+          {
+            previewText: `Your RSVP for HackPSU ${activeHackathon.name} has expired`,
+            firstName: user.firstName,
+            hackathon: activeHackathon.name,
+          },
+        );
 
-  //       const message = await this.sendGridService.populateTemplate(
-  //         DefaultTemplate.participantExpired, // You'd need to create this template
-  //         {
-  //           firstName: user.firstName,
-  //           hackathon: activeHackathon.name,
-  //         },
-  //       );
+        return {
+          from: DefaultFromEmail,
+          to: user.email,
+          subject: `Your HackPSU ${activeHackathon.name} RSVP has expired`,
+          message,
+        };
+      })
+    );
 
-  //       return {
-  //         from: DefaultFromEmail,
-  //         to: user.email,
-  //         subject: `Your HackPSU ${activeHackathon.name} RSVP has expired`,
-  //         message,
-  //       };
-  //     })
-  //   );
-
-  //   const validEmails = emails.filter(Boolean);
-  //   if (validEmails.length > 0) {
-  //     await this.sendGridService.sendBatch(validEmails);
-  //   }
-  // }
+    const validEmails = emails.filter(Boolean);
+    if (validEmails.length > 0) {
+      await this.sendGridService.sendBatch(validEmails);
+    }
+  }
 }
