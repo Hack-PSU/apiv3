@@ -5,6 +5,7 @@ import { Registration, ApplicationStatus } from 'entities/registration.entity';
 import { User } from 'entities/user.entity';
 import { SendGridService, DefaultTemplate, DefaultFromEmail } from 'common/sendgrid';
 import { Hackathon } from 'entities/hackathon.entity';
+import { Finance } from 'entities/finance.entity';
 
 @Injectable()
 export class RegistrationScheduler {
@@ -17,6 +18,8 @@ export class RegistrationScheduler {
     private readonly userRepo: Repository<User>,
     @InjectRepository(Hackathon)
     private readonly hackathonRepo: Repository<Hackathon>,
+    @InjectRepository(Finance)
+    private readonly financeRepo: Repository<Finance>,
     private readonly sendGridService: SendGridService,
   ) {}
 
@@ -96,5 +99,48 @@ export class RegistrationScheduler {
     if (validEmails.length > 0) {
       await this.sendGridService.sendBatch(validEmails);
     }
+  }
+
+  // Adjust the cron expression to whatever frequency we need
+  @Cron(CronExpression.EVERY_DAY_AT_10AM)
+  async sendReimbursementReminder() {
+    /* Sends an email to finance team running every hour or so to check if createdAt is 4 days old */
+    this.logger.log('Checking for reimbursement requests created 4 days ago...');
+
+    const fourDaysAgo = new Date(Date.now() - 4 * 24 * 60 * 60 * 1000);
+    
+    // Find all reimbursement requests created 4 days ago
+    const datedReimbursementRequests = await this.financeRepo.findAll()
+      .byHackathon()
+      .where('status', "PENDING")
+      .where('createdAt', '<', fourDaysAgo);
+
+    if (datedReimbursementRequests.length === 0) {
+      this.logger.log('No dated reimbursement requests found');
+      return;
+    }
+
+    this.logger.log(`Found ${datedReimbursementRequests.length} dated reimbursement requests`);
+    
+    // Send an email to the finance team
+    await this.sendReimbursementReminderEmail(datedReimbursementRequests);
+  }
+
+  private async sendReimbursementReminderEmail(datedReimbursementRequests: Finance[]) {
+    // Send an email to finance team, finance@hackpsu.org
+    const message = await this.sendGridService.populateTemplate(
+      DefaultTemplate.reimbursementReminder,
+      {
+        previewText: `${datedReimbursementRequests.length} reimbursement requests created 4 days ago`,
+        count: datedReimbursementRequests.length,
+      },
+    );
+
+    await this.sendGridService.send({
+      from: DefaultFromEmail,
+      to: "finance@hackpsu.org",
+      subject: "Reimbursement Requests Reminder",
+      message,
+    });
   }
 }
