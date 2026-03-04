@@ -15,5 +15,6 @@ export enum DefaultTemplate {
   reimbursementRejected = "reimbursement-rejected",
   reimbursementFormCompleted = "reimbursement-form-completed",
   organizerReject = "organizer-reject",
-  organizerReject2 = "organizer-reject-2"
+  organizerReject2 = "organizer-reject-2",
+  reimbursementRequest= "reimbursement-request"
 }
