@@ -211,7 +211,7 @@ export class FinanceController {
     response: {
       ok: { type: FinanceEntity },
     },
-    auth: Role.FINANCE,
+    auth: Role.TECH,
   })
   async updateStatus(
     @Param("id") id: string,
@@ -389,7 +389,7 @@ export class FinanceController {
   }
 
   @Patch(":id")
-  @Roles(Role.FINANCE)
+  @Roles(Role.TECH)
   @ApiDoc({
     summary: "Edit a reimbursement (everything but status & receipt)",
     params: [{ name: "id", description: "Valid reimbursement ID" }],
