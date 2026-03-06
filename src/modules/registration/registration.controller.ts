@@ -160,10 +160,10 @@ export class RegistrationController {
   }
 
   @Patch("/:userId/application-status")
-  @Roles(Role.NONE)
+  @Roles(Role.EXEC)
   @ApiDoc({
     summary: "Update Application Status",
-    auth: Role.NONE,
+    auth: Role.EXEC,
     params: [
       {
         name: "userId",
@@ -293,10 +293,10 @@ export class RegistrationController {
   }
 
   @Patch("/application-status-bulk")
-  @Roles(Role.NONE)
+  @Roles(Role.EXEC)
   @ApiDoc({
     summary: "Bulk Update Application Status",
-    auth: Role.NONE,
+    auth: Role.EXEC,
     response: {
       ok: { type: [RegistrationEntity] },
     },

@@ -43,6 +43,7 @@ import gotifyConfig from "common/gotify/gotify.config";
 import { OrganizerApplicationModule } from "modules/organizer-application/organizer-application.module";
 import { ApiKeyModule } from "modules/api-key/api-key.module";
 import { ApplicantScoreModule } from "modules/applicant-score/applicant-score.module";
+import { ScheduleModule } from '@nestjs/schedule';
 @Module({
   imports: [
     // Configs
@@ -124,7 +125,10 @@ import { ApplicantScoreModule } from "modules/applicant-score/applicant-score.mo
     // Gotify & Notifications
     GotifyModule,
     NotificationSchedulerModule,
-    ApplicantScoreModule
+    ApplicantScoreModule,
+
+    // Cron Jobs
+    ScheduleModule.forRoot()
   ],
 })
 export class AppModule {}

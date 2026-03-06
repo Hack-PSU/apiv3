@@ -9,10 +9,13 @@ export enum DefaultTemplate {
   registration = "registration",
   participantAccepted = "participant-accepted",
   participantRejected = "participant-rejected",
+  participantExpired = "participant-expired",
   organizerFirstLogin = "organizer-first-login",
   reimbursementApproved = "reimbursement-approved",
   reimbursementRejected = "reimbursement-rejected",
+  reimbursementReminder = "reimbursement-reminder",
   reimbursementFormCompleted = "reimbursement-form-completed",
   organizerReject = "organizer-reject",
-  organizerReject2 = "organizer-reject-2"
+  organizerReject2 = "organizer-reject-2",
+  reimbursementRequest= "reimbursement-request"
 }
