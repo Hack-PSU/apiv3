@@ -21,6 +21,34 @@ class CountsResponse {
   count: number;
 }
 
+enum Allergen {
+    PEANUT = "PEANUT",
+    TREE_NUT = "TREE_NUT",
+    DAIRY = "DAIRY",
+    SHELLFISH = "SHELLFISH",
+    GLUTEN = "GLUTEN",
+    EGG = "EGG",
+    MEAT = "MEAT",
+    SOY = "SOY",
+    FISH = "FISH",
+    SESAME = "SESAME",
+    OTHER = "OTHER",
+}
+
+const allergenKeywords: Record<Allergen, string[]> = {
+  [Allergen.PEANUT]: ["peanut", "peanuts"],
+  [Allergen.TREE_NUT]: ["almond", "walnut", "cashew", "pecan"],
+  [Allergen.DAIRY]: ["dairy", "milk", "lactose"],
+  [Allergen.EGG]: ["egg", "eggs"],
+  [Allergen.SHELLFISH]: ["shrimp", "crab", "lobster", "shellfish"],
+  [Allergen.FISH]: ["fish"],
+  [Allergen.MEAT]: ["meat", "beef", "pork", "chicken", "turkey"],
+  [Allergen.GLUTEN]: ["gluten", "wheat"],
+  [Allergen.SOY]: ["soy"],
+  [Allergen.SESAME]: ["sesame"],
+  [Allergen.OTHER]: []
+};
+
 class RegistrationCounts extends CountsResponse {
   @ApiProperty()
   id: string;
@@ -47,6 +75,11 @@ class AcademicYearCounts extends CountsResponse {
 class CodingExpCounts extends CountsResponse {
   @ApiProperty()
   codingExperience: string;
+}
+
+class AllergenCounts extends CountsResponse {
+  @ApiProperty()
+  allergen: Allergen;
 }
 
 class AnalyticsApplicationsResponse {
@@ -80,6 +113,9 @@ class AnalyticsSummaryResponse {
 
   @ApiProperty({ type: [CodingExpCounts] })
   codingExp: CodingExpCounts[];
+
+  @ApiProperty({ type: [AllergenCounts] })
+  allergens: AllergenCounts[];
 }
 
 class AnalyticsScansResponse extends PickType(OrganizerEntity, [
@@ -109,6 +145,48 @@ class CheckInsResponse {
 @Controller("analytics")
 @ApiExtraModels(AnalyticsSummaryResponse, ScanEntity)
 export class AnalyticsController {
+  private parseAllergens(
+    allergyEntries: { allergies: string }[],
+  ): AllergenCounts[] {
+    const allergenCounts: Record<Allergen, number> = {
+      [Allergen.PEANUT]: 0,
+      [Allergen.TREE_NUT]: 0,
+      [Allergen.DAIRY]: 0,
+      [Allergen.SHELLFISH]: 0,
+      [Allergen.GLUTEN]: 0,
+      [Allergen.EGG]: 0,
+      [Allergen.MEAT]: 0,
+      [Allergen.SOY]: 0,
+      [Allergen.FISH]: 0,
+      [Allergen.SESAME]: 0,
+      [Allergen.OTHER]: 0,
+    };
+
+    for (const entry of allergyEntries) {
+      const allergyText = entry.allergies.toLowerCase();
+      let matched = false;
+
+      // Check each allergen category against the keywords
+      for (const [allergen, keywords] of Object.entries(allergenKeywords)) {
+        if (keywords.some((keyword) => allergyText.includes(keyword))) {
+          allergenCounts[allergen as Allergen]++;
+          matched = true;
+          break;
+        }
+      }
+
+      // If no keywords matched, count as OTHER
+      if (!matched) {
+        allergenCounts[Allergen.OTHER]++;
+      }
+    }
+
+    // Convert counts object to array format
+    return Object.entries(allergenCounts).map(([allergen, count]) => ({
+      allergen: allergen as Allergen,
+      count,
+    }));
+  }
   constructor(
     @InjectRepository(Hackathon)
     private readonly hackathonRepo: Repository<Hackathon>,
@@ -125,10 +203,10 @@ export class AnalyticsController {
   ) {}
 
   @Get("/summary")
-  @Roles(Role.TEAM)
+  @Roles(Role.NONE)
   @ApiDoc({
     summary: "Get analytics summary for current hackathon",
-    auth: Role.TEAM,
+    auth: Role.NONE,
     response: {
       ok: { type: AnalyticsSummaryResponse },
     },
@@ -174,12 +252,21 @@ export class AnalyticsController {
       .groupBy("codingExperience")
       .select("codingExperience");
 
+    const activeAllergies = await this.userRepo
+      .findAll()
+      .byHackathon()
+      .where("allergies", "!=", "")
+      .select("allergies");
+
+    const allergenCounts = this.parseAllergens(activeAllergies);
+
     return {
       registrations: registrationCountsByHackathon,
       gender: activeGenderCounts,
       race: activeRaceEthnicityCounts,
       academicYear: activeAcademicYearCounts,
       codingExp: activeCodingExpCounts,
+      allergens: allergenCounts,
     };
   }
 
