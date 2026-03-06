@@ -7,6 +7,9 @@ FROM node:24-alpine AS dev
 # Create app directory
 WORKDIR /app
 
+# Install build dependencies for native modules (canvas, etc.)
+RUN apk add --no-cache python3 make g++ cairo-dev jpeg-dev pango-dev giflib-dev
+
 # Copy dependencies
 COPY package.json ./
 COPY yarn.lock ./
@@ -26,6 +29,9 @@ USER node
 FROM node:24-alpine AS build
 
 WORKDIR /app
+
+# Install build dependencies for native modules (canvas, etc.)
+RUN apk add --no-cache python3 make g++ cairo-dev jpeg-dev pango-dev giflib-dev
 
 COPY package.json ./
 COPY yarn.lock ./
