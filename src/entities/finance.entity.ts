@@ -8,9 +8,11 @@ import {
   IsNotEmpty,
   Length,
   IsPostalCode,
+  IsBoolean,
 } from "class-validator";
 import { Entity } from "entities/base.entity";
 import { ID, Column, Table } from "common/objection";
+import { Type } from "class-transformer";
 
 export enum Status {
   PENDING = "PENDING",
@@ -350,6 +352,12 @@ export class Finance extends Entity {
   @IsPostalCode("US", { message: "Postal code must be a valid US postal code" })
   @Column({ type: "string" })
   postalCode: string;
+
+  @ApiProperty({ description: "Checks whether 4 day reminder was already sent", default: false })
+  @IsBoolean()
+  @Type(() => Boolean)
+  @Column({ type: "boolean" })
+  reminderSent = false;
 }
 
 export class FinanceEntity extends PickType(Finance, [
@@ -368,4 +376,5 @@ export class FinanceEntity extends PickType(Finance, [
   "city",
   "state",
   "postalCode",
+  "reminderSent",
 ] as const) {}

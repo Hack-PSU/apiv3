@@ -8,8 +8,8 @@ const config: { [key: string]: Knex.Config } = {
     connection: {
       database: "staging",
       host: "127.0.0.1",
-      user: "",
-      password: "",
+      user: "joeboppell",
+      password: '/Fx"5=a#^562%S?n',
     },
     pool: {
       min: 2,
