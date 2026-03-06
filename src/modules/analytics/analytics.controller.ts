@@ -15,9 +15,35 @@ import { Role, Roles } from "common/gcp";
 import { Organizer, OrganizerEntity } from "entities/organizer.entity";
 import { Event, EventEntity } from "entities/event.entity";
 import { ApiQuery } from "@nestjs/swagger";
+import * as fs from "fs";
+import * as path from "path";
+import * as os from "os";
+import { Readable } from "stream";
 
 const PDFDocument = require("pdfkit");
 const { ChartJSNodeCanvas } = require("chartjs-node-canvas");
+
+// Helper to save canvas to PNG file
+async function saveCanvasToPNG(canvas: any, filepath: string): Promise<void> {
+  try {
+    // Try to get buffer from canvas - different canvas implementations have different APIs
+    let buffer: Buffer;
+    
+    if (typeof canvas.toBuffer === 'function') {
+      buffer = canvas.toBuffer('image/png');
+    } else if (canvas && typeof canvas.toBuffer === 'function') {
+      buffer = canvas.toBuffer();
+    } else if (canvas.canvas && typeof canvas.canvas.toBuffer === 'function') {
+      buffer = canvas.canvas.toBuffer('image/png');
+    } else {
+      throw new Error(`Canvas object has no toBuffer method. Available methods: ${Object.getOwnPropertyNames(Object.getPrototypeOf(canvas)).join(', ')}`);
+    }
+    
+    fs.writeFileSync(filepath, buffer);
+  } catch (error) {
+    throw new Error(`Failed to save canvas to PNG: ${error.message}`);
+  }
+}
 
 class CountsResponse {
   @ApiProperty()
@@ -454,11 +480,11 @@ export class AnalyticsController {
           },
         };
 
-        const genderImage = await chartJSNodeCanvas.drawChart(genderChartConfig);
-        doc.image(genderImage, {
-          width: 350,
-          align: "center",
-        });
+        const genderImagePath = path.join(os.tmpdir(), "gender-chart.png");
+        const genderCanvas = await chartJSNodeCanvas.renderChart(genderChartConfig);
+        await saveCanvasToPNG(genderCanvas, genderImagePath);
+        doc.image(genderImagePath, { width: 350 });
+        fs.unlinkSync(genderImagePath);
         doc.moveDown(1.5);
       }
 
@@ -512,11 +538,11 @@ export class AnalyticsController {
           },
         };
 
-        const raceImage = await chartJSNodeCanvas.drawChart(raceChartConfig);
-        doc.image(raceImage, {
-          width: 350,
-          align: "center",
-        });
+        const raceImagePath = path.join(os.tmpdir(), "race-chart.png");
+        const raceCanvas = await chartJSNodeCanvas.renderChart(raceChartConfig);
+        await saveCanvasToPNG(raceCanvas, raceImagePath);
+        doc.image(raceImagePath, { width: 350 });
+        fs.unlinkSync(raceImagePath);
         doc.moveDown(1.5);
       }
 
@@ -562,13 +588,11 @@ export class AnalyticsController {
           },
         };
 
-        const academicYearImage = await chartJSNodeCanvas.drawChart(
-          academicYearChartConfig
-        );
-        doc.image(academicYearImage, {
-          width: 350,
-          align: "center",
-        });
+        const academicYearImagePath = path.join(os.tmpdir(), "academic-year-chart.png");
+        const academicYearCanvas = await chartJSNodeCanvas.renderChart(academicYearChartConfig);
+        await saveCanvasToPNG(academicYearCanvas, academicYearImagePath);
+        doc.image(academicYearImagePath, { width: 350 });
+        fs.unlinkSync(academicYearImagePath);
         doc.moveDown(1.5);
       }
 
@@ -614,13 +638,11 @@ export class AnalyticsController {
           },
         };
 
-        const codingExpImage = await chartJSNodeCanvas.drawChart(
-          codingExpChartConfig
-        );
-        doc.image(codingExpImage, {
-          width: 350,
-          align: "center",
-        });
+        const codingExpImagePath = path.join(os.tmpdir(), "coding-exp-chart.png");
+        const codingExpCanvas = await chartJSNodeCanvas.renderChart(codingExpChartConfig);
+        await saveCanvasToPNG(codingExpCanvas, codingExpImagePath);
+        doc.image(codingExpImagePath, { width: 350 });
+        fs.unlinkSync(codingExpImagePath);
       }
 
       // Finalize PDF
