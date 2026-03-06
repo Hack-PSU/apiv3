@@ -51,17 +51,17 @@ class CountsResponse {
 }
 
 enum Allergen {
-    PEANUT = "PEANUT",
-    TREE_NUT = "TREE_NUT",
-    DAIRY = "DAIRY",
-    SHELLFISH = "SHELLFISH",
-    GLUTEN = "GLUTEN",
-    EGG = "EGG",
-    MEAT = "MEAT",
-    SOY = "SOY",
-    FISH = "FISH",
-    SESAME = "SESAME",
-    OTHER = "OTHER",
+    PEANUT = "Peanut",
+    TREE_NUT = "Tree Nut",
+    DAIRY = "Dairy",
+    SHELLFISH = "Shellfish",
+    GLUTEN = "Gluten",
+    EGG = "Egg",
+    MEAT = "Meat",
+    SOY = "Soy",
+    FISH = "Fish",
+    SESAME = "Sesame",
+    OTHER = "Other",
 }
 
 const allergenKeywords: Record<Allergen, string[]> = {
