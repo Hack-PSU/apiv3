@@ -313,6 +313,16 @@ export class Finance extends Entity {
   createdAt: number;
 
   @ApiProperty({
+    description: "Timestamp when the record was last updated in milliseconds",
+    example: 1620000000000,
+    required: false,
+  })
+  @IsNumber()
+  @IsOptional()
+  @Column({ type: "integer" })
+  updatedAt?: number;
+
+  @ApiProperty({
     description: "ID of the user who last updated the record",
     example: "user123",
     required: false,
@@ -363,6 +373,7 @@ export class FinanceEntity extends PickType(Finance, [
   "description",
   "category",
   "createdAt",
+  "updatedAt",
   "updatedBy",
   "street",
   "city",
