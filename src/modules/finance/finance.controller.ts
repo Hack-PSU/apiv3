@@ -37,7 +37,7 @@ import { nanoid } from "nanoid";
 import { FinanceService } from "./finance.service";
 import { UploadedReceipt } from "./uploaded-receipt.decorator";
 import { ReimbursementForm, ReimbursementFormName } from "./reimbursement-form";
-import { DefaultTemplate, SendGridService } from "common/sendgrid";
+import { DefaultTemplate, SendGridService, DefaultFromEmail } from "common/sendgrid";
 
 class BaseFinanceCreateEntity extends OmitType(FinanceEntity, [
   "id",
@@ -148,6 +148,9 @@ export class FinanceController {
     finance: FinanceCreateEntity,
     @UploadedReceipt() receipt?: Express.Multer.File,
   ): Promise<Finance> {
+
+    let submitterName = "";
+
     // Validate submitter
     if (finance.submitterType === SubmitterType.USER) {
       const user = await this.userRepo.findOne(finance.submitterId).exec();
@@ -159,11 +162,13 @@ export class FinanceController {
           "Users from The Pennsylvania State University - Main Campus are not eligible for reimbursement",
         );
       }
+      submitterName = `${user.firstName} ${user.lastName}`;
     } else if (finance.submitterType === SubmitterType.ORGANIZER) {
       const organizer = await this.organizerRepo
         .findOne(finance.submitterId)
         .exec();
       if (!organizer) throw new NotFoundException("Organizer not found");
+      submitterName = `${organizer.firstName} ${organizer.lastName}`;
     } else {
       throw new BadRequestException("Invalid submitter type");
     }
@@ -191,11 +196,35 @@ export class FinanceController {
       ...finance,
     };
 
-    return this.financeRepo.createOne(newFinance).exec();
+  const createdRecord = await this.financeRepo.createOne(newFinance).exec();
+
+    // send notification email to the finance team
+    try {
+      const requestMessage = await this.sendGridService.populateTemplate(
+        DefaultTemplate.reimbursementRequest,
+        {
+          name: submitterName,
+          amount: finance.amount,
+          description: finance.description,
+        },
+      );
+
+      await this.sendGridService.send({
+        from: DefaultFromEmail, 
+        to: "finance@hackpsu.org",
+        subject: "New Reimbursement Request Submitted",
+        message: requestMessage,
+      });
+    } catch (err) {
+      console.error("Failed to send reimbursement request notification email", err);
+    }
+
+    return createdRecord;
   }
 
+
   @Patch(":id/status")
-  @Roles(Role.TECH) // TODO: Change to Role.FINANCE after testing
+  @Roles(Role.TECH) 
   @ApiDoc({
     summary: "Update a Reimbursement's status",
     params: [
@@ -211,7 +240,7 @@ export class FinanceController {
     response: {
       ok: { type: FinanceEntity },
     },
-    auth: Role.FINANCE,
+    auth: Role.TECH,
   })
   async updateStatus(
     @Param("id") id: string,
@@ -236,11 +265,14 @@ export class FinanceController {
     }
     if (statusData.status) {
       finance.status = statusData.status;
+      finance.updatedAt = Date.now(); 
     }
-
     let updatedFinance: Finance;
     try {
-      updatedFinance = await this.financeRepo.patchOne(id, finance).exec();
+      updatedFinance = await this.financeRepo.patchOne(id, {
+      status: finance.status,
+      updatedAt: finance.updatedAt
+    }).exec();
     } catch (err) {
       console.error("PatchOne threw an error:", err);
       throw new InternalServerErrorException("Failed to update record");

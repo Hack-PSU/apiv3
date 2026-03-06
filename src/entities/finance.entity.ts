@@ -8,9 +8,11 @@ import {
   IsNotEmpty,
   Length,
   IsPostalCode,
+  IsBoolean,
 } from "class-validator";
 import { Entity } from "entities/base.entity";
 import { ID, Column, Table } from "common/objection";
+import { Type } from "class-transformer";
 
 export enum Status {
   PENDING = "PENDING",
@@ -313,6 +315,16 @@ export class Finance extends Entity {
   createdAt: number;
 
   @ApiProperty({
+    description: "Timestamp when the record was last updated in milliseconds",
+    example: 1620000000000,
+    required: false,
+  })
+  @IsNumber()
+  @IsOptional()
+  @Column({ type: "integer" })
+  updatedAt?: number;
+
+  @ApiProperty({
     description: "ID of the user who last updated the record",
     example: "user123",
     required: false,
@@ -350,6 +362,12 @@ export class Finance extends Entity {
   @IsPostalCode("US", { message: "Postal code must be a valid US postal code" })
   @Column({ type: "string" })
   postalCode: string;
+
+  @ApiProperty({ description: "Checks whether 4 day reminder was already sent", default: false })
+  @IsBoolean()
+  @Type(() => Boolean)
+  @Column({ type: "boolean" })
+  reminderSent = false;
 }
 
 export class FinanceEntity extends PickType(Finance, [
@@ -363,9 +381,11 @@ export class FinanceEntity extends PickType(Finance, [
   "description",
   "category",
   "createdAt",
+  "updatedAt",
   "updatedBy",
   "street",
   "city",
   "state",
   "postalCode",
+  "reminderSent",
 ] as const) {}
