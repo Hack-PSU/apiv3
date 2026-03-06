@@ -195,7 +195,7 @@ export class FinanceController {
   }
 
   @Patch(":id/status")
-  @Roles(Role.TECH) // TODO: Change to Role.FINANCE after testing
+  @Roles(Role.TECH) 
   @ApiDoc({
     summary: "Update a Reimbursement's status",
     params: [
@@ -236,11 +236,14 @@ export class FinanceController {
     }
     if (statusData.status) {
       finance.status = statusData.status;
+      finance.updatedAt = Date.now(); 
     }
-
     let updatedFinance: Finance;
     try {
-      updatedFinance = await this.financeRepo.patchOne(id, finance).exec();
+      updatedFinance = await this.financeRepo.patchOne(id, {
+      status: finance.status,
+      updatedAt: finance.updatedAt
+    }).exec();
     } catch (err) {
       console.error("PatchOne threw an error:", err);
       throw new InternalServerErrorException("Failed to update record");
@@ -386,7 +389,7 @@ export class FinanceController {
   }
 
   @Patch(":id")
-  @Roles(Role.TECH)
+  @Roles(Role.FINANCE)
   @ApiDoc({
     summary: "Edit a reimbursement (everything but status & receipt)",
     params: [{ name: "id", description: "Valid reimbursement ID" }],
