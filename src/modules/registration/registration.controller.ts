@@ -160,10 +160,10 @@ export class RegistrationController {
   }
 
   @Patch("/:userId/application-status")
-  @Roles(Role.EXEC)
+  @Roles(Role.NONE)
   @ApiDoc({
     summary: "Update Application Status",
-    auth: Role.EXEC,
+    auth: Role.NONE,
     params: [
       {
         name: "userId",
