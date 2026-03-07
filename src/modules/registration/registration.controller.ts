@@ -348,7 +348,7 @@ export class RegistrationController {
                 previewText: `You've been accepted to HackPSU ${activeHackathonName.name}!`,
                 date: "March 28-29, 2026",
                 address: "ECore Building, University Park PA",
-                firstName: user.firstName,
+                firstName: "",
                 hackathon: activeHackathonName.name,
               },
             );
