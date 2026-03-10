@@ -384,7 +384,7 @@ export class RegistrationController {
                 const message = await this.sendGridService.populateTemplate(
                   DefaultTemplate.participantRejected,
                   {
-                    firstName: user.firstName,
+                    firstName: "",
                     hackathon: activeHackathonName.name
                   },
                 );
