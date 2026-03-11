@@ -100,7 +100,7 @@ export class RegistrationScheduler {
     }
   }
 
-  @Cron(CronExpression.EVERY_30_SECONDS)
+  @Cron(CronExpression.EVERY_HOUR)
   async handleRsvpReminders() {
     this.logger.log('Checking for upcoming RSVP deadlines...');
     const now = Date.now();
