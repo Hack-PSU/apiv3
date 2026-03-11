@@ -234,6 +234,18 @@ export class Registration extends Entity {
   @IsString()
   @Column({ type: "string", required: false, nullable: true })
   acceptedBy?: string;
+
+  @ApiProperty({ required: false, nullable: true })
+  @IsBoolean()
+  @Type(() => Boolean)
+  @Column({ type: "boolean", required: false, nullable: true })
+  threeDayReminderSent: boolean = false;
+
+  @ApiProperty({ required: false, nullable: true })
+  @IsBoolean()
+  @Type(() => Boolean)
+  @Column({ type: "boolean", required: false, nullable: true })
+  oneDayReminderSent: boolean = false;
   
   private parseBoolean(name: string, field?: number) {
     return field !== undefined ? { [name]: field === 1 } : {};
@@ -287,4 +299,6 @@ export class RegistrationEntity extends PickType(Registration, [
   "rsvpDeadline",
   "rsvpAt",
   "acceptedBy",
+  "threeDayReminderSent",
+  "oneDayReminderSent",
 ] as const) {}
