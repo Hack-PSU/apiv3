@@ -321,7 +321,7 @@ export class Finance extends Entity {
   })
   @IsNumber()
   @IsOptional()
-  @Column({ type: "integer" })
+  @Column({ type: "integer", required: false })
   updatedAt?: number;
 
   @ApiProperty({
