@@ -80,7 +80,7 @@ export class RegistrationScheduler {
           DefaultTemplate.participantExpired,
           {
             previewText: `Your RSVP for HackPSU ${activeHackathon.name} has expired`,
-            firstName: user.firstName,
+            firstName: "",
             hackathon: activeHackathon.name,
           },
         );
