@@ -44,6 +44,7 @@ class BaseFinanceCreateEntity extends OmitType(FinanceEntity, [
   "createdAt",
   "hackathonId",
   "updatedBy",
+  "updatedAt",
   "receiptUrl",
   "status",
 ]) {}
@@ -449,8 +450,28 @@ export class FinanceController {
 
     Object.assign(finance, updates);
     finance.updatedBy = req.user.sub;
+    finance.updatedAt = Date.now();
+    
+    // Only update allowed fields to prevent database column mismatches
+    const updateData = {
+      amount: updates.amount,
+      description: updates.description,
+      category: updates.category,
+      street: updates.street,
+      city: updates.city,
+      state: updates.state,
+      postalCode: updates.postalCode,
+      updatedBy: finance.updatedBy,
+      updatedAt: finance.updatedAt,
+    };
+    
+    // Remove undefined fields
+    Object.keys(updateData).forEach(
+      (key) => updateData[key] === undefined && delete updateData[key],
+    );
+    
     try {
-      return await this.financeRepo.patchOne(id, finance).exec();
+      return await this.financeRepo.patchOne(id, updateData).exec();
     } catch (err) {
       console.error("Error updating reimbursement", err);
       throw new InternalServerErrorException("Failed to update record");
