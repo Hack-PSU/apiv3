@@ -247,6 +247,32 @@ export class HackathonController {
     };
   }
 
+  @Get("/active/static")
+  @ApiDoc({
+    summary: "Get Active Hackathon For Static",
+    response: {
+      ok: { type: StaticActiveHackathonEntity },
+    },
+  })
+  async getForStatic() {
+    return Hackathon.query()
+      .findOne({ active: true })
+      .withGraphFetched("[events.location, sponsors]");
+  }
+
+  @Get("/active")
+  @Roles(Role.NONE)
+  @ApiDoc({
+    summary: "Get Active Hackathon",
+    response: {
+      ok: { type: HackathonResponse },
+    },
+    auth: Role.NONE,
+  })
+  async getActive() {
+    return await Hackathon.query().findOne({ active: true });
+  }
+
   @Get(":id")
   @Roles(Role.TEAM)
   @ApiDoc({
@@ -389,17 +415,5 @@ export class HackathonController {
 
     return hackathon;
   }
-
-  @Get("/active/static")
-  @ApiDoc({
-    summary: "Get Active Hackathon For Static",
-    response: {
-      ok: { type: StaticActiveHackathonEntity },
-    },
-  })
-  async getForStatic() {
-    return Hackathon.query()
-      .findOne({ active: true })
-      .withGraphFetched("[events.location, sponsors]");
-  }
 }
+
