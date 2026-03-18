@@ -55,7 +55,12 @@ export class DistributedCronExplorer implements OnModuleInit {
 
           const job = CronJob.from({
             cronTime,
-            onTick: () => this.lockService.withLock(lockName, () => boundMethod(), lockTtlMs),
+            onTick: () => {
+              this.lockService.withLock(lockName, () => boundMethod(), lockTtlMs)
+                .catch((error) => {
+                  this.logger.error(`Cron job "${lockName}" failed:`, error);
+                });
+            },
             start: false,
             ...cronOptions,
           });

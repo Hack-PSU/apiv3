@@ -38,7 +38,10 @@ export class DistributedLockService {
 
       return result.committed;
     } catch (error) {
-      this.logger.error(`Failed to acquire lock "${lockName}":`, error);
+      this.logger.error(
+        `RTDB unreachable - lock "${lockName}" could not be acquired. Job will NOT run. Check RTDB configuration.`,
+        error,
+      );
       return false;
     }
   }
