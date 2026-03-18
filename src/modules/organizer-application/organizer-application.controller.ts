@@ -51,7 +51,7 @@ export class OrganizerApplicationController {
     @InjectRepository(OrganizerApplication)
     private readonly applicationRepo: Repository<OrganizerApplication>,
     private readonly applicationService: OrganizerApplicationService,
-    private readonly sendGridService: SendGridService
+    private readonly sendGridService: SendGridService,
   ) {}
 
   @Post("/")
@@ -181,6 +181,10 @@ export class OrganizerApplicationController {
     @Param("id", ParseIntPipe) id: number,
     @Body(new ValidationPipe({ transform: true })) action: ApplicationActionDto,
   ): Promise<OrganizerApplication> {
-    return this.applicationService.rejectApplication(id, action.team, this.sendGridService);
+    return this.applicationService.rejectApplication(
+      id,
+      action.team,
+      this.sendGridService,
+    );
   }
 }

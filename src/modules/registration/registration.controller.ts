@@ -1,17 +1,41 @@
-import { Controller, Get, Patch, Query, Param, Body, ValidationPipe, NotFoundException } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  Patch,
+  Query,
+  Param,
+  Body,
+  ValidationPipe,
+  NotFoundException,
+} from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
 import { Hackathon } from "entities/hackathon.entity";
-import { Registration, RegistrationEntity, ApplicationStatus } from "entities/registration.entity";
+import {
+  Registration,
+  RegistrationEntity,
+  ApplicationStatus,
+} from "entities/registration.entity";
 import { RegistrationWithScoreDto } from "./dto/registration-with-score.dto";
 import { UpdateStatusDto } from "./dto/update-status.dto";
 import { ApiProperty, ApiTags } from "@nestjs/swagger";
 import { Role, Roles } from "common/gcp";
 import { ApiDoc } from "common/docs";
-import { ArrayMinSize, IsArray, IsBoolean, IsEnum, IsOptional, IsString } from "class-validator";
+import {
+  ArrayMinSize,
+  IsArray,
+  IsBoolean,
+  IsEnum,
+  IsOptional,
+  IsString,
+} from "class-validator";
 import { Transform } from "class-transformer";
 import { User } from "entities/user.entity";
 import { ApplicantScore } from "entities/applicant-score.entity";
-import { SendGridService, DefaultTemplate, DefaultFromEmail } from "common/sendgrid";
+import {
+  SendGridService,
+  DefaultTemplate,
+  DefaultFromEmail,
+} from "common/sendgrid";
 
 class UpdateStatusBulkDto {
   @ApiProperty({ type: [String] })
@@ -80,7 +104,10 @@ export class RegistrationController {
     const result = await Registration.query()
       .where("registrations.hackathonId", activeHackathon.id)
       .joinRelated("user")
-      .where("user.university", "The Pennsylvania State University - Main Campus")
+      .where(
+        "user.university",
+        "The Pennsylvania State University - Main Campus",
+      )
       .leftJoinRelated("applicantScore")
       .select(
         "registrations.*",
@@ -88,7 +115,7 @@ export class RegistrationController {
         "applicantScore.sigmaSquared",
         "applicantScore.prioritized",
         "user.firstName",
-        "user.lastName"
+        "user.lastName",
       );
 
     return result;
@@ -117,7 +144,10 @@ export class RegistrationController {
     const result = await Registration.query()
       .where("registrations.hackathonId", activeHackathon.id)
       .joinRelated("user")
-      .whereNot("user.university", "The Pennsylvania State University - Main Campus")
+      .whereNot(
+        "user.university",
+        "The Pennsylvania State University - Main Campus",
+      )
       .leftJoinRelated("applicantScore")
       .select(
         "registrations.*",
@@ -125,7 +155,7 @@ export class RegistrationController {
         "applicantScore.sigmaSquared",
         "applicantScore.prioritized",
         "user.firstName",
-        "user.lastName"
+        "user.lastName",
       );
 
     return result;
@@ -210,7 +240,10 @@ export class RegistrationController {
       updateData.acceptedAt = now.getTime();
       updateData.rsvpDeadline = oneWeekFromNow.getTime();
 
-      const activeHackathonName = await Hackathon.query().findOne({ active: true }).select("name").first();
+      const activeHackathonName = await Hackathon.query()
+        .findOne({ active: true })
+        .select("name")
+        .first();
       const user = await this.userRepo.findOne(userId).exec();
       if (
         process.env.RUNTIME_INSTANCE &&
@@ -236,26 +269,28 @@ export class RegistrationController {
       }
     }
 
-    if(body.status == ApplicationStatus.REJECTED) {
+    if (body.status == ApplicationStatus.REJECTED) {
       if (currentStatus.applicationStatus !== ApplicationStatus.PENDING) {
         throw new Error(
           `Cannot change application status to rejected from ${currentStatus.applicationStatus}`,
         );
       }
       if (
-      process.env.RUNTIME_INSTANCE &&
-      process.env.RUNTIME_INSTANCE === "production"
-      ){
-
+        process.env.RUNTIME_INSTANCE &&
+        process.env.RUNTIME_INSTANCE === "production"
+      ) {
         const user = await this.userRepo.findOne(userId).exec();
-        const activeHackathonName = await Hackathon.query().findOne({ active: true }).select("name").first();
+        const activeHackathonName = await Hackathon.query()
+          .findOne({ active: true })
+          .select("name")
+          .first();
         if (user) {
           try {
             const message = await this.sendGridService.populateTemplate(
               DefaultTemplate.participantRejected,
               {
                 firstName: user.firstName,
-                hackathon: activeHackathonName.name
+                hackathon: activeHackathonName.name,
               },
             );
 
@@ -266,14 +301,19 @@ export class RegistrationController {
               message,
             });
           } catch (error) {
-            console.error(`Failed to send rejection email to ${user.email}:`, error);
+            console.error(
+              `Failed to send rejection email to ${user.email}:`,
+              error,
+            );
           }
         }
       }
-
     }
 
-    if(body.status === ApplicationStatus.CONFIRMED || body.status === ApplicationStatus.DECLINED) {
+    if (
+      body.status === ApplicationStatus.CONFIRMED ||
+      body.status === ApplicationStatus.DECLINED
+    ) {
       if (currentStatus.applicationStatus !== ApplicationStatus.ACCEPTED) {
         throw new Error(
           `Cannot change application status to ${body.status} from ${currentStatus.applicationStatus}`,
@@ -302,9 +342,8 @@ export class RegistrationController {
     },
   })
   async updateApplicationStatusBulk(
-    @Body(new ValidationPipe()) body: UpdateStatusBulkDto
+    @Body(new ValidationPipe()) body: UpdateStatusBulkDto,
   ) {
-
     const registrations = await this.registrationRepo
       .findAll()
       .byHackathon()
@@ -312,13 +351,17 @@ export class RegistrationController {
 
     if (registrations.length !== body.userIds.length) {
       throw new NotFoundException(
-        `Not all registrations could be retrieved. Expected ${body.userIds.length}, found ${registrations.length}.`
+        `Not all registrations could be retrieved. Expected ${body.userIds.length}, found ${registrations.length}.`,
       );
     }
 
-    if (registrations.some(reg => reg.applicationStatus !== ApplicationStatus.PENDING)) {
+    if (
+      registrations.some(
+        (reg) => reg.applicationStatus !== ApplicationStatus.PENDING,
+      )
+    ) {
       throw new Error(
-        `All registrations must be in pending status to update to ${body.status}.`
+        `All registrations must be in pending status to update to ${body.status}.`,
       );
     }
 
@@ -333,8 +376,14 @@ export class RegistrationController {
       updateData.acceptedAt = now.getTime();
       updateData.rsvpDeadline = oneWeekFromNow.getTime();
 
-      const activeHackathonName = await Hackathon.query().findOne({ active: true }).select("name").first();
-      const users = await this.userRepo.findAll().byHackathon().whereIn("userId", body.userIds);
+      const activeHackathonName = await Hackathon.query()
+        .findOne({ active: true })
+        .select("name")
+        .first();
+      const users = await this.userRepo
+        .findAll()
+        .byHackathon()
+        .whereIn("userId", body.userIds);
       if (
         process.env.RUNTIME_INSTANCE &&
         process.env.RUNTIME_INSTANCE === "production"
@@ -359,7 +408,7 @@ export class RegistrationController {
               subject: `ACTION REQUIRED: RSVP for HackPSU ${activeHackathonName.name}!`,
               message,
             };
-          })
+          }),
         );
 
         // Send all emails in batch
@@ -367,15 +416,19 @@ export class RegistrationController {
       }
     }
 
-    if(body.status == ApplicationStatus.REJECTED) {
-
+    if (body.status == ApplicationStatus.REJECTED) {
       if (
-      process.env.RUNTIME_INSTANCE &&
-      process.env.RUNTIME_INSTANCE === "production"
-      ){
-
-        const users = await this.userRepo.findAll().byHackathon().whereIn("userId", body.userIds);
-        const activeHackathonName = await Hackathon.query().findOne({ active: true }).select("name").first();
+        process.env.RUNTIME_INSTANCE &&
+        process.env.RUNTIME_INSTANCE === "production"
+      ) {
+        const users = await this.userRepo
+          .findAll()
+          .byHackathon()
+          .whereIn("userId", body.userIds);
+        const activeHackathonName = await Hackathon.query()
+          .findOne({ active: true })
+          .select("name")
+          .first();
         if (users.length == body.userIds.length) {
           try {
             // Build all emails in parallel
@@ -385,7 +438,7 @@ export class RegistrationController {
                   DefaultTemplate.participantRejected,
                   {
                     firstName: "",
-                    hackathon: activeHackathonName.name
+                    hackathon: activeHackathonName.name,
                   },
                 );
 
@@ -395,25 +448,35 @@ export class RegistrationController {
                   subject: "Update regarding your HackPSU application",
                   message,
                 };
-              })
+              }),
             );
 
             // Send all emails in batch
             await this.sendGridService.sendBatch(emails);
           } catch (error) {
-            console.error("Failed to send rejection emails to %s:", body.userIds, error);
+            console.error(
+              "Failed to send rejection emails to %s:",
+              body.userIds,
+              error,
+            );
           }
         }
       }
     }
-    
+
     // Get the ids from registration
-    const userIds = registrations.map(reg => reg.userId);
+    const userIds = registrations.map((reg) => reg.userId);
 
     // Perform a batch patch update
-    await this.registrationRepo.findAll().byHackathon().whereIn("userId", userIds).patch(updateData);
+    await this.registrationRepo
+      .findAll()
+      .byHackathon()
+      .whereIn("userId", userIds)
+      .patch(updateData);
 
-    return this.registrationRepo.findAll().byHackathon().whereIn("userId", userIds);
+    return this.registrationRepo
+      .findAll()
+      .byHackathon()
+      .whereIn("userId", userIds);
   }
 }
- 

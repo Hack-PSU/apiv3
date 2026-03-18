@@ -37,7 +37,11 @@ import { nanoid } from "nanoid";
 import { FinanceService } from "./finance.service";
 import { UploadedReceipt } from "./uploaded-receipt.decorator";
 import { ReimbursementForm, ReimbursementFormName } from "./reimbursement-form";
-import { DefaultTemplate, SendGridService, DefaultFromEmail } from "common/sendgrid";
+import {
+  DefaultTemplate,
+  SendGridService,
+  DefaultFromEmail,
+} from "common/sendgrid";
 
 class BaseFinanceCreateEntity extends OmitType(FinanceEntity, [
   "id",
@@ -149,16 +153,17 @@ export class FinanceController {
     finance: FinanceCreateEntity,
     @UploadedReceipt() receipt?: Express.Multer.File,
   ): Promise<Finance> {
-
     let submitterName = "";
 
     // Validate submitter
     if (finance.submitterType === SubmitterType.USER) {
       const user = await this.userRepo.findOne(finance.submitterId).exec();
       if (!user) throw new NotFoundException("User not found");
-      
+
       // Prevent users from Penn State Main Campus from submitting reimbursements
-      if (user.university === "The Pennsylvania State University - Main Campus") {
+      if (
+        user.university === "The Pennsylvania State University - Main Campus"
+      ) {
         throw new BadRequestException(
           "Users from The Pennsylvania State University - Main Campus are not eligible for reimbursement",
         );
@@ -197,7 +202,7 @@ export class FinanceController {
       ...finance,
     };
 
-  const createdRecord = await this.financeRepo.createOne(newFinance).exec();
+    const createdRecord = await this.financeRepo.createOne(newFinance).exec();
 
     // send notification email to the finance team
     try {
@@ -211,21 +216,23 @@ export class FinanceController {
       );
 
       await this.sendGridService.send({
-        from: DefaultFromEmail, 
+        from: DefaultFromEmail,
         to: "finance@hackpsu.org",
         subject: "New Reimbursement Request Submitted",
         message: requestMessage,
       });
     } catch (err) {
-      console.error("Failed to send reimbursement request notification email", err);
+      console.error(
+        "Failed to send reimbursement request notification email",
+        err,
+      );
     }
 
     return createdRecord;
   }
 
-
   @Patch(":id/status")
-  @Roles(Role.TECH) 
+  @Roles(Role.TECH)
   @ApiDoc({
     summary: "Update a Reimbursement's status",
     params: [
@@ -266,14 +273,16 @@ export class FinanceController {
     }
     if (statusData.status) {
       finance.status = statusData.status;
-      finance.updatedAt = Date.now(); 
+      finance.updatedAt = Date.now();
     }
     let updatedFinance: Finance;
     try {
-      updatedFinance = await this.financeRepo.patchOne(id, {
-      status: finance.status,
-      updatedAt: finance.updatedAt
-    }).exec();
+      updatedFinance = await this.financeRepo
+        .patchOne(id, {
+          status: finance.status,
+          updatedAt: finance.updatedAt,
+        })
+        .exec();
     } catch (err) {
       console.error("PatchOne threw an error:", err);
       throw new InternalServerErrorException("Failed to update record");
@@ -302,7 +311,7 @@ export class FinanceController {
 
     if (updatedFinance.status === Status.APPROVED) {
       let address1 = updatedFinance.street;
-      let address2 = `${updatedFinance.city}, ${updatedFinance.state} ${updatedFinance.postalCode}`
+      let address2 = `${updatedFinance.city}, ${updatedFinance.state} ${updatedFinance.postalCode}`;
       if (updatedFinance.submitterType === SubmitterType.ORGANIZER) {
         address1 = "";
         address2 = "";
@@ -451,7 +460,7 @@ export class FinanceController {
     Object.assign(finance, updates);
     finance.updatedBy = req.user.sub;
     finance.updatedAt = Date.now();
-    
+
     // Only update allowed fields to prevent database column mismatches
     const updateData = {
       amount: updates.amount,
@@ -464,12 +473,12 @@ export class FinanceController {
       updatedBy: finance.updatedBy,
       updatedAt: finance.updatedAt,
     };
-    
+
     // Remove undefined fields
     Object.keys(updateData).forEach(
       (key) => updateData[key] === undefined && delete updateData[key],
     );
-    
+
     try {
       return await this.financeRepo.patchOne(id, updateData).exec();
     } catch (err) {
