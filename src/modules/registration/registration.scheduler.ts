@@ -21,7 +21,7 @@ export class RegistrationScheduler {
     private readonly sendGridService: SendGridService,
   ) {}
 
-  @DistributedCron('rsvp_expiry_cron', CronExpression.EVERY_MINUTE)
+  @DistributedCron('rsvp_expiry_cron', CronExpression.EVERY_HOUR)
   async handleExpiredRsvpDeadlines() {
     this.logger.log('Checking for expired RSVP deadlines...');
 
