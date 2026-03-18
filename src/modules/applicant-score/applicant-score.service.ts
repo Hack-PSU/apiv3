@@ -35,19 +35,19 @@ export class ApplicantScoreService {
     userId: string,
     hackathonId: string,
     prioritized: boolean,
-    ): Promise<ApplicantScore> {
-      const updated = await ApplicantScore.query()
-        .patch({ prioritized })
-        .where({ userId, hackathonId })
-        .returning("*")
-        .first();
+  ): Promise<ApplicantScore> {
+    const updated = await ApplicantScore.query()
+      .patch({ prioritized })
+      .where({ userId, hackathonId })
+      .returning("*")
+      .first();
 
-      if (!updated) {
-        throw new Error(
-          `Applicant score not found for userId: ${userId}, hackathonId: ${hackathonId}`,
-        );
-      }
-
-      return updated;
+    if (!updated) {
+      throw new Error(
+        `Applicant score not found for userId: ${userId}, hackathonId: ${hackathonId}`,
+      );
     }
+
+    return updated;
+  }
 }

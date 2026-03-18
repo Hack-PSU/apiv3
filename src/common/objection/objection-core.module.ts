@@ -26,7 +26,7 @@ export class ObjectionCoreModule {
       provide: ObjectionDatabaseProvider,
       useFactory: (connection: DBConnection) => {
         const instance = knex({
-          client: "mysql",
+          client: "mysql2", // ! Potentially breaking change if the apiv3 user does not support the new password protocol
           connection,
           // knex level snake case to camel case mapper
           // all objection models must use camel case

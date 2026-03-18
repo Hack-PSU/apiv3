@@ -416,4 +416,3 @@ export class HackathonController {
     return hackathon;
   }
 }
-
