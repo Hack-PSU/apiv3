@@ -363,7 +363,10 @@ export class Finance extends Entity {
   @Column({ type: "string" })
   postalCode: string;
 
-  @ApiProperty({ description: "Checks whether 4 day reminder was already sent", default: false })
+  @ApiProperty({
+    description: "Checks whether 4 day reminder was already sent",
+    default: false,
+  })
   @IsBoolean()
   @Type(() => Boolean)
   @Column({ type: "boolean" })

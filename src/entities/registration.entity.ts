@@ -1,13 +1,18 @@
 import { Entity } from "entities/base.entity";
 import { Column, ID, Table } from "common/objection";
 import { ApiProperty, PickType } from "@nestjs/swagger";
-import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString } from "class-validator";
+import {
+  IsBoolean,
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from "class-validator";
 import { Type } from "class-transformer";
 import Objection from "objection";
 import { Hackathon } from "entities/hackathon.entity";
 import { User } from "entities/user.entity";
 import { ApplicantScore } from "entities/applicant-score.entity";
-
 
 export enum ApplicationStatus {
   PENDING = "pending",
@@ -17,7 +22,6 @@ export enum ApplicationStatus {
   CONFIRMED = "confirmed",
   DECLINED = "declined",
 }
-
 
 @Table({
   name: "registrations",
@@ -228,7 +232,7 @@ export class Registration extends Entity {
   @IsOptional()
   @Column({ type: "integer", required: false, nullable: true })
   rsvpAt?: number;
-  
+
   @ApiProperty({ type: "string", required: false, nullable: true })
   @IsOptional()
   @IsString()
@@ -246,7 +250,7 @@ export class Registration extends Entity {
   @Type(() => Boolean)
   @Column({ type: "boolean", required: false, nullable: true })
   oneDayReminderSent: boolean = false;
-  
+
   private parseBoolean(name: string, field?: number) {
     return field !== undefined ? { [name]: field === 1 } : {};
   }

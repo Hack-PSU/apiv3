@@ -1,7 +1,7 @@
-import { Global, Module } from '@nestjs/common';
-import { DiscoveryModule } from '@nestjs/core';
-import { DistributedLockService } from './distributed-lock.service';
-import { DistributedCronExplorer } from './distributed-cron.explorer';
+import { Global, Module } from "@nestjs/common";
+import { DiscoveryModule } from "@nestjs/core";
+import { DistributedLockService } from "./distributed-lock.service";
+import { DistributedCronExplorer } from "./distributed-cron.explorer";
 
 @Global()
 @Module({
