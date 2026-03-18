@@ -30,13 +30,11 @@ import { Role, Roles } from "common/gcp";
 import { ApiDoc } from "common/docs";
 import { DBExceptionFilter } from "common/filters";
 
-
 import { ref } from "objection";
 import { User, UserEntity } from "entities/user.entity";
 import { Scan } from "entities/scan.entity";
 import { Team } from "entities/team.entity";
 import { Requirements } from "entities/extra-credit-class.entity";
-
 
 class ECClassCreateEntity extends OmitType(ExtraCreditClass, ["id"] as const) {}
 
@@ -217,8 +215,7 @@ export class ExtraCreditClassController {
     return this.ecClassRepo.deleteOne(id).exec();
   }
 
-
-@Get("list/:id")
+  @Get("list/:id")
   @Roles(Role.TEAM)
   @ApiDoc({
     summary: "Get a list of qualified users for an Extra Credit Class",
@@ -235,7 +232,7 @@ export class ExtraCreditClassController {
   })
   async getQualifiedList(@Param("id", ParseIntPipe) id: number) {
     const ecClass = await this.ecClassRepo.findOne(id).exec();
-    
+
     if (!ecClass) {
       throw new NotFoundException("Extra credit class not found");
     }
@@ -250,11 +247,9 @@ export class ExtraCreditClassController {
         Scan.query()
           .join("events", "events.id", "scans.eventId")
           .where("events.name", "Check-in")
-          .where("scans.userId", ref("users.id"))
+          .where("scans.userId", ref("users.id")),
       );
-    }
-    
-    else if (ecClass.requirement === Requirements.SUBMIT) {
+    } else if (ecClass.requirement === Requirements.SUBMIT) {
       qb.whereExists(
         Team.query()
           .where(function () {
@@ -264,24 +259,22 @@ export class ExtraCreditClassController {
               .orWhere("teams.member4", ref("users.id"))
               .orWhere("teams.member5", ref("users.id"));
           })
-          .join("projects", "projects.teamId", "teams.id")
+          .join("projects", "projects.teamId", "teams.id"),
       );
-    }
-    
-    else if (ecClass.requirement === Requirements.EXPO) {
+    } else if (ecClass.requirement === Requirements.EXPO) {
       qb.whereExists(
         Scan.query()
           .join("events", "events.id", "scans.eventId")
           .where("events.name", "Judging Expo")
-          .where("scans.userId", ref("users.id"))
+          .where("scans.userId", ref("users.id")),
       );
     }
     // else case is if the requirement is other, in which they have special requirements
     // that cannot be determined by the system.
-    
+
     const users = await qb;
-    const names = users.map(user => `${user.lastName}, ${user.firstName}`);
-    
+    const names = users.map((user) => `${user.lastName}, ${user.firstName}`);
+
     return { names };
   }
 }

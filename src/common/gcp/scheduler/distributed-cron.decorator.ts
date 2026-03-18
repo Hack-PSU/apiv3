@@ -1,8 +1,8 @@
-import { CronExpression, CronOptions } from '@nestjs/schedule';
+import { CronExpression, CronOptions } from "@nestjs/schedule";
 
-export const DISTRIBUTED_CRON_LOCK = 'DISTRIBUTED_CRON_LOCK';
-export const DISTRIBUTED_CRON_TIME = 'DISTRIBUTED_CRON_TIME';
-export const DISTRIBUTED_CRON_OPTIONS = 'DISTRIBUTED_CRON_OPTIONS';
+export const DISTRIBUTED_CRON_LOCK = "DISTRIBUTED_CRON_LOCK";
+export const DISTRIBUTED_CRON_TIME = "DISTRIBUTED_CRON_TIME";
+export const DISTRIBUTED_CRON_OPTIONS = "DISTRIBUTED_CRON_OPTIONS";
 
 export type DistributedCronOptions = CronOptions & {
   /** TTL for the distributed lock in ms (default: 5 minutes) */
@@ -23,8 +23,23 @@ export function DistributedCron(
   options?: DistributedCronOptions,
 ): MethodDecorator {
   return (target, propertyKey) => {
-    Reflect.defineMetadata(DISTRIBUTED_CRON_LOCK, lockName, target, propertyKey);
-    Reflect.defineMetadata(DISTRIBUTED_CRON_TIME, cronTime, target, propertyKey);
-    Reflect.defineMetadata(DISTRIBUTED_CRON_OPTIONS, options || {}, target, propertyKey);
+    Reflect.defineMetadata(
+      DISTRIBUTED_CRON_LOCK,
+      lockName,
+      target,
+      propertyKey,
+    );
+    Reflect.defineMetadata(
+      DISTRIBUTED_CRON_TIME,
+      cronTime,
+      target,
+      propertyKey,
+    );
+    Reflect.defineMetadata(
+      DISTRIBUTED_CRON_OPTIONS,
+      options || {},
+      target,
+      propertyKey,
+    );
   };
 }

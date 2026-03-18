@@ -1,12 +1,12 @@
-import { Injectable, Logger } from '@nestjs/common';
-import * as admin from 'firebase-admin';
+import { Injectable, Logger } from "@nestjs/common";
+import * as admin from "firebase-admin";
 
 @Injectable()
 export class DistributedLockService {
   private readonly logger = new Logger(DistributedLockService.name);
 
   private get locksRef() {
-    return admin.database().ref('cron-locks');
+    return admin.database().ref("cron-locks");
   }
 
   /**
@@ -32,7 +32,7 @@ export class DistributedLockService {
         return {
           acquiredAt: now,
           expiresAt: now + ttlMs,
-          instanceId: process.env.K_REVISION || 'local',
+          instanceId: process.env.K_REVISION || "local",
         };
       });
 
@@ -65,7 +65,11 @@ export class DistributedLockService {
    * @param fn - The work to execute if the lock is acquired
    * @param ttlMs - How long the lock should be held (default: 5 minutes)
    */
-  async withLock(lockName: string, fn: () => Promise<void>, ttlMs?: number): Promise<void> {
+  async withLock(
+    lockName: string,
+    fn: () => Promise<void>,
+    ttlMs?: number,
+  ): Promise<void> {
     const acquired = await this.acquireLock(lockName, ttlMs);
     if (!acquired) {
       this.logger.log(`Lock "${lockName}" held by another instance, skipping`);

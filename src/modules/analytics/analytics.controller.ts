@@ -28,17 +28,19 @@ async function saveCanvasToPNG(canvas: any, filepath: string): Promise<void> {
   try {
     // Try to get buffer from canvas - different canvas implementations have different APIs
     let buffer: Buffer;
-    
-    if (typeof canvas.toBuffer === 'function') {
-      buffer = canvas.toBuffer('image/png');
-    } else if (canvas && typeof canvas.toBuffer === 'function') {
+
+    if (typeof canvas.toBuffer === "function") {
+      buffer = canvas.toBuffer("image/png");
+    } else if (canvas && typeof canvas.toBuffer === "function") {
       buffer = canvas.toBuffer();
-    } else if (canvas.canvas && typeof canvas.canvas.toBuffer === 'function') {
-      buffer = canvas.canvas.toBuffer('image/png');
+    } else if (canvas.canvas && typeof canvas.canvas.toBuffer === "function") {
+      buffer = canvas.canvas.toBuffer("image/png");
     } else {
-      throw new Error(`Canvas object has no toBuffer method. Available methods: ${Object.getOwnPropertyNames(Object.getPrototypeOf(canvas)).join(', ')}`);
+      throw new Error(
+        `Canvas object has no toBuffer method. Available methods: ${Object.getOwnPropertyNames(Object.getPrototypeOf(canvas)).join(", ")}`,
+      );
     }
-    
+
     fs.writeFileSync(filepath, buffer);
   } catch (error) {
     throw new Error(`Failed to save canvas to PNG: ${error.message}`);
@@ -51,17 +53,17 @@ class CountsResponse {
 }
 
 enum Allergen {
-    PEANUT = "Peanut",
-    TREE_NUT = "Tree Nut",
-    DAIRY = "Dairy",
-    SHELLFISH = "Shellfish",
-    GLUTEN = "Gluten",
-    EGG = "Egg",
-    MEAT = "Meat",
-    SOY = "Soy",
-    FISH = "Fish",
-    SESAME = "Sesame",
-    OTHER = "Other",
+  PEANUT = "Peanut",
+  TREE_NUT = "Tree Nut",
+  DAIRY = "Dairy",
+  SHELLFISH = "Shellfish",
+  GLUTEN = "Gluten",
+  EGG = "Egg",
+  MEAT = "Meat",
+  SOY = "Soy",
+  FISH = "Fish",
+  SESAME = "Sesame",
+  OTHER = "Other",
 }
 
 const allergenKeywords: Record<Allergen, string[]> = {
@@ -75,7 +77,7 @@ const allergenKeywords: Record<Allergen, string[]> = {
   [Allergen.GLUTEN]: ["gluten", "wheat"],
   [Allergen.SOY]: ["soy"],
   [Allergen.SESAME]: ["sesame"],
-  [Allergen.OTHER]: []
+  [Allergen.OTHER]: [],
 };
 
 class RegistrationCounts extends CountsResponse {
@@ -369,7 +371,7 @@ export class AnalyticsController {
       timestamps: scans.map((scan) => scan.timestamp),
     };
   }
-  
+
   @Get("/applications")
   @Roles(Role.TEAM)
   @ApiDoc({
@@ -396,32 +398,49 @@ export class AnalyticsController {
         "application_status",
         "accepted_at",
         "rsvp_at",
-        "rsvp_deadline"
+        "rsvp_deadline",
       );
 
     // Get all the confirmed, declined, accpted applicants
-    const confirmedApplicants = applications.filter(app => app.applicationStatus === "confirmed");
-    const declinedApplicants = applications.filter(app => app.applicationStatus === "declined");
-    const acceptedApplicants = applications.filter(app => app.applicationStatus === "accepted");
-    
+    const confirmedApplicants = applications.filter(
+      (app) => app.applicationStatus === "confirmed",
+    );
+    const declinedApplicants = applications.filter(
+      (app) => app.applicationStatus === "declined",
+    );
+    const acceptedApplicants = applications.filter(
+      (app) => app.applicationStatus === "accepted",
+    );
+
     // Total is all 3 added together
-    const totalAccepted = confirmedApplicants.length + declinedApplicants.length + acceptedApplicants.length;
+    const totalAccepted =
+      confirmedApplicants.length +
+      declinedApplicants.length +
+      acceptedApplicants.length;
 
     // Filter all users that have confirmed and scanned in with checkIn
     const confirmedAndScannedApplicants = await this.scanRepo
       .findAll()
       .byHackathon()
       .joinRelated("event")
-      .whereIn("user_id", confirmedApplicants.map(app => app.userId))
+      .whereIn(
+        "user_id",
+        confirmedApplicants.map((app) => app.userId),
+      )
       .where("event.type", "checkIn")
       .groupBy("user_id")
       .select("user_id");
 
     // Calculate metrics; (average confirm time in nanoseconds)
     return {
-      attendanceRate: confirmedAndScannedApplicants.length / confirmedApplicants.length,
+      attendanceRate:
+        confirmedAndScannedApplicants.length / confirmedApplicants.length,
       confirmRate: confirmedApplicants.length / totalAccepted,
-      averageConfirmTime: confirmedApplicants.reduce((acc, app) => acc + (app.rsvpAt - app.acceptedAt), 0) / confirmedApplicants.length,
+      averageConfirmTime:
+        confirmedApplicants.reduce(
+          (acc, app) => acc + (app.rsvpAt - app.acceptedAt),
+          0,
+        ) / confirmedApplicants.length,
       acceptanceTotal: totalAccepted,
       acceptanceRate: totalAccepted / totalApplicants.count,
     };
@@ -481,7 +500,7 @@ export class AnalyticsController {
       res.setHeader("Content-Type", "application/pdf");
       res.setHeader(
         "Content-Disposition",
-        'attachment; filename="analytics-report.pdf"'
+        'attachment; filename="analytics-report.pdf"',
       );
 
       // Pipe document to response
@@ -497,7 +516,9 @@ export class AnalyticsController {
       doc
         .fontSize(12)
         .font("Helvetica")
-        .text(`Generated on ${new Date().toLocaleString()}`, { align: "center" });
+        .text(`Generated on ${new Date().toLocaleString()}`, {
+          align: "center",
+        });
 
       doc.moveDown(1.5);
 
@@ -507,7 +528,7 @@ export class AnalyticsController {
 
       const totalRegistrations = registrationCountsByHackathon.reduce(
         (sum, r) => sum + r.count,
-        0
+        0,
       );
       doc
         .fontSize(12)
@@ -568,7 +589,8 @@ export class AnalyticsController {
         };
 
         const genderImagePath = path.join(os.tmpdir(), "gender-chart.png");
-        const genderCanvas = await chartJSNodeCanvas.renderChart(genderChartConfig);
+        const genderCanvas =
+          await chartJSNodeCanvas.renderChart(genderChartConfig);
         await saveCanvasToPNG(genderCanvas, genderImagePath);
         doc.image(genderImagePath, { width: 350 });
         fs.unlinkSync(genderImagePath);
@@ -577,13 +599,18 @@ export class AnalyticsController {
 
       // Generate race pie chart
       if (activeRaceEthnicityCounts.length > 0) {
-        doc.fontSize(14).font("Helvetica-Bold").text("Race/Ethnicity Distribution");
+        doc
+          .fontSize(14)
+          .font("Helvetica-Bold")
+          .text("Race/Ethnicity Distribution");
         doc.moveDown(0.5);
 
         const raceChartConfig = {
           type: "pie",
           data: {
-            labels: activeRaceEthnicityCounts.map((r) => r.race || "Not Specified"),
+            labels: activeRaceEthnicityCounts.map(
+              (r) => r.race || "Not Specified",
+            ),
             datasets: [
               {
                 data: activeRaceEthnicityCounts.map((r) => r.count),
@@ -635,14 +662,17 @@ export class AnalyticsController {
 
       // Generate academic year pie chart
       if (activeAcademicYearCounts.length > 0) {
-        doc.fontSize(14).font("Helvetica-Bold").text("Academic Year Distribution");
+        doc
+          .fontSize(14)
+          .font("Helvetica-Bold")
+          .text("Academic Year Distribution");
         doc.moveDown(0.5);
 
         const academicYearChartConfig = {
           type: "pie",
           data: {
             labels: activeAcademicYearCounts.map(
-              (a) => a.academicYear || "Not Specified"
+              (a) => a.academicYear || "Not Specified",
             ),
             datasets: [
               {
@@ -675,8 +705,13 @@ export class AnalyticsController {
           },
         };
 
-        const academicYearImagePath = path.join(os.tmpdir(), "academic-year-chart.png");
-        const academicYearCanvas = await chartJSNodeCanvas.renderChart(academicYearChartConfig);
+        const academicYearImagePath = path.join(
+          os.tmpdir(),
+          "academic-year-chart.png",
+        );
+        const academicYearCanvas = await chartJSNodeCanvas.renderChart(
+          academicYearChartConfig,
+        );
         await saveCanvasToPNG(academicYearCanvas, academicYearImagePath);
         doc.image(academicYearImagePath, { width: 350 });
         fs.unlinkSync(academicYearImagePath);
@@ -685,14 +720,17 @@ export class AnalyticsController {
 
       // Generate coding experience pie chart
       if (activeCodingExpCounts.length > 0) {
-        doc.fontSize(14).font("Helvetica-Bold").text("Coding Experience Distribution");
+        doc
+          .fontSize(14)
+          .font("Helvetica-Bold")
+          .text("Coding Experience Distribution");
         doc.moveDown(0.5);
 
         const codingExpChartConfig = {
           type: "pie",
           data: {
             labels: activeCodingExpCounts.map(
-              (c) => c.codingExperience || "Not Specified"
+              (c) => c.codingExperience || "Not Specified",
             ),
             datasets: [
               {
@@ -725,8 +763,12 @@ export class AnalyticsController {
           },
         };
 
-        const codingExpImagePath = path.join(os.tmpdir(), "coding-exp-chart.png");
-        const codingExpCanvas = await chartJSNodeCanvas.renderChart(codingExpChartConfig);
+        const codingExpImagePath = path.join(
+          os.tmpdir(),
+          "coding-exp-chart.png",
+        );
+        const codingExpCanvas =
+          await chartJSNodeCanvas.renderChart(codingExpChartConfig);
         await saveCanvasToPNG(codingExpCanvas, codingExpImagePath);
         doc.image(codingExpImagePath, { width: 350 });
         fs.unlinkSync(codingExpImagePath);
