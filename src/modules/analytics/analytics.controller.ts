@@ -113,7 +113,7 @@ class AllergenCounts extends CountsResponse {
   allergen: Allergen;
 }
 
-class AnalyticsApplicationsResponse {
+class ApplicationMetrics {
   @ApiProperty()
   attendanceRate: number;
 
@@ -128,6 +128,14 @@ class AnalyticsApplicationsResponse {
 
   @ApiProperty()
   acceptanceRate: number;
+}
+
+class AnalyticsApplicationsResponse {
+  @ApiProperty({ type: ApplicationMetrics })
+  pennState: ApplicationMetrics;
+
+  @ApiProperty({ type: ApplicationMetrics })
+  other: ApplicationMetrics;
 }
 class AnalyticsSummaryResponse {
   @ApiProperty({ type: [RegistrationCounts] })
@@ -372,36 +380,9 @@ export class AnalyticsController {
     };
   }
 
-  @Get("/applications")
-  @Roles(Role.TEAM)
-  @ApiDoc({
-    summary: "Get application metrics for each event",
-    auth: Role.TEAM,
-    response: {
-      ok: { type: AnalyticsApplicationsResponse },
-    },
-  })
-  async getApplicationAnalytics() {
-    // Get the total count of applicants for the active hackathon
-    const totalApplicants = await this.registrationRepo
-      .findAll()
-      .byHackathon()
-      .count("id", { as: "count" })
-      .first();
-
-    // Get application statuses and rsvp for the current hackathon
-    const applications = await this.registrationRepo
-      .findAll()
-      .byHackathon()
-      .select(
-        "user_id",
-        "application_status",
-        "accepted_at",
-        "rsvp_at",
-        "rsvp_deadline",
-      );
-
-    // Get all the confirmed, declined, accpted applicants
+  private async calculateApplicationMetrics(
+    applications: any[],
+  ): Promise<ApplicationMetrics> {
     const confirmedApplicants = applications.filter(
       (app) => app.applicationStatus === "confirmed",
     );
@@ -412,13 +393,11 @@ export class AnalyticsController {
       (app) => app.applicationStatus === "accepted",
     );
 
-    // Total is all 3 added together
     const totalAccepted =
       confirmedApplicants.length +
       declinedApplicants.length +
       acceptedApplicants.length;
 
-    // Filter all users that have confirmed and scanned in with checkIn
     const confirmedAndScannedApplicants = await this.scanRepo
       .findAll()
       .byHackathon()
@@ -431,18 +410,64 @@ export class AnalyticsController {
       .groupBy("user_id")
       .select("user_id");
 
-    // Calculate metrics; (average confirm time in nanoseconds)
     return {
       attendanceRate:
-        confirmedAndScannedApplicants.length / confirmedApplicants.length,
-      confirmRate: confirmedApplicants.length / totalAccepted,
+        confirmedApplicants.length > 0
+          ? confirmedAndScannedApplicants.length / confirmedApplicants.length
+          : 0,
+      confirmRate:
+        totalAccepted > 0
+          ? confirmedApplicants.length / totalAccepted
+          : 0,
       averageConfirmTime:
-        confirmedApplicants.reduce(
-          (acc, app) => acc + (app.rsvpAt - app.acceptedAt),
-          0,
-        ) / confirmedApplicants.length,
+        confirmedApplicants.length > 0
+          ? confirmedApplicants.reduce(
+              (acc, app) => acc + (app.rsvpAt - app.acceptedAt),
+              0,
+            ) / confirmedApplicants.length
+          : 0,
       acceptanceTotal: totalAccepted,
-      acceptanceRate: totalAccepted / totalApplicants.count,
+      acceptanceRate:
+        applications.length > 0 ? totalAccepted / applications.length : 0,
+    };
+  }
+
+  @Get("/applications")
+  @Roles(Role.NONE)
+  @ApiDoc({
+    summary: "Get application metrics for each event",
+    auth: Role.TEAM,
+    response: {
+      ok: { type: AnalyticsApplicationsResponse },
+    },
+  })
+  async getApplicationAnalytics() {
+    const PENN_STATE_UNIVERSITY =
+      "The Pennsylvania State University - Main Campus";
+
+    // Get all registrations with user information for the active hackathon
+    const applications = await this.registrationRepo
+      .findAll()
+      .byHackathon()
+      .withGraphFetched("user");
+
+    // Separate Penn State and Other students
+    const pennStateApps = applications.filter(
+      (app) => app.user.university === PENN_STATE_UNIVERSITY,
+    );
+    const otherApps = applications.filter(
+      (app) => app.user.university !== PENN_STATE_UNIVERSITY,
+    );
+
+    const pennStateMetrics = await this.calculateApplicationMetrics(
+      pennStateApps,
+    );
+
+    const otherMetrics = await this.calculateApplicationMetrics(otherApps);
+
+    return {
+      pennState: pennStateMetrics,
+      other: otherMetrics,
     };
   }
 
