@@ -1,10 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { CronExpression } from '@nestjs/schedule';
 import { InjectRepository, Repository } from 'common/objection';
 import { Registration, ApplicationStatus } from 'entities/registration.entity';
 import { User } from 'entities/user.entity';
 import { SendGridService, DefaultTemplate, DefaultFromEmail } from 'common/sendgrid';
 import { Hackathon } from 'entities/hackathon.entity';
+import { DistributedCron } from 'common/gcp/scheduler';
 
 @Injectable()
 export class RegistrationScheduler {
@@ -20,10 +21,10 @@ export class RegistrationScheduler {
     private readonly sendGridService: SendGridService,
   ) {}
 
-  @Cron(CronExpression.EVERY_HOUR)
+  @DistributedCron('rsvp_expiry_cron', CronExpression.EVERY_MINUTE)
   async handleExpiredRsvpDeadlines() {
     this.logger.log('Checking for expired RSVP deadlines...');
-    
+
     const now = Date.now();
 
     // Find all accepted registrations past deadline without RSVP
@@ -75,7 +76,7 @@ export class RegistrationScheduler {
       registrations.map(async (reg) => {
         const user = await this.userRepo.findOne(reg.userId).exec();
         if (!user) return null;
-        
+
         const message = await this.sendGridService.populateTemplate(
           DefaultTemplate.participantExpired,
           {
@@ -100,12 +101,10 @@ export class RegistrationScheduler {
     }
   }
 
-  @Cron(CronExpression.EVERY_HOUR)
+  @DistributedCron('rsvp_reminder_cron', CronExpression.EVERY_HOUR)
   async handleRsvpReminders() {
     this.logger.log('Checking for upcoming RSVP deadlines...');
     const now = Date.now();
-    const oneDaysFromNow = now + 24 * 60 * 60 * 1000;
-    this.logger.log('One day from now: ' + oneDaysFromNow);
 
     const threeDayRegistrations = await Registration.query()
       .where('applicationStatus', ApplicationStatus.ACCEPTED)
@@ -162,7 +161,7 @@ export class RegistrationScheduler {
       registrations.map(async (reg) => {
         const user = await this.userRepo.findOne(reg.userId).exec();
         if (!user) return null;
-      
+
         const message = await this.sendGridService.populateTemplate(
           DefaultTemplate.participantReminder,
           {
