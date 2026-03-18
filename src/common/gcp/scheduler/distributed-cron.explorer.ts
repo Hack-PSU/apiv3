@@ -22,6 +22,11 @@ export class DistributedCronExplorer implements OnModuleInit {
   ) {}
 
   onModuleInit() {
+    if (process.env.RUNTIME_INSTANCE !== 'production') {
+      this.logger.log('Distributed crons disabled in non-production environment');
+      return;
+    }
+
     const providers = this.discoveryService.getProviders();
 
     providers
