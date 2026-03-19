@@ -30,7 +30,7 @@ const RACE_CATEGORIES: { label: string; patterns: string[] }[] = [
   { label: "Black or African American", patterns: ["black or african american", "african american"] },
   { label: "Native American or Alaska Native", patterns: ["native american", "alaska native"] },
   { label: "Native Hawaiian or Other Pacific Islander", patterns: ["native hawaiian", "pacific islander"] },
-  { label: "Prefer not to disclose", patterns: ["nodisclose", "prefer not to disclose"] },
+  { label: "Prefer not to say", patterns: ["nodisclose", "prefer not to say"] },
   { label: "Multiracial", patterns: ["multiracial"] },
 ];
 
