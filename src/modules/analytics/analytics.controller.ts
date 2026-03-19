@@ -23,6 +23,17 @@ import { Readable } from "stream";
 const PDFDocument = require("pdfkit");
 const { ChartJSNodeCanvas } = require("chartjs-node-canvas");
 
+const RACE_CATEGORIES: { label: string; patterns: string[] }[] = [
+  { label: "Asian", patterns: ["asian"] },
+  { label: "Caucasian", patterns: ["caucasian", "white"] },
+  { label: "Hispanic or Latinx", patterns: ["hispanic", "latinx"] },
+  { label: "Black or African American", patterns: ["black or african american", "african american"] },
+  { label: "Native American or Alaska Native", patterns: ["native american", "alaska native"] },
+  { label: "Native Hawaiian or Other Pacific Islander", patterns: ["native hawaiian", "pacific islander"] },
+  { label: "Prefer not to say", patterns: ["nodisclose", "prefer not to say"] },
+  { label: "Multiracial", patterns: ["multiracial"] },
+];
+
 // Helper to save canvas to PNG file
 async function saveCanvasToPNG(canvas: any, filepath: string): Promise<void> {
   try {
@@ -184,6 +195,24 @@ class CheckInsResponse {
 @Controller("analytics")
 @ApiExtraModels(AnalyticsSummaryResponse, ScanEntity)
 export class AnalyticsController {
+  private async getRaceCounts(): Promise<RaceCounts[]> {
+    const results = await Promise.all(
+      RACE_CATEGORIES.map(async ({ label, patterns }) => {
+        const whereClause = patterns
+          .map(() => "LOWER(race) LIKE ?")
+          .join(" OR ");
+        const result = (await this.userRepo
+          .findAll()
+          .byHackathon()
+          .whereRaw(`(${whereClause})`, patterns.map((p) => `%${p}%`))
+          .count("users.id", { as: "count" })
+          .first()) as any;
+        return { race: label, count: Number(result?.count ?? 0) };
+      }),
+    );
+    return results.filter((r) => r.count > 0);
+  }
+
   private parseAllergens(
     allergyEntries: { allergies: string }[],
   ): AllergenCounts[] {
@@ -242,10 +271,10 @@ export class AnalyticsController {
   ) {}
 
   @Get("/summary")
-  @Roles(Role.NONE)
+  @Roles(Role.TEAM)
   @ApiDoc({
     summary: "Get analytics summary for current hackathon",
-    auth: Role.NONE,
+    auth: Role.TEAM,
     response: {
       ok: { type: AnalyticsSummaryResponse },
     },
@@ -255,7 +284,7 @@ export class AnalyticsController {
     const registrationCountsByHackathon = await Hackathon.query()
       .joinRelated("registrations")
       .count("registrations.hackathonId", { as: "count" })
-      .groupBy("hackathons.id")
+      .groupBy("hackathons.id", "hackathons.name", "hackathons.start_time")
       .orderBy("hackathons.startTime")
       .select("hackathons.id", "hackathons.name");
 
@@ -267,13 +296,8 @@ export class AnalyticsController {
       .groupBy("gender")
       .select("gender");
 
-    // get all race counts for active hackathon
-    const activeRaceEthnicityCounts = await this.userRepo
-      .findAll()
-      .byHackathon()
-      .count("race", { as: "count" })
-      .groupBy("race")
-      .select("race");
+    // get race counts for active hackathon using per-category LIKE queries
+    const activeRaceEthnicityCounts = await this.getRaceCounts();
 
     // get all academic year counts for active hackathon
     const activeAcademicYearCounts = await this.registrationRepo
@@ -494,12 +518,7 @@ export class AnalyticsController {
         .groupBy("gender")
         .select("gender");
 
-      const activeRaceEthnicityCounts = await this.userRepo
-        .findAll()
-        .byHackathon()
-        .count("race", { as: "count" })
-        .groupBy("race")
-        .select("race");
+      const activeRaceEthnicityCounts = await this.getRaceCounts();
 
       const activeAcademicYearCounts = await this.registrationRepo
         .findAll()
