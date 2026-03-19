@@ -271,10 +271,10 @@ export class AnalyticsController {
   ) {}
 
   @Get("/summary")
-  @Roles(Role.NONE)
+  @Roles(Role.TEAM)
   @ApiDoc({
     summary: "Get analytics summary for current hackathon",
-    auth: Role.NONE,
+    auth: Role.TEAM,
     response: {
       ok: { type: AnalyticsSummaryResponse },
     },
