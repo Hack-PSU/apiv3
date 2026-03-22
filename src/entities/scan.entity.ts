@@ -66,7 +66,7 @@ export class Scan extends Entity {
   @IsOptional()
   @IsBoolean()
   @Type(() => Boolean)
-  @Column({ type: "boolean", required: false, default: false })
+  @Column({ type: "boolean", required: false })
   fastPass?: boolean;
 }
 
