@@ -145,11 +145,34 @@ export class EventController {
         id: eventId,
         icon: iconUrl,
         ...data,
+        fastPass: 0
       })
       .byHackathon(data.hackathonId)
       .withGraphFetched("location");
 
     this.socket.emit("create:event", event);
+
+    // Create another event if it's a fast pass event
+    if (data.fastPass) {
+      const fastPassEventId = nanoid();
+      const fastPassIconUrl = await this.eventService.uploadIcon(fastPassEventId, icon);
+
+      if (icon) {
+        iconUrl = await this.eventService.uploadIcon(eventId, icon);
+      }
+      
+      const fastPassEvent = await this.eventRepo
+        .createOne({
+          id: fastPassEventId,
+          icon: fastPassIconUrl,
+          ...data,
+          fastPass: 1
+        })
+        .byHackathon(data.hackathonId)
+        .withGraphFetched("location");
+
+      this.socket.emit("create:event", fastPassEvent);
+    }
 
     return event;
   }
@@ -481,12 +504,34 @@ export class EventController {
       }
     }
 
+    // Check if fast pass event and user has fast pass
+    let fastPass = 0;
+
+    if (event.fastPass) {
+      const numEventsDone = await this.scanRepo
+        .findAll()
+        .byHackathon(data.hackathonId)
+        .joinRelated("event")
+        .whereIn("event.type", [EventType.workshop, EventType.activity])
+        .resultSize();
+
+      if (numEventsDone < 3) {
+        throw new HttpException(
+          "User has not completed at least 3 events",
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      fastPass = 1;
+    }
+
     await this.scanRepo
       .createOne({
         ...data,
         userId,
         eventId: id,
         timestamp: Date.now(),
+        fastPass: fastPass,
       })
       .byHackathon(data.hackathonId);
 
