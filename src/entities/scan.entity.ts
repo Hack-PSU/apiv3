@@ -1,7 +1,7 @@
 import { Column, ID, Table } from "common/objection";
 import { Entity } from "entities/base.entity";
 import { ApiProperty, PickType } from "@nestjs/swagger";
-import { IsNumber, IsOptional, IsString } from "class-validator";
+import { IsBoolean, IsNumber, IsOptional, IsString } from "class-validator";
 import { Type } from "class-transformer";
 
 @Table({
@@ -61,6 +61,13 @@ export class Scan extends Entity {
   @Type(() => Number)
   @Column({ type: "integer", required: false })
   timestamp?: number;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsBoolean()
+  @Type(() => Boolean)
+  @Column({ type: "boolean", required: false, default: false })
+  fastPass?: boolean;
 }
 
 export class ScanEntity extends PickType(Scan, [
