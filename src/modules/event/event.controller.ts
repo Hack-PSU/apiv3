@@ -157,6 +157,7 @@ export class EventController {
       const fastPassIconUrl = icon
         ? await this.eventService.uploadIcon(fastPassEventId, icon)
         : iconUrl;
+      const fastPassEventName = `(Fast Pass) ${data.name}`;
 
       const fastPassEvent = await this.eventRepo
         .createOne({
@@ -164,6 +165,7 @@ export class EventController {
           icon: fastPassIconUrl,
           ...data,
           fastPass: true,
+          name: fastPassEventName,
         })
         .byHackathon(data.hackathonId)
         .withGraphFetched("location");
@@ -501,8 +503,6 @@ export class EventController {
       }
     }
 
-    let fastPassScan = false;
-
     if (event.fastPass) {
       const numEventsDone = await this.scanRepo
         .findAll()
@@ -518,8 +518,6 @@ export class EventController {
           HttpStatus.BAD_REQUEST,
         );
       }
-
-      fastPassScan = true;
     }
 
     await this.scanRepo
@@ -528,7 +526,6 @@ export class EventController {
         userId,
         eventId: id,
         timestamp: Date.now(),
-        fastPass: fastPassScan,
       })
       .byHackathon(data.hackathonId);
 
