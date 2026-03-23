@@ -145,11 +145,33 @@ export class EventController {
         id: eventId,
         icon: iconUrl,
         ...data,
+        fastPass: false,
       })
       .byHackathon(data.hackathonId)
       .withGraphFetched("location");
 
     this.socket.emit("create:event", event);
+
+    if (data.fastPass) {
+      const fastPassEventId = nanoid();
+      const fastPassIconUrl = icon
+        ? await this.eventService.uploadIcon(fastPassEventId, icon)
+        : iconUrl;
+      const fastPassEventName = `(Fast Pass) ${data.name}`;
+
+      const fastPassEvent = await this.eventRepo
+        .createOne({
+          id: fastPassEventId,
+          icon: fastPassIconUrl,
+          ...data,
+          fastPass: true,
+          name: fastPassEventName,
+        })
+        .byHackathon(data.hackathonId)
+        .withGraphFetched("location");
+
+      this.socket.emit("create:event", fastPassEvent);
+    }
 
     return event;
   }
@@ -476,6 +498,23 @@ export class EventController {
       if (!checkInScan) {
         throw new HttpException(
           "User has not checked-in to the hackathon",
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    }
+
+    if (event.fastPass) {
+      const numEventsDone = await this.scanRepo
+        .findAll()
+        .byHackathon(data.hackathonId)
+        .joinRelated("event")
+        .where("userId", userId)
+        .whereIn("event.type", [EventType.workshop, EventType.activity])
+        .resultSize();
+
+      if (numEventsDone < 3) {
+        throw new HttpException(
+          "User has not completed at least 3 events",
           HttpStatus.BAD_REQUEST,
         );
       }
