@@ -21,7 +21,21 @@ import * as os from "os";
 import { Readable } from "stream";
 
 const PDFDocument = require("pdfkit");
-const { ChartJSNodeCanvas } = require("chartjs-node-canvas");
+
+// Conditional import for canvas-dependent libraries
+let ChartJSNodeCanvas: any = null;
+let isCanvasAvailable = false;
+
+try {
+  const canvasModule = require("chartjs-node-canvas");
+  ChartJSNodeCanvas = canvasModule.ChartJSNodeCanvas;
+  isCanvasAvailable = true;
+} catch (e) {
+  console.warn(
+    "Canvas and chartjs-node-canvas are not available - PDF generation with charts will be disabled. This is expected if canvas is a WIP dependency.",
+  );
+  isCanvasAvailable = false;
+}
 
 const RACE_CATEGORIES: { label: string; patterns: string[] }[] = [
   { label: "Asian", patterns: ["asian"] },
@@ -502,6 +516,14 @@ export class AnalyticsController {
     auth: Role.TEAM,
   })
   async getPdf(@Response() res: any) {
+    if (!isCanvasAvailable) {
+      return res.status(503).json({
+        error: "Canvas feature is currently unavailable (WIP)",
+        message:
+          "PDF generation with charts requires canvas library which is not currently available in this build",
+      });
+    }
+
     try {
       // Fetch analytics data using same queries as summary endpoint
       const registrationCountsByHackathon = (await Hackathon.query()
