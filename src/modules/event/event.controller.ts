@@ -42,6 +42,20 @@ import { User } from "entities/user.entity";
 import { LocationEntity } from "entities/location.entity";
 import { Registration, ApplicationStatus } from "entities/registration.entity";
 import { GotifyService } from "common/gotify/gotify.service";
+import { PipeTransform, Injectable } from "@nestjs/common";
+
+@Injectable()
+class StringBooleanPipe implements PipeTransform {
+  transform(value: any) {
+    // Convert string "true"/"false" to actual booleans before other pipes process it
+    if (value && typeof value === "object" && "fastPass" in value) {
+      if (typeof value.fastPass === "string") {
+        value.fastPass = value.fastPass === "true";
+      }
+    }
+    return value;
+  }
+}
 
 class EventEntityResponse extends OmitType(EventEntity, ["wsUrls"] as const) {
   @ApiProperty({ type: [String] })
@@ -123,6 +137,7 @@ export class EventController {
   })
   async createOne(
     @Body(
+      new StringBooleanPipe(),
       new SanitizeFieldsPipe(["description"]),
       new ValidationPipe({
         forbidNonWhitelisted: true,
