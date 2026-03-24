@@ -42,6 +42,20 @@ import { User } from "entities/user.entity";
 import { LocationEntity } from "entities/location.entity";
 import { Registration, ApplicationStatus } from "entities/registration.entity";
 import { GotifyService } from "common/gotify/gotify.service";
+import { PipeTransform, Injectable } from "@nestjs/common";
+
+@Injectable()
+class StringBooleanPipe implements PipeTransform {
+  transform(value: any) {
+    // Convert string "true"/"false" to actual booleans before other pipes process it
+    if (value && typeof value === "object" && "fastPass" in value) {
+      if (typeof value.fastPass === "string") {
+        value.fastPass = value.fastPass === "true";
+      }
+    }
+    return value;
+  }
+}
 
 class EventEntityResponse extends OmitType(EventEntity, ["wsUrls"] as const) {
   @ApiProperty({ type: [String] })
@@ -123,6 +137,7 @@ export class EventController {
   })
   async createOne(
     @Body(
+      new StringBooleanPipe(),
       new SanitizeFieldsPipe(["description"]),
       new ValidationPipe({
         forbidNonWhitelisted: true,
@@ -145,11 +160,33 @@ export class EventController {
         id: eventId,
         icon: iconUrl,
         ...data,
+        fastPass: false,
       })
       .byHackathon(data.hackathonId)
       .withGraphFetched("location");
 
     this.socket.emit("create:event", event);
+
+    if (data.fastPass) {
+      const fastPassEventId = nanoid();
+      const fastPassIconUrl = icon
+        ? await this.eventService.uploadIcon(fastPassEventId, icon)
+        : iconUrl;
+      const fastPassEventName = `(Fast Pass) ${data.name}`;
+
+      const fastPassEvent = await this.eventRepo
+        .createOne({
+          id: fastPassEventId,
+          icon: fastPassIconUrl,
+          ...data,
+          fastPass: true,
+          name: fastPassEventName,
+        })
+        .byHackathon(data.hackathonId)
+        .withGraphFetched("location");
+
+      this.socket.emit("create:event", fastPassEvent);
+    }
 
     return event;
   }
@@ -476,6 +513,23 @@ export class EventController {
       if (!checkInScan) {
         throw new HttpException(
           "User has not checked-in to the hackathon",
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    }
+
+    if (event.fastPass) {
+      const numEventsDone = await this.scanRepo
+        .findAll()
+        .byHackathon(data.hackathonId)
+        .joinRelated("event")
+        .where("userId", userId)
+        .whereIn("event.type", [EventType.workshop, EventType.activity])
+        .resultSize();
+
+      if (numEventsDone < 3) {
+        throw new HttpException(
+          "User has not completed at least 3 events",
           HttpStatus.BAD_REQUEST,
         );
       }

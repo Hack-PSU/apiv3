@@ -6,6 +6,7 @@ import {
   IsEnum,
   IsNumber,
   IsOptional,
+  IsBoolean,
   IsString,
   ValidateIf,
 } from "class-validator";
@@ -121,6 +122,12 @@ export class Event extends Entity {
   @Column({ type: "string", nullable: true, required: false })
   hackathonId?: string;
 
+  @ApiProperty()
+  @IsBoolean()
+  @Type(() => Boolean)
+  @Column({ type: "boolean" })
+  fastPass?: boolean;
+
   $formatJson(json: Objection.Pojo): Objection.Pojo {
     json = super.$formatJson(json);
 
@@ -150,4 +157,5 @@ export class EventEntity extends PickType(Event, [
   "wsSkillLevel",
   "wsUrls",
   "hackathonId",
+  "fastPass",
 ] as const) {}

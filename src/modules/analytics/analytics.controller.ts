@@ -21,7 +21,32 @@ import * as os from "os";
 import { Readable } from "stream";
 
 const PDFDocument = require("pdfkit");
-const { ChartJSNodeCanvas } = require("chartjs-node-canvas");
+
+// Conditional import for canvas-dependent libraries
+let ChartJSNodeCanvas: any = null;
+let isCanvasAvailable = false;
+
+try {
+  const canvasModule = require("chartjs-node-canvas");
+  ChartJSNodeCanvas = canvasModule.ChartJSNodeCanvas;
+  isCanvasAvailable = true;
+} catch (e) {
+  console.warn(
+    "Canvas and chartjs-node-canvas are not available - PDF generation with charts will be disabled. This is expected if canvas is a WIP dependency.",
+  );
+  isCanvasAvailable = false;
+}
+
+const RACE_CATEGORIES: { label: string; patterns: string[] }[] = [
+  { label: "Asian", patterns: ["asian"] },
+  { label: "Caucasian", patterns: ["caucasian", "white"] },
+  { label: "Hispanic or Latinx", patterns: ["hispanic", "latinx"] },
+  { label: "Black or African American", patterns: ["black or african american", "african american"] },
+  { label: "Native American or Alaska Native", patterns: ["native american", "alaska native"] },
+  { label: "Native Hawaiian or Other Pacific Islander", patterns: ["native hawaiian", "pacific islander"] },
+  { label: "Prefer not to say", patterns: ["nodisclose", "prefer not to say"] },
+  { label: "Multiracial", patterns: ["multiracial"] },
+];
 
 // Helper to save canvas to PNG file
 async function saveCanvasToPNG(canvas: any, filepath: string): Promise<void> {
@@ -113,7 +138,7 @@ class AllergenCounts extends CountsResponse {
   allergen: Allergen;
 }
 
-class AnalyticsApplicationsResponse {
+class ApplicationMetrics {
   @ApiProperty()
   attendanceRate: number;
 
@@ -128,6 +153,14 @@ class AnalyticsApplicationsResponse {
 
   @ApiProperty()
   acceptanceRate: number;
+}
+
+class AnalyticsApplicationsResponse {
+  @ApiProperty({ type: ApplicationMetrics })
+  pennState: ApplicationMetrics;
+
+  @ApiProperty({ type: ApplicationMetrics })
+  other: ApplicationMetrics;
 }
 class AnalyticsSummaryResponse {
   @ApiProperty({ type: [RegistrationCounts] })
@@ -176,6 +209,24 @@ class CheckInsResponse {
 @Controller("analytics")
 @ApiExtraModels(AnalyticsSummaryResponse, ScanEntity)
 export class AnalyticsController {
+  private async getRaceCounts(): Promise<RaceCounts[]> {
+    const results = await Promise.all(
+      RACE_CATEGORIES.map(async ({ label, patterns }) => {
+        const whereClause = patterns
+          .map(() => "LOWER(race) LIKE ?")
+          .join(" OR ");
+        const result = (await this.userRepo
+          .findAll()
+          .byHackathon()
+          .whereRaw(`(${whereClause})`, patterns.map((p) => `%${p}%`))
+          .count("users.id", { as: "count" })
+          .first()) as any;
+        return { race: label, count: Number(result?.count ?? 0) };
+      }),
+    );
+    return results.filter((r) => r.count > 0);
+  }
+
   private parseAllergens(
     allergyEntries: { allergies: string }[],
   ): AllergenCounts[] {
@@ -234,10 +285,10 @@ export class AnalyticsController {
   ) {}
 
   @Get("/summary")
-  @Roles(Role.NONE)
+  @Roles(Role.TEAM)
   @ApiDoc({
     summary: "Get analytics summary for current hackathon",
-    auth: Role.NONE,
+    auth: Role.TEAM,
     response: {
       ok: { type: AnalyticsSummaryResponse },
     },
@@ -247,7 +298,7 @@ export class AnalyticsController {
     const registrationCountsByHackathon = await Hackathon.query()
       .joinRelated("registrations")
       .count("registrations.hackathonId", { as: "count" })
-      .groupBy("hackathons.id")
+      .groupBy("hackathons.id", "hackathons.name", "hackathons.start_time")
       .orderBy("hackathons.startTime")
       .select("hackathons.id", "hackathons.name");
 
@@ -259,13 +310,8 @@ export class AnalyticsController {
       .groupBy("gender")
       .select("gender");
 
-    // get all race counts for active hackathon
-    const activeRaceEthnicityCounts = await this.userRepo
-      .findAll()
-      .byHackathon()
-      .count("race", { as: "count" })
-      .groupBy("race")
-      .select("race");
+    // get race counts for active hackathon using per-category LIKE queries
+    const activeRaceEthnicityCounts = await this.getRaceCounts();
 
     // get all academic year counts for active hackathon
     const activeAcademicYearCounts = await this.registrationRepo
@@ -372,36 +418,9 @@ export class AnalyticsController {
     };
   }
 
-  @Get("/applications")
-  @Roles(Role.TEAM)
-  @ApiDoc({
-    summary: "Get application metrics for each event",
-    auth: Role.TEAM,
-    response: {
-      ok: { type: AnalyticsApplicationsResponse },
-    },
-  })
-  async getApplicationAnalytics() {
-    // Get the total count of applicants for the active hackathon
-    const totalApplicants = await this.registrationRepo
-      .findAll()
-      .byHackathon()
-      .count("id", { as: "count" })
-      .first();
-
-    // Get application statuses and rsvp for the current hackathon
-    const applications = await this.registrationRepo
-      .findAll()
-      .byHackathon()
-      .select(
-        "user_id",
-        "application_status",
-        "accepted_at",
-        "rsvp_at",
-        "rsvp_deadline",
-      );
-
-    // Get all the confirmed, declined, accpted applicants
+  private async calculateApplicationMetrics(
+    applications: any[],
+  ): Promise<ApplicationMetrics> {
     const confirmedApplicants = applications.filter(
       (app) => app.applicationStatus === "confirmed",
     );
@@ -412,13 +431,11 @@ export class AnalyticsController {
       (app) => app.applicationStatus === "accepted",
     );
 
-    // Total is all 3 added together
     const totalAccepted =
       confirmedApplicants.length +
       declinedApplicants.length +
       acceptedApplicants.length;
 
-    // Filter all users that have confirmed and scanned in with checkIn
     const confirmedAndScannedApplicants = await this.scanRepo
       .findAll()
       .byHackathon()
@@ -431,18 +448,64 @@ export class AnalyticsController {
       .groupBy("user_id")
       .select("user_id");
 
-    // Calculate metrics; (average confirm time in nanoseconds)
     return {
       attendanceRate:
-        confirmedAndScannedApplicants.length / confirmedApplicants.length,
-      confirmRate: confirmedApplicants.length / totalAccepted,
+        confirmedApplicants.length > 0
+          ? confirmedAndScannedApplicants.length / confirmedApplicants.length
+          : 0,
+      confirmRate:
+        totalAccepted > 0
+          ? confirmedApplicants.length / totalAccepted
+          : 0,
       averageConfirmTime:
-        confirmedApplicants.reduce(
-          (acc, app) => acc + (app.rsvpAt - app.acceptedAt),
-          0,
-        ) / confirmedApplicants.length,
+        confirmedApplicants.length > 0
+          ? confirmedApplicants.reduce(
+              (acc, app) => acc + (app.rsvpAt - app.acceptedAt),
+              0,
+            ) / confirmedApplicants.length
+          : 0,
       acceptanceTotal: totalAccepted,
-      acceptanceRate: totalAccepted / totalApplicants.count,
+      acceptanceRate:
+        applications.length > 0 ? totalAccepted / applications.length : 0,
+    };
+  }
+
+  @Get("/applications")
+  @Roles(Role.NONE)
+  @ApiDoc({
+    summary: "Get application metrics for each event",
+    auth: Role.TEAM,
+    response: {
+      ok: { type: AnalyticsApplicationsResponse },
+    },
+  })
+  async getApplicationAnalytics() {
+    const PENN_STATE_UNIVERSITY =
+      "The Pennsylvania State University - Main Campus";
+
+    // Get all registrations with user information for the active hackathon
+    const applications = await this.registrationRepo
+      .findAll()
+      .byHackathon()
+      .withGraphFetched("user");
+
+    // Separate Penn State and Other students
+    const pennStateApps = applications.filter(
+      (app) => app.user.university === PENN_STATE_UNIVERSITY,
+    );
+    const otherApps = applications.filter(
+      (app) => app.user.university !== PENN_STATE_UNIVERSITY,
+    );
+
+    const pennStateMetrics = await this.calculateApplicationMetrics(
+      pennStateApps,
+    );
+
+    const otherMetrics = await this.calculateApplicationMetrics(otherApps);
+
+    return {
+      pennState: pennStateMetrics,
+      other: otherMetrics,
     };
   }
 
@@ -453,6 +516,14 @@ export class AnalyticsController {
     auth: Role.TEAM,
   })
   async getPdf(@Response() res: any) {
+    if (!isCanvasAvailable) {
+      return res.status(503).json({
+        error: "Canvas feature is currently unavailable (WIP)",
+        message:
+          "PDF generation with charts requires canvas library which is not currently available in this build",
+      });
+    }
+
     try {
       // Fetch analytics data using same queries as summary endpoint
       const registrationCountsByHackathon = (await Hackathon.query()
@@ -469,12 +540,7 @@ export class AnalyticsController {
         .groupBy("gender")
         .select("gender");
 
-      const activeRaceEthnicityCounts = await this.userRepo
-        .findAll()
-        .byHackathon()
-        .count("race", { as: "count" })
-        .groupBy("race")
-        .select("race");
+      const activeRaceEthnicityCounts = await this.getRaceCounts();
 
       const activeAcademicYearCounts = await this.registrationRepo
         .findAll()
