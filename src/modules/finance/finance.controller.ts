@@ -13,6 +13,7 @@ import {
   Req,
 } from "@nestjs/common";
 import {
+  ApiProperty,
   ApiTags,
   IntersectionType,
   OmitType,
@@ -27,12 +28,14 @@ import {
   CategoryMap,
   Finance,
   FinanceEntity,
+  RejectionReasonMap,
   Status,
   SubmitterType,
 } from "entities/finance.entity";
 import { Hackathon } from "entities/hackathon.entity";
 import { Organizer } from "entities/organizer.entity";
 import { User } from "entities/user.entity";
+import { IsOptional, IsString } from "class-validator";
 import { nanoid } from "nanoid";
 import { FinanceService } from "./finance.service";
 import { UploadedReceipt } from "./uploaded-receipt.decorator";
@@ -55,7 +58,16 @@ class BaseFinanceCreateEntity extends OmitType(FinanceEntity, [
 
 class OptionalStatus extends PartialType(
   PickType(FinanceEntity, ["status"] as const),
-) {}
+) {
+  @ApiProperty({
+    required: false,
+    description:
+      "Optional custom message explaining the rejection in more detail",
+  })
+  @IsOptional()
+  @IsString()
+  rejectionMessage?: string;
+}
 
 export class FinanceCreateEntity extends IntersectionType(
   BaseFinanceCreateEntity,
@@ -408,11 +420,15 @@ export class FinanceController {
         message: reimbursementApprovedMessage,
       });
     } else if (updatedFinance.status.startsWith("REJECTED")) {
+      const reason =
+        RejectionReasonMap[updatedFinance.status as Status] ?? "Other";
       const reimbursementRejectedMessage =
         await this.sendGridService.populateTemplate(
           DefaultTemplate.reimbursementRejected,
           {
             firstName: payee,
+            reason,
+            rejectionMessage: statusData.rejectionMessage,
           },
         );
 

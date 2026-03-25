@@ -31,6 +31,18 @@ export enum Status {
   REJECTED_OTHER = "REJECTED_OTHER",
 }
 
+export const RejectionReasonMap: Partial<Record<Status, string>> = {
+  [Status.REJECTED_INVALID_RECEIPT]: "Invalid receipt",
+  [Status.REJECTED_WRONG_ADDRESS]: "Wrong address",
+  [Status.REJECTED_WRONG_DESCRIPTION]: "Wrong description",
+  [Status.REJECTED_INCORRECT_AMOUNT]: "Incorrect amount",
+  [Status.REJECTED_DUPLICATE_SUBMISSION]: "Duplicate submission",
+  [Status.REJECTED_MISSING_INFORMATION]: "Missing required information",
+  [Status.REJECTED_INELIGIBLE_EXPENSE]: "Ineligible expense",
+  [Status.REJECTED_EXPIRED_SUBMISSION]: "Expired submission deadline",
+  [Status.REJECTED_OTHER]: "Other",
+};
+
 export enum SubmitterType {
   USER = "USER",
   ORGANIZER = "ORGANIZER",
