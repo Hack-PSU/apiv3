@@ -671,8 +671,10 @@ export class UserController {
     )
     data: CreateUserScanEntity,
   ) {
-    const hasUser = await this.userRepo.findOne(id).exec();
-    const event = await this.eventRepo.findOne(eventId).exec();
+    const [hasUser, event] = await Promise.all([
+      this.userRepo.findOne(id).exec(),
+      this.eventRepo.findOne(eventId).exec(),
+    ]);
 
     if (!hasUser) {
       throw new HttpException("user not found", HttpStatus.BAD_REQUEST);
@@ -702,26 +704,6 @@ export class UserController {
         `User_Controller: Cannot send token message to ${hasUser.id}`,
         e,
       );
-    }
-
-    // Send Gotify notification for check-in
-    try {
-      const totalScans = await this.scanRepo
-        .findAll()
-        .byHackathon(hackathonId)
-        .resultSize();
-
-      const userName = `${hasUser.firstName} ${hasUser.lastName}`;
-
-      await this.gotifyService.sendCheckinNotification(
-        userName,
-        hasUser.email,
-        event.name,
-        totalScans,
-      );
-    } catch (error) {
-      console.log(`Failed to send Gotify check-in notification: ${error}`);
-      // Don't fail the check-in if notification fails
     }
   }
 
