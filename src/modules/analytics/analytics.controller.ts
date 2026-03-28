@@ -41,9 +41,18 @@ const RACE_CATEGORIES: { label: string; patterns: string[] }[] = [
   { label: "Asian", patterns: ["asian"] },
   { label: "Caucasian", patterns: ["caucasian", "white"] },
   { label: "Hispanic or Latinx", patterns: ["hispanic", "latinx"] },
-  { label: "Black or African American", patterns: ["black or african american", "african american"] },
-  { label: "Native American or Alaska Native", patterns: ["native american", "alaska native"] },
-  { label: "Native Hawaiian or Other Pacific Islander", patterns: ["native hawaiian", "pacific islander"] },
+  {
+    label: "Black or African American",
+    patterns: ["black or african american", "african american"],
+  },
+  {
+    label: "Native American or Alaska Native",
+    patterns: ["native american", "alaska native"],
+  },
+  {
+    label: "Native Hawaiian or Other Pacific Islander",
+    patterns: ["native hawaiian", "pacific islander"],
+  },
   { label: "Prefer not to say", patterns: ["nodisclose", "prefer not to say"] },
   { label: "Multiracial", patterns: ["multiracial"] },
 ];
@@ -218,7 +227,10 @@ export class AnalyticsController {
         const result = (await this.userRepo
           .findAll()
           .byHackathon()
-          .whereRaw(`(${whereClause})`, patterns.map((p) => `%${p}%`))
+          .whereRaw(
+            `(${whereClause})`,
+            patterns.map((p) => `%${p}%`),
+          )
           .count("users.id", { as: "count" })
           .first()) as any;
         return { race: label, count: Number(result?.count ?? 0) };
@@ -454,9 +466,7 @@ export class AnalyticsController {
           ? confirmedAndScannedApplicants.length / confirmedApplicants.length
           : 0,
       confirmRate:
-        totalAccepted > 0
-          ? confirmedApplicants.length / totalAccepted
-          : 0,
+        totalAccepted > 0 ? confirmedApplicants.length / totalAccepted : 0,
       averageConfirmTime:
         confirmedApplicants.length > 0
           ? confirmedApplicants.reduce(
@@ -497,9 +507,8 @@ export class AnalyticsController {
       (app) => app.user.university !== PENN_STATE_UNIVERSITY,
     );
 
-    const pennStateMetrics = await this.calculateApplicationMetrics(
-      pennStateApps,
-    );
+    const pennStateMetrics =
+      await this.calculateApplicationMetrics(pennStateApps);
 
     const otherMetrics = await this.calculateApplicationMetrics(otherApps);
 
