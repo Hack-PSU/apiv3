@@ -490,10 +490,11 @@ export class EventController {
     }
 
     if (event.type != EventType.checkIn) {
-      // Find check-in event
-      const checkInEvent = await (await this.eventRepo.findAll().exec())
-        .filter((e) => e.type == EventType.checkIn)
-        .filter((e) => e.hackathonId == data.hackathonId)[0];
+      const checkInEvent = await this.eventRepo
+        .findAll()
+        .byHackathon(data.hackathonId)
+        .where("type", EventType.checkIn)
+        .first();
 
       if (!checkInEvent) {
         throw new HttpException(
@@ -502,13 +503,12 @@ export class EventController {
         );
       }
 
-      const events = await this.scanRepo.findAll().exec();
-      const checkInScan = events.filter(
-        (e) =>
-          e.eventId == checkInEvent.id &&
-          e.userId == userId &&
-          e.hackathonId == data.hackathonId,
-      )[0];
+      const checkInScan = await this.scanRepo
+        .findAll()
+        .byHackathon(data.hackathonId)
+        .where("eventId", checkInEvent.id)
+        .where("userId", userId)
+        .first();
 
       if (!checkInScan) {
         throw new HttpException(
