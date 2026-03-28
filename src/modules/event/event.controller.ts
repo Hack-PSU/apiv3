@@ -457,8 +457,15 @@ export class EventController {
     )
     data: CreateScanEntity,
   ) {
-    const event = await this.eventRepo.findOne(id).exec();
-    const user = await this.userRepo.findOne(userId).exec();
+    const [event, user, userRegistration] = await Promise.all([
+      this.eventRepo.findOne(id).exec(),
+      this.userRepo.findOne(userId).exec(),
+      this.registrationRepo
+        .findAll()
+        .byHackathon(data.hackathonId)
+        .where("userId", userId)
+        .first(),
+    ]);
 
     if (!event) {
       throw new HttpException("event not found", HttpStatus.BAD_REQUEST);
@@ -467,13 +474,6 @@ export class EventController {
     if (!user) {
       throw new HttpException("user not found", HttpStatus.BAD_REQUEST);
     }
-
-    // check if user is registered for the current hackathon
-    const registration = await this.registrationRepo.findAll().exec();
-    const userRegistration = registration
-      .filter((r) => r.userId == userId)
-      .filter((r) => r.hackathonId == data.hackathonId)[0];
-    console.log("user registration", userRegistration);
 
     if (!userRegistration) {
       throw new HttpException(
@@ -551,26 +551,6 @@ export class EventController {
       });
     } catch (e) {
       console.error(`Cannot send token message to: ${userId}`, e);
-    }
-
-    // Send Gotify notification for check-in
-    try {
-      const totalScans = await this.scanRepo
-        .findAll()
-        .byHackathon(data.hackathonId)
-        .resultSize();
-
-      const userName = `${user.firstName} ${user.lastName}`;
-
-      await this.gotifyService.sendCheckinNotification(
-        userName,
-        user.email,
-        event.name,
-        totalScans,
-      );
-    } catch (error) {
-      console.log(`Failed to send Gotify check-in notification: ${error}`);
-      // Don't fail the check-in if notification fails
     }
   }
 }
