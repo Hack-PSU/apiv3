@@ -1640,9 +1640,9 @@
     webpack-node-externals "3.0.0"
 
 "@nestjs/common@^11.0.0":
-  version "11.1.19"
-  resolved "https://registry.yarnpkg.com/@nestjs/common/-/common-11.1.19.tgz#50ba93ae45ebaeda6163554b8e2ecec545a25c92"
-  integrity sha512-qeiTt2tv+e5QyDKqG8HlVZb2wx64FEaSGFJouqTSRs+kG44iTfl3xlz1XqVped+rihx4hmjWgL5gkhtdK3E6+Q==
+  version "11.1.20"
+  resolved "https://registry.yarnpkg.com/@nestjs/common/-/common-11.1.20.tgz#23339b2ffb10407e95bb8967c78d654940b508e0"
+  integrity sha512-uivaQnTwnfnW1cam8rlh9Xpxvvq+9zKs5ywHWtHRHu1CSQ2FnsLvDewP9Ybhyuf6l075BXKgbixxyW9OKZGpmA==
   dependencies:
     uid "2.0.2"
     file-type "21.3.4"
@@ -1660,9 +1660,9 @@
     lodash "4.18.1"
 
 "@nestjs/core@^11.0.0":
-  version "11.1.19"
-  resolved "https://registry.yarnpkg.com/@nestjs/core/-/core-11.1.19.tgz#d724f1afc0caac29e005464f0f659425fc80235b"
-  integrity sha512-6nJkWa2efrYi+XlU686J9y5L7OvxpLVjT0T/sxRKE7Jvpffiihelup4WSvLvRhdHDjj/5SuoWEwqReXAaaeHmw==
+  version "11.1.20"
+  resolved "https://registry.yarnpkg.com/@nestjs/core/-/core-11.1.20.tgz#ea528254c3e73db4251b67ceba76bb6206df9534"
+  integrity sha512-RlaeQctEtSNrc3SxwQDnAxv/R22ww2t5dbP8OMzaghXofUPRCe2dXhXZSlKMkCyCSEWX+tMhESlGRB5rcJhYTQ==
   dependencies:
     uid "2.0.2"
     "@nuxt/opencollective" "0.4.1"
@@ -1682,9 +1682,9 @@
   integrity sha512-ulQX6mbjlws92PIM15Naes4F4p2JoxGnIJuUsdXQPT+Oo2sqQmENEZXM7eYuimocfHnKlcfZOuyzbA33LwUlOQ==
 
 "@nestjs/platform-express@^11.0.0":
-  version "11.1.19"
-  resolved "https://registry.yarnpkg.com/@nestjs/platform-express/-/platform-express-11.1.19.tgz#e55f5078396b2285344f95f2b530b648e844cd4c"
-  integrity sha512-Vpdv8jyCQdThfoTx+UTn+DRYr6H6X02YUqcpZ3qP6G3ZUwtVp7eS+hoQPGd4UuCnlnFG8Wqr2J9bGEzQdi1rIg==
+  version "11.1.20"
+  resolved "https://registry.yarnpkg.com/@nestjs/platform-express/-/platform-express-11.1.20.tgz#453dea56ba217b6184cc8ec78abd66698cbcb5f0"
+  integrity sha512-HFJ/bf189AGziCp7o9DPdPEgj7LXvCWswR3hBNiVCIo3SwOwTIss1BsQWCCJVAtVYTmwIHOI0i0k9dMGXh3Hew==
   dependencies:
     cors "2.8.6"
     express "5.2.1"
@@ -1693,9 +1693,9 @@
     tslib "2.8.1"
 
 "@nestjs/platform-socket.io@^11.0.0":
-  version "11.1.19"
-  resolved "https://registry.yarnpkg.com/@nestjs/platform-socket.io/-/platform-socket.io-11.1.19.tgz#2dfe5c1f9d59416630fa66d37bc5e1cd2e32713b"
-  integrity sha512-gu1nPIEaP5Qjjg/Cl8wXyvwGpdZGzgbtK4KcH65YRAA+GTKUkIHb4BNpLJ27Ymq/wqLJKNEbCjajfzD0BEjMGA==
+  version "11.1.20"
+  resolved "https://registry.yarnpkg.com/@nestjs/platform-socket.io/-/platform-socket.io-11.1.20.tgz#8484d2ced250db7f014b12b427d6d36f51f4359b"
+  integrity sha512-inSsQ8AORi3nNDWYggQ8SXtWKjufMCuh3JGFFh1FJ8ZZSd/gKY27U7lttsI+Hda/W651x4lxsj7Db3Wz9AOR+w==
   dependencies:
     socket.io "4.8.3"
     tslib "2.8.1"
@@ -1731,16 +1731,16 @@
     swagger-ui-dist "5.32.4"
 
 "@nestjs/testing@^11.0.0":
-  version "11.1.19"
-  resolved "https://registry.yarnpkg.com/@nestjs/testing/-/testing-11.1.19.tgz#1bb72dbeb4de6fee23d3f1efe310970e5c9b0cb7"
-  integrity sha512-/UFNWXvPEdu4v4DlC5oWLbGKmD27LehLK06b8oLzs6D6lf4vAQTdST8LRAXBadyMUQnVEQWMuBo3CtAVtlfXtQ==
+  version "11.1.20"
+  resolved "https://registry.yarnpkg.com/@nestjs/testing/-/testing-11.1.20.tgz#737315b81fded21e778fe65c7dc4cdd72239568c"
+  integrity sha512-aBW6S+4Dz22qt3+oPp2SplsagyasHqj1NsNoWkFqCjGo+9BLh9lv5wm9aoHKeJts7XM9CcoeJi+t2rvtQIPWIg==
   dependencies:
     tslib "2.8.1"
 
 "@nestjs/websockets@^11.0.0":
-  version "11.1.19"
-  resolved "https://registry.yarnpkg.com/@nestjs/websockets/-/websockets-11.1.19.tgz#37f8c413fc80d9e19fa31ef9d586576b7b02c8c3"
-  integrity sha512-2qo8jtIwwwgkqAI1BtnJ02EaFLrRkKA39eYXS8IhZCHilhBHCWdjnJ5cLcFq4oF+s+KZ7LcLGD/3stxJy8ijzg==
+  version "11.1.20"
+  resolved "https://registry.yarnpkg.com/@nestjs/websockets/-/websockets-11.1.20.tgz#c810cce63cbb2925ae8f2a871798b3099969d512"
+  integrity sha512-esFwNghsIQyh5/VdTBQlSGjTIogUm8AJznUPJJ0yJBdzWjfxh0fMqKcCRkFTOyPFQcTBWVi2iUC1T0oP9ujfvw==
   dependencies:
     iterare "1.2.1"
     object-hash "3.0.0"
@@ -2179,12 +2179,12 @@
   dependencies:
     "@types/express" "*"
 
-"@types/node@*", "@types/node@>=10.0.0", "@types/node@>=13.7.0":
-  version "25.6.0"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-25.6.0.tgz#4e09bad9b469871f2d0f68140198cbd714f4edca"
-  integrity sha512-+qIYRKdNYJwY3vRCZMdJbPLJAtGjQBudzZzdzwQYkEPQd+PJGixUL5QfvCLDaULoLv+RhT3LDkwEfKaAkgSmNQ==
+"@types/node@*", "@types/node@>=10.0.0":
+  version "25.7.0"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-25.7.0.tgz#7498f82e90dbdce7c34b75aaaa256c498a0ebe6c"
+  integrity sha512-z+pdZyxE+RTQE9AcboAZCb4otwcrvgHD+GlBpPgn0emDVt0ohrTMhAwlr2Wd9nZ+nihhYFxO2pThz3C5qSu2Eg==
   dependencies:
-    undici-types "~7.19.0"
+    undici-types "~7.21.0"
 
 "@types/node@>=12.12.47":
   version "25.5.2"
@@ -2192,6 +2192,13 @@
   integrity sha512-tO4ZIRKNC+MDWV4qKVZe3Ql/woTnmHDr5JD8UI5hn2pwBrHEwOEMZK7WlNb5RKB6EoJ02gwmQS9OrjuFnZYdpg==
   dependencies:
     undici-types "~7.18.0"
+
+"@types/node@>=13.7.0":
+  version "25.6.0"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-25.6.0.tgz#4e09bad9b469871f2d0f68140198cbd714f4edca"
+  integrity sha512-+qIYRKdNYJwY3vRCZMdJbPLJAtGjQBudzZzdzwQYkEPQd+PJGixUL5QfvCLDaULoLv+RhT3LDkwEfKaAkgSmNQ==
+  dependencies:
+    undici-types "~7.19.0"
 
 "@types/node@^24.0.0":
   version "24.12.4"
@@ -3892,9 +3899,9 @@ engine.io-parser@~5.2.1:
   integrity sha512-HqD3yTBfnBxIrbnM1DoD6Pcq8NECnh8d4As1Qgh0z5Gg3jRRIqijury0CL3ghu/edArpUYiYqQiDUQBIs4np3Q==
 
 engine.io@~6.6.0:
-  version "6.6.6"
-  resolved "https://registry.yarnpkg.com/engine.io/-/engine.io-6.6.6.tgz#9942111e7a4dc31f057e73470d7b7fcc7f74c390"
-  integrity sha512-U2SN0w3OpjFRVlrc17E6TMDmH58Xl9rai1MblNjAdwWp07Kk+llmzX0hjDpQdrDGzwmvOtgM5yI+meYX6iZ2xA==
+  version "6.6.7"
+  resolved "https://registry.yarnpkg.com/engine.io/-/engine.io-6.6.7.tgz#60efa5b5b67167cdf93d64430c40a68bae9e4f21"
+  integrity sha512-DgOngfDKM2EviOH3Mr9m7ks1q8roetLy/IMmYthAYzbpInMbYc/GS+fWFA3rl1gvwKVsQrVV61fo5emD1y3OJQ==
   dependencies:
     "@types/cors" "^2.8.12"
     "@types/node" ">=10.0.0"
@@ -8208,6 +8215,11 @@ undici-types@~7.19.0:
   version "7.19.2"
   resolved "https://registry.yarnpkg.com/undici-types/-/undici-types-7.19.2.tgz#1b67fc26d0f157a0cba3a58a5b5c1e2276b8ba2a"
   integrity sha512-qYVnV5OEm2AW8cJMCpdV20CDyaN3g0AjDlOGf1OW4iaDEx8MwdtChUp4zu4H0VP3nDRF/8RKWH+IPp9uW0YGZg==
+
+undici-types@~7.21.0:
+  version "7.21.0"
+  resolved "https://registry.yarnpkg.com/undici-types/-/undici-types-7.21.0.tgz#433f7dd1b5daa9ab4dacb721a5e11a8de51eadda"
+  integrity sha512-w9IMgQrz4O0YN1LtB7K5P63vhlIOvC7opSmouCJ+ZywlPAlO9gIkJ+otk6LvGpAs2wg4econaCz3TvQ9xPoyuQ==
 
 unicode-properties@^1.4.0:
   version "1.4.1"
