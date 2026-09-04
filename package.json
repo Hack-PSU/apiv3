@@ -54,7 +54,7 @@
     "mock-knex": "^0.4.13",
     "mysql": "^2.18.1",
     "mysql2": "^3.6.5",
-    "nanoid": "^5.0.9",
+    "nanoid": "^6.0.0",
     "objection": "^3.1.5",
     "passkit-generator": "^3.3.1",
     "passport": "^0.7.0",
