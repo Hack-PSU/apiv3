@@ -106,7 +106,8 @@ export class RegistrationController {
       .joinRelated("user")
       .where(
         "user.university",
-        "The Pennsylvania State University - Main Campus",
+        "like",
+        "The Pennsylvania State University%",
       )
       .leftJoinRelated("applicantScore")
       .select(
@@ -146,7 +147,8 @@ export class RegistrationController {
       .joinRelated("user")
       .whereNot(
         "user.university",
-        "The Pennsylvania State University - Main Campus",
+        "like",
+        "The Pennsylvania State University%",
       )
       .leftJoinRelated("applicantScore")
       .select(
