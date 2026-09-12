@@ -14,6 +14,11 @@ import {
 import { signOut, type Auth, type User } from "firebase/auth";
 import { configureApiClient } from "@hackpsu/api-client";
 import { getFirebaseAuth } from "../firebase";
+import {
+  captureSessionToken,
+  clearSessionToken,
+  withSessionAuth,
+} from "../session-token";
 import { resolveConfig, type HackPSUConfig, type ResolvedHackPSUConfig } from "../config";
 
 export type FirebaseContextType = {
@@ -82,11 +87,16 @@ export const FirebaseProvider: FC<Props> = ({ children, config: rawConfig }) => 
   const verifySession = useCallback(async () => {
     if (isLoggingOut.current) return;
 
+    // On localhost and Vercel previews the auth cookie is unreadable, so the
+    // auth service hands back a token in the redirect instead. Pick it up
+    // before asking about the session.
+    captureSessionToken();
+
     try {
       const response = await fetch(`${config.authServiceUrl}/api/sessionUser`, {
         method: "GET",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: withSessionAuth({ "Content-Type": "application/json" }),
       });
 
       if (response.status === 401) {
@@ -169,8 +179,10 @@ export const FirebaseProvider: FC<Props> = ({ children, config: rawConfig }) => 
       await fetch(`${config.authServiceUrl}/api/sessionLogout`, {
         method: "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: withSessionAuth({ "Content-Type": "application/json" }),
       });
+
+      clearSessionToken();
 
       await signOut(auth);
       setUser(null);
