@@ -4074,7 +4074,7 @@
         "parameters": [
           {
             "name": "hackathonId",
-            "required": true,
+            "required": false,
             "in": "query",
             "description": "The ID of a valid hackathon",
             "schema": {
@@ -10101,15 +10101,15 @@
             "type": "string"
           },
           "travelReimbursement": {
-            "type": "object",
+            "type": "boolean",
             "default": false
           },
           "driving": {
-            "type": "object",
+            "type": "boolean",
             "default": false
           },
           "firstHackathon": {
-            "type": "object",
+            "type": "boolean",
             "default": false
           },
           "academicYear": {
@@ -10577,15 +10577,15 @@
         "type": "object",
         "properties": {
           "travelReimbursement": {
-            "type": "object",
+            "type": "boolean",
             "default": false
           },
           "driving": {
-            "type": "object",
+            "type": "boolean",
             "default": false
           },
           "firstHackathon": {
-            "type": "object",
+            "type": "boolean",
             "default": false
           },
           "academicYear": {
@@ -12054,15 +12054,15 @@
             "type": "string"
           },
           "travelReimbursement": {
-            "type": "object",
+            "type": "boolean",
             "default": false
           },
           "driving": {
-            "type": "object",
+            "type": "boolean",
             "default": false
           },
           "firstHackathon": {
-            "type": "object",
+            "type": "boolean",
             "default": false
           },
           "academicYear": {
@@ -12181,6 +12181,14 @@
             "type": "boolean",
             "nullable": true,
             "description": "Whether the applicant is prioritized"
+          },
+          "firstName": {
+            "type": "string",
+            "description": "Applicant's first name, joined from the user"
+          },
+          "lastName": {
+            "type": "string",
+            "description": "Applicant's last name, joined from the user"
           }
         },
         "required": [
@@ -12202,7 +12210,9 @@
           "hackathonId",
           "time",
           "excitement",
-          "applicationStatus"
+          "applicationStatus",
+          "firstName",
+          "lastName"
         ]
       },
       "UpdateStatusDto": {
@@ -12285,7 +12295,7 @@
           "flags": {
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/FlagEntity"
             }
           }
         },
@@ -12805,7 +12815,7 @@
             "example": "62704"
           },
           "reminderSent": {
-            "type": "object",
+            "type": "boolean",
             "description": "Checks whether 4 day reminder was already sent",
             "default": false
           }
@@ -12880,7 +12890,7 @@
             "example": "62704"
           },
           "reminderSent": {
-            "type": "object",
+            "type": "boolean",
             "description": "Checks whether 4 day reminder was already sent",
             "default": false
           },
@@ -12973,7 +12983,7 @@
             "example": "62704"
           },
           "reminderSent": {
-            "type": "object",
+            "type": "boolean",
             "description": "Checks whether 4 day reminder was already sent",
             "default": false
           }

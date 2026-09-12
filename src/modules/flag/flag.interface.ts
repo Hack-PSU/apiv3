@@ -40,7 +40,7 @@ export class ActivateFlagBody extends OmitType(FlagEntity, [
 }
 
 export class PatchFlagsBody {
-  @ApiProperty()
+  @ApiProperty({ type: [FlagEntity] })
   @IsNotEmpty()
   @ValidateNested({ each: true })
   @Type(() => FlagEntity)

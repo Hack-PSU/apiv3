@@ -6,7 +6,6 @@
  * OpenAPI spec version: 3.0
  */
 import type { Category } from './category';
-import type { FinanceEntityReminderSent } from './financeEntityReminderSent';
 import type { Status } from './status';
 import type { SubmitterType } from './submitterType';
 
@@ -40,5 +39,5 @@ export interface FinanceEntity {
   state: string;
   postalCode: string;
   /** Checks whether 4 day reminder was already sent */
-  reminderSent: FinanceEntityReminderSent;
+  reminderSent: boolean;
 }
