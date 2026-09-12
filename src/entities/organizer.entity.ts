@@ -5,6 +5,7 @@ import { ApiProperty, PickType } from "@nestjs/swagger";
 import { IsEmail, IsEnum, IsOptional, IsString } from "class-validator";
 import { Expose } from "class-transformer";
 import { ControllerMethod } from "common/validation";
+import { ScanEntity } from "entities/scan.entity";
 
 @Table({
   name: "organizers",
@@ -105,3 +106,9 @@ export class OrganizerEntity extends PickType(Organizer, [
   "judgingLocation",
   "isActive",
 ] as const) {}
+
+/** An organizer joined with the scans they recorded, used by the scan analytics endpoints. */
+export class OrganizerScansEntity extends OrganizerEntity {
+  @ApiProperty({ type: [ScanEntity] })
+  scans: ScanEntity[];
+}

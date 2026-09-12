@@ -30,6 +30,7 @@ import type {
   OrganizerCreateEntity,
   OrganizerEntity,
   OrganizerReplaceEntity,
+  OrganizerScansEntity,
   OrganizerUpdateEntity,
   OrganizerUpdateScoreEntity,
   ProjectReassignEntity,
@@ -676,9 +677,12 @@ export const useOrganizerDeleteOne = <TError = ExceptionResponse,
   return `/organizers/${id}/scans`
 }
 
-export const organizerGetAllOrganizerScans = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+/**
+ * @summary Get An Organizer With Their Scans
+ */
+export const organizerGetAllOrganizerScans = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<OrganizerScansEntity> => {
 
-  return customFetch<void>(getOrganizerGetAllOrganizerScansUrl(id),
+  return customFetch<OrganizerScansEntity>(getOrganizerGetAllOrganizerScansUrl(id),
   {
     ...options,
     method: 'GET'
@@ -698,7 +702,7 @@ export const getOrganizerGetAllOrganizerScansQueryKey = (id: string,) => {
     }
 
 
-export const getOrganizerGetAllOrganizerScansQueryOptions = <TData = Awaited<ReturnType<typeof organizerGetAllOrganizerScans>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizerGetAllOrganizerScans>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+export const getOrganizerGetAllOrganizerScansQueryOptions = <TData = Awaited<ReturnType<typeof organizerGetAllOrganizerScans>>, TError = ExceptionResponse>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizerGetAllOrganizerScans>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -717,10 +721,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type OrganizerGetAllOrganizerScansQueryResult = NonNullable<Awaited<ReturnType<typeof organizerGetAllOrganizerScans>>>
-export type OrganizerGetAllOrganizerScansQueryError = unknown
+export type OrganizerGetAllOrganizerScansQueryError = ExceptionResponse
 
 
-export function useOrganizerGetAllOrganizerScans<TData = Awaited<ReturnType<typeof organizerGetAllOrganizerScans>>, TError = unknown>(
+export function useOrganizerGetAllOrganizerScans<TData = Awaited<ReturnType<typeof organizerGetAllOrganizerScans>>, TError = ExceptionResponse>(
  id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizerGetAllOrganizerScans>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof organizerGetAllOrganizerScans>>,
@@ -730,7 +734,7 @@ export function useOrganizerGetAllOrganizerScans<TData = Awaited<ReturnType<type
       >, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useOrganizerGetAllOrganizerScans<TData = Awaited<ReturnType<typeof organizerGetAllOrganizerScans>>, TError = unknown>(
+export function useOrganizerGetAllOrganizerScans<TData = Awaited<ReturnType<typeof organizerGetAllOrganizerScans>>, TError = ExceptionResponse>(
  id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizerGetAllOrganizerScans>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof organizerGetAllOrganizerScans>>,
@@ -740,12 +744,15 @@ export function useOrganizerGetAllOrganizerScans<TData = Awaited<ReturnType<type
       >, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useOrganizerGetAllOrganizerScans<TData = Awaited<ReturnType<typeof organizerGetAllOrganizerScans>>, TError = unknown>(
+export function useOrganizerGetAllOrganizerScans<TData = Awaited<ReturnType<typeof organizerGetAllOrganizerScans>>, TError = ExceptionResponse>(
  id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizerGetAllOrganizerScans>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get An Organizer With Their Scans
+ */
 
-export function useOrganizerGetAllOrganizerScans<TData = Awaited<ReturnType<typeof organizerGetAllOrganizerScans>>, TError = unknown>(
+export function useOrganizerGetAllOrganizerScans<TData = Awaited<ReturnType<typeof organizerGetAllOrganizerScans>>, TError = ExceptionResponse>(
  id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizerGetAllOrganizerScans>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {

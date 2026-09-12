@@ -13,6 +13,7 @@ import { Hackathon } from "entities/hackathon.entity";
 import { User } from "entities/user.entity";
 import { RestrictedRoles, Role } from "common/gcp";
 import { DateTime } from "luxon";
+import { ApiDoc } from "common/docs";
 
 @Controller("wallet/apple")
 export class AppleWalletController {
@@ -25,6 +26,25 @@ export class AppleWalletController {
   ) {}
 
   @Post(":id/pass")
+  @ApiDoc({
+    summary: "Create an Apple Wallet pass",
+    params: [{ name: "id", type: String, description: "A valid user ID" }],
+    response: {
+      custom: [
+        {
+          status: 201,
+          description: "A signed .pkpass bundle",
+          content: {
+            "application/vnd.apple.pkpass": {
+              schema: { type: "string", format: "binary" },
+            },
+          },
+        },
+      ],
+    },
+    auth: Role.NONE,
+    restricted: true,
+  })
   @RestrictedRoles({
     roles: [Role.NONE],
     predicate: (req) => req.user && req.user.sub === req.params.id,

@@ -4,7 +4,7 @@ import { Scan, ScanEntity } from "entities/scan.entity";
 import { ApiExtraModels, ApiProperty, ApiTags } from "@nestjs/swagger";
 import { RestrictedRoles, Role, Roles } from "common/gcp";
 import { Event, EventEntity } from "entities/event.entity";
-import { Organizer } from "entities/organizer.entity";
+import { Organizer, OrganizerScansEntity } from "entities/organizer.entity";
 import { Hackathon } from "entities/hackathon.entity";
 import { ApiDoc } from "common/docs";
 import { DBExceptionFilter } from "common/filters";
@@ -71,6 +71,13 @@ export class ScanController {
 
   @Get("analytics/organizers")
   @Roles(Role.EXEC)
+  @ApiDoc({
+    summary: "Get All Scans Grouped By Organizer",
+    response: {
+      ok: { type: [OrganizerScansEntity] },
+    },
+    auth: Role.EXEC,
+  })
   async getAllByOrganizer() {
     return this.organizerRepo
       .findAll()
@@ -83,6 +90,17 @@ export class ScanController {
   }
 
   @Get("analytics/organizers/:id")
+  @ApiDoc({
+    summary: "Get All Scans For An Organizer",
+    params: [
+      { name: "id", type: String, description: "A valid organizer ID" },
+    ],
+    response: {
+      ok: { type: [ScanEntity] },
+    },
+    auth: Role.EXEC,
+    restricted: true,
+  })
   @RestrictedRoles({
     roles: [Role.TEAM],
     predicate: (req) => req.user && req.user.sub === req.params.id,

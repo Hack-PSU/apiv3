@@ -380,6 +380,14 @@ export class AnalyticsController {
   }
 
   @Get("/scans")
+  @Roles(Role.TEAM)
+  @ApiDoc({
+    summary: "Get scan count for each organizer",
+    auth: Role.TEAM,
+    response: {
+      ok: { type: [AnalyticsScansResponse] },
+    },
+  })
   async getOrganizerScans() {
     return this.organizerRepo
       .findAll()
@@ -522,6 +530,22 @@ export class AnalyticsController {
   @Roles(Role.TEAM)
   @ApiDoc({
     summary: "Generate analytics PDF report",
+    response: {
+      custom: [
+        {
+          status: 200,
+          description: "The rendered report",
+          content: {
+            "application/pdf": { schema: { type: "string", format: "binary" } },
+          },
+        },
+        {
+          status: 503,
+          description:
+            "Chart rendering is unavailable because the canvas dependency is not present in this build",
+        },
+      ],
+    },
     auth: Role.TEAM,
   })
   async getPdf(@Response() res: any) {

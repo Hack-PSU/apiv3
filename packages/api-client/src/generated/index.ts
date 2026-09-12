@@ -18,6 +18,7 @@ export * from './notifications/notifications';
 export * from './organizer-applications/organizer-applications';
 export * from './organizers/organizers';
 export * from './photos/photos';
+export * from './project/project';
 export * from './registrations/registrations';
 export * from './reservations/reservations';
 export * from './scans/scans';

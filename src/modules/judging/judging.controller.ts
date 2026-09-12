@@ -92,6 +92,33 @@ class JudgingAssignmentEntity {
 }
 
 @ApiTags("Judging")
+class AssignedScore {
+  @ApiProperty()
+  projectId: number;
+
+  @ApiProperty()
+  judgeId: string;
+
+  @ApiProperty()
+  hackathonId: string;
+}
+
+class JudgingAssignmentResponse {
+  @ApiProperty()
+  message: string;
+
+  @ApiProperty({ type: [AssignedScore] })
+  assignments: AssignedScore[];
+}
+
+class SingleJudgingAssignmentResponse {
+  @ApiProperty()
+  message: string;
+
+  @ApiProperty({ type: AssignedScore })
+  assignment: AssignedScore;
+}
+
 @Controller("judging")
 @UseFilters(DBExceptionFilter)
 @ApiExtraModels(ProjectBreakdownEntity)
@@ -154,6 +181,17 @@ export class JudgingController {
 
   @Post("/assign")
   @Roles(Role.EXEC)
+  @ApiDoc({
+    summary: "Assign Projects To Judges",
+    request: {
+      body: { type: JudgingAssignmentEntity },
+      validate: true,
+    },
+    response: {
+      created: { type: JudgingAssignmentResponse },
+    },
+    auth: Role.EXEC,
+  })
   async assignJudging(
     @Body(
       new ValidationPipe({
@@ -192,6 +230,16 @@ export class JudgingController {
   // Route to assign additional projects to judges
   @Post("/assign/:judgeId")
   @Roles(Role.TEAM)
+  @ApiDoc({
+    summary: "Assign One More Project To A Judge",
+    params: [
+      { name: "judgeId", type: String, description: "A valid organizer ID" },
+    ],
+    response: {
+      created: { type: SingleJudgingAssignmentResponse },
+    },
+    auth: Role.TEAM,
+  })
   async assignAdditionalProjects(@Param("judgeId") judgeId: string) {
     try {
       // Call the new assignment method.
