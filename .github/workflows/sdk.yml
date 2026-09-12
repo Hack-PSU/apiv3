@@ -86,13 +86,11 @@ jobs:
             exit 1
           fi
 
-      - name: Type-check packages
+      # Builds first: react-sdk type-checks against api-client's emitted
+      # declarations, so a bare typecheck would fail on a clean checkout.
+      - name: Build, type-check and test packages
         working-directory: packages
-        run: yarn typecheck
-
-      - name: Build and test packages
-        working-directory: packages
-        run: yarn test
+        run: yarn verify
 
       - name: Upload spec artifact
         uses: actions/upload-artifact@v4

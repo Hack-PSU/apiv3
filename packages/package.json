@@ -10,6 +10,7 @@
     "generate": "yarn workspace @hackpsu/api-client generate",
     "build": "yarn workspace @hackpsu/api-client build && yarn workspace @hackpsu/react-sdk build",
     "typecheck": "yarn workspaces run typecheck",
-    "test": "yarn workspace @hackpsu/api-client test"
+    "test": "yarn workspace @hackpsu/api-client test",
+    "verify": "yarn build && yarn typecheck && yarn test"
   }
 }
