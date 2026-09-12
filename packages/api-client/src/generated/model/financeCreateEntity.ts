@@ -30,4 +30,6 @@ export interface FinanceCreateEntity {
   status?: Status;
   /** Optional custom message explaining the rejection in more detail */
   rejectionMessage?: string;
+  /** Receipt image or PDF backing the request */
+  receipt?: Blob;
 }

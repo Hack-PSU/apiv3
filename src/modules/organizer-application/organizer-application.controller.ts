@@ -36,7 +36,15 @@ class OrganizerApplicationCreateEntity extends OmitType(
     "createdAt",
     "updatedAt",
   ] as const,
-) {}
+) {
+  @ApiProperty({
+    type: "string",
+    format: "binary",
+    required: false,
+    description: "Applicant's resume",
+  })
+  resume?: any;
+}
 
 class ApplicationActionDto {
   @ApiProperty({ enum: OrganizerTeam, enumName: "OrganizerTeam" })

@@ -12906,6 +12906,11 @@
           "rejectionMessage": {
             "type": "string",
             "description": "Optional custom message explaining the rejection in more detail"
+          },
+          "receipt": {
+            "type": "string",
+            "format": "binary",
+            "description": "Receipt image or PDF backing the request"
           }
         },
         "required": [
@@ -13718,6 +13723,11 @@
           },
           "whatExcitesYou": {
             "type": "string"
+          },
+          "resume": {
+            "type": "string",
+            "format": "binary",
+            "description": "Applicant's resume"
           }
         },
         "required": [
