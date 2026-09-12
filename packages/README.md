@@ -158,10 +158,13 @@ take over.
 
 ```bash
 npm login                      # a maintainer of the @hackpsu scope
-cd packages && yarn install && yarn build
-cd api-client && npm publish --access public
-cd ../react-sdk && npm publish --access public
+bash packages/scripts/bootstrap-release.sh
 ```
+
+The script publishes both packages and then configures trusted publishing for
+each. It prompts for a 2FA code before every npm write, because npm requires an
+interactive challenge for publishing and for changing package settings, and
+removed every bypass. It is safe to re-run: anything already done is skipped.
 
 ### Then configure trusted publishing
 
