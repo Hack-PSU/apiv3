@@ -115,7 +115,7 @@ export class ScanController {
   @ApiDoc({
     summary: "Get All Scans For All Events",
     response: {
-      ok: { type: AnalyticsEventsScansEntity },
+      ok: { type: [AnalyticsEventsScansEntity] },
     },
     auth: Role.TEAM,
   })
