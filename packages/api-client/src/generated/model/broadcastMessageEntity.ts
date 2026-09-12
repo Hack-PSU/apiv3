@@ -11,8 +11,8 @@ import type { DefaultTopic } from './defaultTopic';
 export interface BroadcastMessageEntity {
   title: string;
   body: string;
-  scheduleTime: number;
-  metadata: BroadcastMessageEntityMetadata;
+  scheduleTime?: number;
+  metadata?: BroadcastMessageEntityMetadata;
   broadcast?: DefaultTopic;
-  topic: string;
+  topic?: string;
 }

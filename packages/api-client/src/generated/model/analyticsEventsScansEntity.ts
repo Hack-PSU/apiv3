@@ -12,8 +12,8 @@ export interface AnalyticsEventsScansEntity {
   id: string;
   name: string;
   type: EventType;
-  description: string;
-  locationId: number;
+  description?: string;
+  locationId?: number;
   icon: string;
   startTime: number;
   endTime: number;

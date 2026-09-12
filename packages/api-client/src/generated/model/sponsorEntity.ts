@@ -13,8 +13,8 @@ export interface SponsorEntity {
   level: string;
   /** @nullable */
   link?: string | null;
-  darkLogo: string;
-  lightLogo: string;
+  darkLogo?: string;
+  lightLogo?: string;
   order: number;
   hackathonId?: string;
   sponsorType: SponsorType;

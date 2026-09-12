@@ -8,6 +8,6 @@
 
 export interface ActivateFlagBody {
   name: string;
-  isEnabled: boolean;
+  isEnabled?: boolean;
   broadcast?: string;
 }

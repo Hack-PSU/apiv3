@@ -10,9 +10,9 @@ import type { ApplicationStatus } from './applicationStatus';
 export interface RegistrationWithScoreDto {
   id: number;
   userId: string;
-  travelReimbursement: boolean;
-  driving: boolean;
-  firstHackathon: boolean;
+  travelReimbursement?: boolean;
+  driving?: boolean;
+  firstHackathon?: boolean;
   academicYear: string;
   educationalInstitutionType: string;
   codingExperience: string;
@@ -29,7 +29,7 @@ export interface RegistrationWithScoreDto {
   /** @nullable */
   shareEmailMlh?: boolean | null;
   veteran: string;
-  hackathonId: string;
+  hackathonId?: string;
   time: number;
   excitement: string;
   /** @nullable */
@@ -40,7 +40,7 @@ export interface RegistrationWithScoreDto {
   travelMethod?: string | null;
   /** @nullable */
   travelAdditional?: string | null;
-  applicationStatus: ApplicationStatus;
+  applicationStatus?: ApplicationStatus;
   /** @nullable */
   acceptedAt?: number | null;
   /** @nullable */

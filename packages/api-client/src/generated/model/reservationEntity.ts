@@ -11,7 +11,7 @@ export interface ReservationEntity {
   id: string;
   locationId: number;
   /** @nullable */
-  teamId: string | null;
+  teamId?: string | null;
   reservationType: ReservationType;
   startTime: number;
   endTime: number;

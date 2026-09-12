@@ -10,8 +10,8 @@ import type { EventType } from './eventType';
 export interface EventCreateEntity {
   name: string;
   type: EventType;
-  description: string;
-  locationId: number;
+  description?: string;
+  locationId?: number;
   startTime: number;
   endTime: number;
   wsPresenterNames?: string;

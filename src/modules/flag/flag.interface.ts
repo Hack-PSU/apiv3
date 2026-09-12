@@ -28,7 +28,7 @@ export class ActivateFlagBody extends OmitType(FlagEntity, [
   "isEnabled",
   "description",
 ] as const) {
-  @ApiProperty()
+  @ApiProperty({ required: false })
   @IsBoolean()
   @IsOptional()
   isEnabled?: boolean;

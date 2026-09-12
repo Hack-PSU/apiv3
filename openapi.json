@@ -9347,8 +9347,6 @@
           "id",
           "name",
           "type",
-          "description",
-          "locationId",
           "icon",
           "startTime",
           "endTime",
@@ -9402,8 +9400,6 @@
           "id",
           "name",
           "level",
-          "darkLogo",
-          "lightLogo",
           "order",
           "sponsorType"
         ]
@@ -9794,8 +9790,6 @@
           "id",
           "name",
           "type",
-          "description",
-          "locationId",
           "icon",
           "startTime",
           "endTime",
@@ -9855,8 +9849,6 @@
         "required": [
           "name",
           "type",
-          "description",
-          "locationId",
           "startTime",
           "endTime",
           "fastPass"
@@ -10071,9 +10063,6 @@
         "required": [
           "id",
           "userId",
-          "travelReimbursement",
-          "driving",
-          "firstHackathon",
           "academicYear",
           "educationalInstitutionType",
           "codingExperience",
@@ -10084,10 +10073,8 @@
           "project",
           "expectations",
           "veteran",
-          "hackathonId",
           "time",
-          "excitement",
-          "applicationStatus"
+          "excitement"
         ]
       },
       "UserProfileResponse": {
@@ -10542,9 +10529,6 @@
           }
         },
         "required": [
-          "travelReimbursement",
-          "driving",
-          "firstHackathon",
           "academicYear",
           "educationalInstitutionType",
           "codingExperience",
@@ -10556,8 +10540,7 @@
           "expectations",
           "veteran",
           "time",
-          "excitement",
-          "applicationStatus"
+          "excitement"
         ]
       },
       "Requirements": {
@@ -11850,8 +11833,6 @@
           "id",
           "name",
           "type",
-          "description",
-          "locationId",
           "icon",
           "startTime",
           "endTime",
@@ -12118,9 +12099,6 @@
         "required": [
           "id",
           "userId",
-          "travelReimbursement",
-          "driving",
-          "firstHackathon",
           "academicYear",
           "educationalInstitutionType",
           "codingExperience",
@@ -12131,10 +12109,8 @@
           "project",
           "expectations",
           "veteran",
-          "hackathonId",
           "time",
           "excitement",
-          "applicationStatus",
           "firstName",
           "lastName"
         ]
@@ -12209,8 +12185,7 @@
           }
         },
         "required": [
-          "name",
-          "isEnabled"
+          "name"
         ]
       },
       "PatchFlagsBody": {
@@ -12249,8 +12224,6 @@
         "required": [
           "title",
           "body",
-          "scheduleTime",
-          "metadata",
           "userId"
         ]
       },
@@ -12289,10 +12262,7 @@
         },
         "required": [
           "title",
-          "body",
-          "scheduleTime",
-          "metadata",
-          "topic"
+          "body"
         ]
       },
       "RegistrationCounts": {
@@ -13503,7 +13473,6 @@
         "required": [
           "id",
           "locationId",
-          "teamId",
           "reservationType",
           "startTime",
           "endTime",

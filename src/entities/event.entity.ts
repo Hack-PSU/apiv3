@@ -59,13 +59,13 @@ export class Event extends Entity {
   @Column({ type: "string" })
   type: "activity" | "food" | "workshop" | "checkIn";
 
-  @ApiProperty()
+  @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
   @Column({ type: "string", required: false, nullable: true })
   description: string;
 
-  @ApiProperty()
+  @ApiProperty({ required: false })
   @IsOptional()
   @IsNumber()
   @Type(() => Number)
