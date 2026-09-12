@@ -163,28 +163,33 @@ cd api-client && npm publish --access public
 cd ../react-sdk && npm publish --access public
 ```
 
-### Then pick how CI authenticates
+### Then configure trusted publishing
 
-**Option A: automation token.** Create a granular access token on npmjs.com with
-read and write on the `@hackpsu` scope, then add it as the `NPM_TOKEN` repository
-secret. Fewest steps, and the only option that works before a package exists.
+Use OIDC, not a token. npm blocked bypass-2FA tokens from managing packages in
+July 2026 and removes their direct-publish ability in January 2027, so a
+long-lived NPM_TOKEN is a dead end. Trusted publishing mints a short-lived
+credential per workflow run instead, and there is nothing to leak or rotate.
 
-**Option B: trusted publishing (OIDC).** No secret at all. On npmjs.com, open each
-package's Settings, add a trusted publisher pointing at `Hack-PSU/apiv3` with
-workflow filename `sdk.yml`, then delete the `NPM_TOKEN` secret. The workflow
-already requests `id-token: write` and upgrades npm, so nothing else changes.
-This requires the package to already exist, which is why the bootstrap above
-comes first.
+On npmjs.com, for each of `@hackpsu/api-client` and `@hackpsu/react-sdk`, open
+Settings and add a trusted publisher:
 
-Option B is worth moving to once things are running, since it removes a
-long-lived credential.
+| Field | Value |
+| --- | --- |
+| Organization or user | `Hack-PSU` |
+| Repository | `apiv3` |
+| Workflow filename | `sdk.yml` |
+| Environment | leave blank |
 
-### SDK_RELEASE_TOKEN
+The workflow already requests `id-token: write` and upgrades npm past 11.5.1, so
+nothing else needs changing. No repository secret is required.
 
-Only needed if branch protection on `main` rejects the release commit pushed by
-`github-actions[bot]`. If so, add a fine-grained PAT with `contents: write` as
-`SDK_RELEASE_TOKEN`. Otherwise the built-in `GITHUB_TOKEN` is used and no secret
-is required.
+This is also why the bootstrap above has to happen first: npm has no pending
+publisher concept, so a trusted publisher cannot be configured for a package that
+does not exist yet.
+
+If you ever need the token fallback in the interim, create a granular access
+token scoped to `@hackpsu` with Bypass 2FA enabled and add it as the `NPM_TOKEN`
+secret. The workflow reads it when present. Plan to remove it before January 2027.
 
 ### Why not GitHub Packages
 
