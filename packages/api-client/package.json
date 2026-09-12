@@ -9,7 +9,7 @@
     "directory": "packages/api-client"
   },
   "publishConfig": {
-    "access": "public"
+    "registry": "https://us-east4-npm.pkg.dev/hackpsu-408118/npm/"
   },
   "sideEffects": false,
   "main": "./dist/index.js",

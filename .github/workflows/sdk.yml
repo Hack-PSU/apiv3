@@ -107,10 +107,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      # Lets npm mint a short-lived OIDC credential. Harmless when NPM_TOKEN is
-      # used instead, and required once trusted publishing is configured on
-      # npmjs.com. See packages/README.md for the switch-over steps.
-      id-token: write
     steps:
       - uses: actions/checkout@v6
         with:
@@ -119,14 +115,22 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: "24"
-          registry-url: "https://registry.npmjs.org"
           cache: yarn
           cache-dependency-path: yarn.lock
 
-      # Trusted publishing needs npm 11.5.1 or newer, which is ahead of what
-      # some Node 24 images bundle.
-      - name: Ensure a recent npm
-        run: npm install -g npm@latest
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          credentials_json: ${{ secrets.GCP_DEPLOYER_SA_KEY }}
+
+      # Appends a short-lived Artifact Registry token to packages/.npmrc, which
+      # already carries the @hackpsu registry mapping.
+      - name: Authorize npm against Artifact Registry
+        working-directory: packages
+        run: |
+          npx --yes google-artifactregistry-auth \
+            --repo-config=./.npmrc \
+            --credential-config="$HOME/.npmrc"
 
       - name: Install API dependencies
         run: yarn install --frozen-lockfile
@@ -168,17 +172,15 @@ jobs:
         working-directory: packages
         run: yarn build
 
+      # publishConfig.registry in each package.json targets Artifact Registry;
+      # the token written above is picked up from ~/.npmrc.
       - name: Publish @hackpsu/api-client
         working-directory: packages/api-client
-        run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish
 
       - name: Publish @hackpsu/react-sdk
         working-directory: packages/react-sdk
-        run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish
 
       - name: Commit regenerated artifacts
         run: |

@@ -147,57 +147,69 @@ tokens carry custom claims at the top level, custom tokens nest them under
 
 ## Release setup
 
-Publishing uses `npm publish`. Yarn is only used to install and build; it is not
-involved in publishing.
+The packages are hosted in **Google Artifact Registry**, not npmjs.org, reusing
+the project and CI service account already used to deploy the API.
 
-`@hackpsu/react-sdk` already exists on npm (last published 0.2.1 in December
-2025). `@hackpsu/api-client` is new, so it needs one manual publish before CI can
-take over.
-
-### Bootstrap, once
-
-```bash
-npm login                      # a maintainer of the @hackpsu scope
-bash packages/scripts/bootstrap-release.sh
+```
+registry: https://us-east4-npm.pkg.dev/hackpsu-408118/npm/
 ```
 
-The script publishes both packages and then configures trusted publishing for
-each. It prompts for a 2FA code before every npm write, because npm requires an
-interactive challenge for publishing and for changing package settings, and
-removed every bypass. It is safe to re-run: anything already done is skipped.
+### One-time infrastructure
 
-### Then configure trusted publishing
+```bash
+gcloud auth login              # an account with admin on hackpsu-408118
+bash packages/scripts/setup-artifact-registry.sh
+```
 
-Use OIDC, not a token. npm blocked bypass-2FA tokens from managing packages in
-July 2026 and removes their direct-publish ability in January 2027, so a
-long-lived NPM_TOKEN is a dead end. Trusted publishing mints a short-lived
-credential per workflow run instead, and there is nothing to leak or rotate.
+That creates the npm repository and grants `allUsers` the reader role so installs
+need no credentials. It is idempotent.
 
-On npmjs.com, for each of `@hackpsu/api-client` and `@hackpsu/react-sdk`, open
-Settings and add a trusted publisher:
+CI needs no extra binding: `api-v3-github-action`, the identity behind
+`GCP_DEPLOYER_SA_KEY`, already holds `roles/artifactregistry.writer` at the
+project level.
 
-| Field | Value |
-| --- | --- |
-| Organization or user | `Hack-PSU` |
-| Repository | `apiv3` |
-| Workflow filename | `sdk.yml` |
-| Environment | leave blank |
+### One-time first publish
 
-The workflow already requests `id-token: write` and upgrades npm past 11.5.1, so
-nothing else needs changing. No repository secret is required.
+Artifact Registry has nothing to publish against until a first version exists:
 
-This is also why the bootstrap above has to happen first: npm has no pending
-publisher concept, so a trusted publisher cannot be configured for a package that
-does not exist yet.
+```bash
+export GOOGLE_APPLICATION_CREDENTIALS=/path/to/key.json
+cd packages
+yarn install && yarn build
+npx google-artifactregistry-auth --repo-config=./.npmrc --credential-config="$HOME/.npmrc"
+(cd api-client && npm publish)
+(cd react-sdk && npm publish)
+```
 
-If you ever need the token fallback in the interim, create a granular access
-token scoped to `@hackpsu` with Bypass 2FA enabled and add it as the `NPM_TOKEN`
-secret. The workflow reads it when present. Plan to remove it before January 2027.
+After that, CI publishes a patch release on every spec change. No new repository
+secret is needed: the publish job reuses `GCP_DEPLOYER_SA_KEY`.
 
-### Why not GitHub Packages
+### What consumers need
 
-GitHub Packages would remove the publish credential, but its npm registry
-requires authentication to *install*, even for public packages. Every frontend
-repo and every Vercel deployment would need a PAT in `.npmrc`. That trades a
-one-time setup cost for permanent friction on exactly the repos we want to adopt
-this, so npmjs public is the better fit.
+One line in each consuming repo's `.npmrc`, and no credentials:
+
+```
+@hackpsu:registry=https://us-east4-npm.pkg.dev/hackpsu-408118/npm/
+```
+
+Do not copy the `always-auth` line from `packages/.npmrc`. That one exists only
+so CI can publish; adding it to a consumer would force authentication on install
+and defeat the public read access.
+
+### Why not npmjs.org
+
+npm now requires an interactive 2FA challenge to publish and to change package
+settings, with every bypass removed, and
+[bypass-2FA tokens lose direct-publish ability in January 2027](https://github.blog/changelog/2026-07-08-npm-install-time-security-and-gat-bypass2fa-deprecation/).
+That would have meant enabling 2FA on a shared account and keeping the seed
+somewhere the whole team can reach. Artifact Registry reuses credentials the
+project already has and adds no new secret.
+
+`@hackpsu/react-sdk@0.2.1` still exists on npmjs.org from the earlier attempt. It
+is abandoned; anything pointing at it should move to the registry above.
+
+### SDK_RELEASE_TOKEN
+
+Only needed if branch protection on `main` rejects the release commit pushed by
+`github-actions[bot]`. If so, add a fine-grained PAT with `contents: write` as
+`SDK_RELEASE_TOKEN`. Otherwise the built-in `GITHUB_TOKEN` is used.
