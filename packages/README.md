@@ -144,3 +144,52 @@ then redirects.
 That matches what the API validates. `getRole()` accepts either token shape: ID
 tokens carry custom claims at the top level, custom tokens nest them under
 `claims`.
+
+## Release setup
+
+Publishing uses `npm publish`. Yarn is only used to install and build; it is not
+involved in publishing.
+
+`@hackpsu/react-sdk` already exists on npm (last published 0.2.1 in December
+2025). `@hackpsu/api-client` is new, so it needs one manual publish before CI can
+take over.
+
+### Bootstrap, once
+
+```bash
+npm login                      # a maintainer of the @hackpsu scope
+cd packages && yarn install && yarn build
+cd api-client && npm publish --access public
+cd ../react-sdk && npm publish --access public
+```
+
+### Then pick how CI authenticates
+
+**Option A: automation token.** Create a granular access token on npmjs.com with
+read and write on the `@hackpsu` scope, then add it as the `NPM_TOKEN` repository
+secret. Fewest steps, and the only option that works before a package exists.
+
+**Option B: trusted publishing (OIDC).** No secret at all. On npmjs.com, open each
+package's Settings, add a trusted publisher pointing at `Hack-PSU/apiv3` with
+workflow filename `sdk.yml`, then delete the `NPM_TOKEN` secret. The workflow
+already requests `id-token: write` and upgrades npm, so nothing else changes.
+This requires the package to already exist, which is why the bootstrap above
+comes first.
+
+Option B is worth moving to once things are running, since it removes a
+long-lived credential.
+
+### SDK_RELEASE_TOKEN
+
+Only needed if branch protection on `main` rejects the release commit pushed by
+`github-actions[bot]`. If so, add a fine-grained PAT with `contents: write` as
+`SDK_RELEASE_TOKEN`. Otherwise the built-in `GITHUB_TOKEN` is used and no secret
+is required.
+
+### Why not GitHub Packages
+
+GitHub Packages would remove the publish credential, but its npm registry
+requires authentication to *install*, even for public packages. Every frontend
+repo and every Vercel deployment would need a PAT in `.npmrc`. That trades a
+one-time setup cost for permanent friction on exactly the repos we want to adopt
+this, so npmjs public is the better fit.

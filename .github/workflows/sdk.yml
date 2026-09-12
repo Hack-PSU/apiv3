@@ -109,6 +109,10 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      # Lets npm mint a short-lived OIDC credential. Harmless when NPM_TOKEN is
+      # used instead, and required once trusted publishing is configured on
+      # npmjs.com. See packages/README.md for the switch-over steps.
+      id-token: write
     steps:
       - uses: actions/checkout@v6
         with:
@@ -120,6 +124,11 @@ jobs:
           registry-url: "https://registry.npmjs.org"
           cache: yarn
           cache-dependency-path: yarn.lock
+
+      # Trusted publishing needs npm 11.5.1 or newer, which is ahead of what
+      # some Node 24 images bundle.
+      - name: Ensure a recent npm
+        run: npm install -g npm@latest
 
       - name: Install API dependencies
         run: yarn install --frozen-lockfile
