@@ -37,9 +37,18 @@ packages/api-client/src/generated/     committed, never hand-edited
 @hackpsu/api-client -> @hackpsu/react-sdk -> npm
 ```
 
-CI (`.github/workflows/sdk.yml`) runs this on every push to `main`, fails the
-build if the committed client is stale, and publishes a patch release whenever
-the spec changes.
+CI (`.github/workflows/sdk.yml`) runs this on every push and pull request, and
+fails the build if the committed `openapi.json` or generated client is stale.
+
+On a push to `main` it publishes a patch release when that push changed
+`openapi.json`, `packages/api-client/src`, or `packages/react-sdk/src`. Docs and
+workflow edits do not trigger a release. `workflow_dispatch` with the `release`
+input forces one.
+
+Note the release check compares `HEAD^..HEAD`, not the working tree. Comparing
+the working tree would be backwards: the stale-artifact check requires the tree
+to be clean after regeneration, so a correctly committed change would always look
+like "nothing changed" and never publish.
 
 ## Working on the packages
 

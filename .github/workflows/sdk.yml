@@ -25,7 +25,7 @@ on:
   workflow_dispatch:
     inputs:
       release:
-        description: "Publish even if the spec is unchanged"
+        description: "Publish a release now, even if nothing changed"
         type: boolean
         default: false
 
@@ -41,9 +41,13 @@ jobs:
     name: Generate, build and verify
     runs-on: ubuntu-latest
     outputs:
-      spec-changed: ${{ steps.diff.outputs.changed }}
+      should-release: ${{ steps.release.outputs.changed }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          # Needs the previous commit to tell whether this push changed anything
+          # worth releasing.
+          fetch-depth: 2
 
       - uses: actions/setup-node@v6
         with:
@@ -54,19 +58,45 @@ jobs:
       - name: Install API dependencies
         run: yarn install --frozen-lockfile
 
+      # Compares commits, not the working tree: "did this push change anything
+      # that ships". Checking the working tree instead would be backwards, since
+      # the stale-artifact check below requires the tree to be clean, so a
+      # correct commit would always look like "nothing changed".
+      - name: Decide whether to release
+        id: release
+        run: |
+          if [ "${{ github.event_name }}" != "push" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Not a push; nothing to release."
+            exit 0
+          fi
+
+          if ! git rev-parse HEAD^ >/dev/null 2>&1; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "No parent commit; treating as releasable."
+            exit 0
+          fi
+
+          paths="openapi.json packages/api-client/src packages/react-sdk/src"
+          if git diff --quiet HEAD^ HEAD -- $paths; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No published code changed in this push."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "Releasable changes:"
+            git diff --stat HEAD^ HEAD -- $paths
+          fi
+
       - name: Regenerate the OpenAPI document
         run: yarn openapi
 
-      - name: Detect spec drift
-        id: diff
+      - name: Fail if the committed spec is stale
         run: |
-          if git diff --quiet -- openapi.json; then
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-            echo "OpenAPI document unchanged."
-          else
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-            echo "OpenAPI document changed:"
+          if ! git diff --quiet -- openapi.json; then
+            echo "::error::openapi.json is out of date."
+            echo "Run 'yarn openapi && (cd packages && yarn generate)' and commit the result."
             git diff --stat -- openapi.json
+            exit 1
           fi
 
       - name: Install package dependencies
@@ -102,8 +132,10 @@ jobs:
     name: Publish to Artifact Registry
     needs: build
     if: >
-      github.event_name == 'workflow_dispatch' ||
-      (github.ref == 'refs/heads/main' && needs.build.outputs.spec-changed == 'true')
+      (github.event_name == 'workflow_dispatch' && inputs.release) ||
+      (github.event_name == 'push' &&
+       github.ref == 'refs/heads/main' &&
+       needs.build.outputs.should-release == 'true')
     runs-on: ubuntu-latest
     permissions:
       contents: write
