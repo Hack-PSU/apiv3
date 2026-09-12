@@ -270,7 +270,15 @@ export class UserController {
   @ApiDoc({
     summary: "Get All Resumes",
     response: {
-      ok: { type: StreamableFile },
+      custom: [
+        {
+          status: 200,
+          description: "A zip archive of every resume",
+          content: {
+            "application/zip": { schema: { type: "string", format: "binary" } },
+          },
+        },
+      ],
     },
     auth: Role.EXEC,
   })
@@ -664,7 +672,15 @@ export class UserController {
       },
     ],
     response: {
-      ok: { type: StreamableFile },
+      custom: [
+        {
+          status: 200,
+          description: "The applicant's resume",
+          content: {
+            "application/pdf": { schema: { type: "string", format: "binary" } },
+          },
+        },
+      ],
     },
     auth: Role.EXEC,
   })

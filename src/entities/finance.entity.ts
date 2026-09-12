@@ -254,6 +254,7 @@ export class Finance extends Entity {
     },
     { each: true },
   )
+  @ApiProperty()
   @Column({ type: "number" })
   amount: number;
 

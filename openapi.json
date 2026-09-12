@@ -1492,11 +1492,12 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "",
+            "description": "A zip archive of every resume",
             "content": {
-              "application/json": {
+              "application/zip": {
                 "schema": {
-                  "$ref": "#/components/schemas/StreamableFile"
+                  "type": "string",
+                  "format": "binary"
                 }
               }
             }
@@ -1962,11 +1963,12 @@
         ],
         "responses": {
           "200": {
-            "description": "",
+            "description": "The applicant's resume",
             "content": {
-              "application/json": {
+              "application/pdf": {
                 "schema": {
-                  "$ref": "#/components/schemas/StreamableFile"
+                  "type": "string",
+                  "format": "binary"
                 }
               }
             }
@@ -9906,24 +9908,38 @@
       "CreateScanEntity": {
         "type": "object",
         "properties": {
+          "organizerId": {
+            "type": "string",
+            "description": "Organizer who recorded the scan"
+          },
           "hackathonId": {
             "type": "string"
           },
           "timestamp": {
             "type": "number"
           }
-        }
+        },
+        "required": [
+          "organizerId"
+        ]
       },
       "CreateUserScanEntity": {
         "type": "object",
         "properties": {
+          "organizerId": {
+            "type": "string",
+            "description": "Organizer who recorded the scan"
+          },
           "hackathonId": {
             "type": "string"
           },
           "timestamp": {
             "type": "number"
           }
-        }
+        },
+        "required": [
+          "organizerId"
+        ]
       },
       "ApplicationStatus": {
         "type": "string",
@@ -10291,10 +10307,6 @@
           "phone",
           "country"
         ]
-      },
-      "StreamableFile": {
-        "type": "object",
-        "properties": {}
       },
       "UserPatchEntity": {
         "type": "object",
@@ -10797,6 +10809,10 @@
           "userId": {
             "type": "string"
           },
+          "organizerId": {
+            "type": "string",
+            "description": "Organizer who recorded the scan"
+          },
           "hackathonId": {
             "type": "string"
           },
@@ -10806,7 +10822,8 @@
         },
         "required": [
           "eventId",
-          "userId"
+          "userId",
+          "organizerId"
         ]
       },
       "OrganizerScansEntity": {
