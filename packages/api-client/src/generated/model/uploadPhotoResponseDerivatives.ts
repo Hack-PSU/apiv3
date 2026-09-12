@@ -7,6 +7,6 @@
  */
 
 /**
- * Responsive image URLs (e.g., webp_480, webp_960, webp_1600)
+ * Responsive image URLs keyed by variant
  */
-export type PhotoGetAllPhotos200ItemDerivatives = {[key: string]: string};
+export type UploadPhotoResponseDerivatives = {[key: string]: string};
