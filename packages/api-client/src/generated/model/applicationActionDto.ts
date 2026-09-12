@@ -5,8 +5,8 @@
  * Official HackPSU API V3
  * OpenAPI spec version: 3.0
  */
-import type { ApplicationActionDtoTeam } from './applicationActionDtoTeam';
+import type { OrganizerTeam } from './organizerTeam';
 
 export interface ApplicationActionDto {
-  team: ApplicationActionDtoTeam;
+  team: OrganizerTeam;
 }

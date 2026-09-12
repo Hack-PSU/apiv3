@@ -9,10 +9,10 @@
 /**
  * Type of the submitter (USER or ORGANIZER)
  */
-export type FinanceEntitySubmitterType = typeof FinanceEntitySubmitterType[keyof typeof FinanceEntitySubmitterType];
+export type SubmitterType = typeof SubmitterType[keyof typeof SubmitterType];
 
 
-export const FinanceEntitySubmitterType = {
+export const SubmitterType = {
   USER: 'USER',
   ORGANIZER: 'ORGANIZER',
 } as const;

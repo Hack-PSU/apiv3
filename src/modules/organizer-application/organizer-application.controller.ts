@@ -39,7 +39,7 @@ class OrganizerApplicationCreateEntity extends OmitType(
 ) {}
 
 class ApplicationActionDto {
-  @ApiProperty({ enum: OrganizerTeam })
+  @ApiProperty({ enum: OrganizerTeam, enumName: "OrganizerTeam" })
   @IsEnum(OrganizerTeam)
   team: OrganizerTeam;
 }

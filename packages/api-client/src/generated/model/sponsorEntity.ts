@@ -5,6 +5,7 @@
  * Official HackPSU API V3
  * OpenAPI spec version: 3.0
  */
+import type { SponsorType } from './sponsorType';
 
 export interface SponsorEntity {
   id: number;
@@ -16,5 +17,5 @@ export interface SponsorEntity {
   lightLogo: string;
   order: number;
   hackathonId?: string;
-  sponsorType: string;
+  sponsorType: SponsorType;
 }

@@ -9,10 +9,10 @@
 /**
  * Status of the reimbursement request
  */
-export type FinanceCreateEntityStatus = typeof FinanceCreateEntityStatus[keyof typeof FinanceCreateEntityStatus];
+export type Status = typeof Status[keyof typeof Status];
 
 
-export const FinanceCreateEntityStatus = {
+export const Status = {
   PENDING: 'PENDING',
   APPROVED: 'APPROVED',
   SUBMITTED_TO_ASA: 'SUBMITTED_TO_ASA',

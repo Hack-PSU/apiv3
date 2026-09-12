@@ -8836,6 +8836,15 @@
       }
     },
     "schemas": {
+      "EventType": {
+        "type": "string",
+        "enum": [
+          "activity",
+          "food",
+          "workshop",
+          "checkIn"
+        ]
+      },
       "EventEntity": {
         "type": "object",
         "properties": {
@@ -8846,7 +8855,11 @@
             "type": "string"
           },
           "type": {
-            "type": "string"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EventType"
+              }
+            ]
           },
           "description": {
             "type": "string"
@@ -8894,6 +8907,13 @@
           "fastPass"
         ]
       },
+      "SponsorType": {
+        "type": "string",
+        "enum": [
+          "sponsor",
+          "partner"
+        ]
+      },
       "SponsorEntity": {
         "type": "object",
         "properties": {
@@ -8923,7 +8943,11 @@
             "type": "string"
           },
           "sponsorType": {
-            "type": "string"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SponsorType"
+              }
+            ]
           }
         },
         "required": [
@@ -9281,7 +9305,11 @@
             "type": "string"
           },
           "type": {
-            "type": "string"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EventType"
+              }
+            ]
           },
           "description": {
             "type": "string"
@@ -9344,7 +9372,11 @@
             "type": "string"
           },
           "type": {
-            "type": "string"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EventType"
+              }
+            ]
           },
           "description": {
             "type": "string"
@@ -9398,7 +9430,11 @@
             "type": "string"
           },
           "type": {
-            "type": "string"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EventType"
+              }
+            ]
           },
           "description": {
             "type": "string"
@@ -9457,6 +9493,17 @@
             "type": "number"
           }
         }
+      },
+      "ApplicationStatus": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "accepted",
+          "rejected",
+          "waitlisted",
+          "confirmed",
+          "declined"
+        ]
       },
       "RegistrationEntity": {
         "type": "object",
@@ -9550,16 +9597,12 @@
             "nullable": true
           },
           "applicationStatus": {
-            "type": "string",
-            "enum": [
-              "pending",
-              "accepted",
-              "rejected",
-              "waitlisted",
-              "confirmed",
-              "declined"
-            ],
-            "default": "pending"
+            "default": "pending",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ApplicationStatus"
+              }
+            ]
           },
           "acceptedAt": {
             "type": "number",
@@ -10036,16 +10079,12 @@
             "nullable": true
           },
           "applicationStatus": {
-            "type": "string",
-            "enum": [
-              "pending",
-              "accepted",
-              "rejected",
-              "waitlisted",
-              "confirmed",
-              "declined"
-            ],
-            "default": "pending"
+            "default": "pending",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ApplicationStatus"
+              }
+            ]
           },
           "acceptedAt": {
             "type": "number",
@@ -10091,6 +10130,15 @@
           "applicationStatus"
         ]
       },
+      "Requirements": {
+        "type": "string",
+        "enum": [
+          "check-in",
+          "submit",
+          "expo",
+          "other"
+        ]
+      },
       "ExtraCreditClassEntity": {
         "type": "object",
         "properties": {
@@ -10104,14 +10152,12 @@
             "type": "string"
           },
           "requirement": {
-            "type": "string",
-            "enum": [
-              "check-in",
-              "submit",
-              "expo",
-              "other"
-            ],
-            "default": "check-in"
+            "default": "check-in",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Requirements"
+              }
+            ]
           }
         },
         "required": [
@@ -11015,7 +11061,11 @@
             "type": "string"
           },
           "sponsorType": {
-            "type": "string"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SponsorType"
+              }
+            ]
           },
           "lightLogo": {
             "type": "string",
@@ -11055,7 +11105,11 @@
             "type": "string"
           },
           "sponsorType": {
-            "type": "string"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SponsorType"
+              }
+            ]
           },
           "lightLogo": {
             "type": "string",
@@ -11083,7 +11137,11 @@
             "type": "number"
           },
           "sponsorType": {
-            "type": "string"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SponsorType"
+              }
+            ]
           },
           "id": {
             "type": "number"
@@ -11124,7 +11182,11 @@
             "type": "string"
           },
           "type": {
-            "type": "string"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EventType"
+              }
+            ]
           },
           "description": {
             "type": "string"
@@ -11211,14 +11273,12 @@
             "type": "string"
           },
           "requirement": {
-            "type": "string",
-            "enum": [
-              "check-in",
-              "submit",
-              "expo",
-              "other"
-            ],
-            "default": "check-in"
+            "default": "check-in",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Requirements"
+              }
+            ]
           },
           "users": {
             "type": "array",
@@ -11244,14 +11304,12 @@
             "type": "string"
           },
           "requirement": {
-            "type": "string",
-            "enum": [
-              "check-in",
-              "submit",
-              "expo",
-              "other"
-            ],
-            "default": "check-in"
+            "default": "check-in",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Requirements"
+              }
+            ]
           }
         },
         "required": [
@@ -11269,14 +11327,12 @@
             "type": "string"
           },
           "requirement": {
-            "type": "string",
-            "enum": [
-              "check-in",
-              "submit",
-              "expo",
-              "other"
-            ],
-            "default": "check-in"
+            "default": "check-in",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Requirements"
+              }
+            ]
           }
         }
       },
@@ -11386,16 +11442,12 @@
             "nullable": true
           },
           "applicationStatus": {
-            "type": "string",
-            "enum": [
-              "pending",
-              "accepted",
-              "rejected",
-              "waitlisted",
-              "confirmed",
-              "declined"
-            ],
-            "default": "pending"
+            "default": "pending",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ApplicationStatus"
+              }
+            ]
           },
           "acceptedAt": {
             "type": "number",
@@ -11463,14 +11515,10 @@
         "type": "object",
         "properties": {
           "status": {
-            "type": "string",
-            "enum": [
-              "pending",
-              "accepted",
-              "rejected",
-              "waitlisted",
-              "confirmed",
-              "declined"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ApplicationStatus"
+              }
             ]
           }
         },
@@ -11488,14 +11536,10 @@
             }
           },
           "status": {
-            "type": "string",
-            "enum": [
-              "pending",
-              "accepted",
-              "rejected",
-              "waitlisted",
-              "confirmed",
-              "declined"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ApplicationStatus"
+              }
             ]
           }
         },
@@ -11582,6 +11626,13 @@
           "userId"
         ]
       },
+      "DefaultTopic": {
+        "type": "string",
+        "enum": [
+          "ALL",
+          "ORGANIZER"
+        ]
+      },
       "BroadcastMessageEntity": {
         "type": "object",
         "properties": {
@@ -11598,10 +11649,10 @@
             "type": "object"
           },
           "broadcast": {
-            "type": "string",
-            "enum": [
-              "ALL",
-              "ORGANIZER"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DefaultTopic"
+              }
             ]
           },
           "topic": {
@@ -11769,7 +11820,11 @@
             "type": "string"
           },
           "type": {
-            "type": "string"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EventType"
+              }
+            ]
           },
           "count": {
             "type": "number"
@@ -11838,6 +11893,109 @@
           "other"
         ]
       },
+      "Status": {
+        "type": "string",
+        "enum": [
+          "PENDING",
+          "APPROVED",
+          "SUBMITTED_TO_ASA",
+          "DEPOSIT",
+          "REJECTED_INVALID_RECEIPT",
+          "REJECTED_WRONG_ADDRESS",
+          "REJECTED_WRONG_DESCRIPTION",
+          "REJECTED_INCORRECT_AMOUNT",
+          "REJECTED_DUPLICATE_SUBMISSION",
+          "REJECTED_MISSING_INFORMATION",
+          "REJECTED_INELIGIBLE_EXPENSE",
+          "REJECTED_EXPIRED_SUBMISSION",
+          "REJECTED_OTHER"
+        ],
+        "description": "Status of the reimbursement request"
+      },
+      "SubmitterType": {
+        "type": "string",
+        "enum": [
+          "USER",
+          "ORGANIZER"
+        ],
+        "description": "Type of the submitter (USER or ORGANIZER)"
+      },
+      "Category": {
+        "type": "string",
+        "enum": [
+          "Telephone Rental",
+          "Postage",
+          "Office Supplies",
+          "Copies",
+          "Equipment Rental",
+          "Equipment Purchase",
+          "Equipment Maintenance",
+          "Professional Services",
+          "Insurance Premiums",
+          "Advertising",
+          "Dues/Membership",
+          "Awards/Gifts",
+          "Photography",
+          "Clothing/Uniform",
+          "Registration/Tournament Fee",
+          "Instructor",
+          "Referees/Judges",
+          "Fine",
+          "Web Hosting",
+          "Books/Subscription",
+          "Printing",
+          "Fundraising",
+          "Donation",
+          "CD and DVD",
+          "Rush",
+          "Social",
+          "Facility Rental - Social",
+          "Food",
+          "Materials & Supplies",
+          "Meeting",
+          "Equipment Maintenance/Repairs",
+          "Prizes",
+          "Security",
+          "EMT Service",
+          "Catering",
+          "Meal",
+          "Banquet",
+          "Retreat",
+          "Festival/Fair Expense",
+          "Special Function",
+          "Collegian Ad",
+          "Banner",
+          "Honoraria - Speaker",
+          "Honoraria - DJ",
+          "Honoraria - Performing Artist",
+          "Speaker/Artist - Transportation",
+          "Speaker/Artist - Lodging",
+          "Speaker/Artist - Meal",
+          "Speaker/Artist - Parking",
+          "Program - Facility Rental",
+          "Program - Equipment Rental",
+          "Program - Purchase",
+          "Program - Sound System Rental",
+          "Program - Movie Rental",
+          "Program - Projectionist",
+          "Program - Professional Services",
+          "Program - Publicity",
+          "Program - Copies/Flyers/Posters",
+          "Program - Media Print/Broadcast",
+          "Program - Costume",
+          "Program - Set Construction",
+          "Program - Props",
+          "Program - Copyright/Licensing",
+          "General Operations ($50)",
+          "Travel - Transportation",
+          "Travel - Lodging",
+          "Travel - Registration",
+          "Travel - Meal",
+          "Travel - Conference",
+          "Refund"
+        ],
+        "description": "Category of the expense"
+      },
       "FinanceEntity": {
         "type": "object",
         "properties": {
@@ -11852,33 +12010,22 @@
             "example": 150.75
           },
           "status": {
-            "type": "string",
             "description": "Status of the reimbursement request",
-            "enum": [
-              "PENDING",
-              "APPROVED",
-              "SUBMITTED_TO_ASA",
-              "DEPOSIT",
-              "REJECTED_INVALID_RECEIPT",
-              "REJECTED_WRONG_ADDRESS",
-              "REJECTED_WRONG_DESCRIPTION",
-              "REJECTED_INCORRECT_AMOUNT",
-              "REJECTED_DUPLICATE_SUBMISSION",
-              "REJECTED_MISSING_INFORMATION",
-              "REJECTED_INELIGIBLE_EXPENSE",
-              "REJECTED_EXPIRED_SUBMISSION",
-              "REJECTED_OTHER"
-            ],
-            "example": "PENDING"
+            "example": "PENDING",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Status"
+              }
+            ]
           },
           "submitterType": {
-            "type": "string",
             "description": "Type of the submitter (USER or ORGANIZER)",
-            "enum": [
-              "USER",
-              "ORGANIZER"
-            ],
-            "example": "USER"
+            "example": "USER",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SubmitterType"
+              }
+            ]
           },
           "submitterId": {
             "type": "string",
@@ -11901,9 +12048,13 @@
             "example": "Travel expenses for attending the hackathon"
           },
           "category": {
-            "type": "string",
             "description": "Category of the expense",
-            "example": "Travel"
+            "example": "Travel",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Category"
+              }
+            ]
           },
           "createdAt": {
             "type": "number",
@@ -11968,13 +12119,13 @@
             "example": 150.75
           },
           "submitterType": {
-            "type": "string",
             "description": "Type of the submitter (USER or ORGANIZER)",
-            "enum": [
-              "USER",
-              "ORGANIZER"
-            ],
-            "example": "USER"
+            "example": "USER",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SubmitterType"
+              }
+            ]
           },
           "submitterId": {
             "type": "string",
@@ -11987,9 +12138,13 @@
             "example": "Travel expenses for attending the hackathon"
           },
           "category": {
-            "type": "string",
             "description": "Category of the expense",
-            "example": "Travel"
+            "example": "Travel",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Category"
+              }
+            ]
           },
           "street": {
             "type": "string",
@@ -12013,24 +12168,13 @@
             "default": false
           },
           "status": {
-            "type": "string",
             "description": "Status of the reimbursement request",
-            "enum": [
-              "PENDING",
-              "APPROVED",
-              "SUBMITTED_TO_ASA",
-              "DEPOSIT",
-              "REJECTED_INVALID_RECEIPT",
-              "REJECTED_WRONG_ADDRESS",
-              "REJECTED_WRONG_DESCRIPTION",
-              "REJECTED_INCORRECT_AMOUNT",
-              "REJECTED_DUPLICATE_SUBMISSION",
-              "REJECTED_MISSING_INFORMATION",
-              "REJECTED_INELIGIBLE_EXPENSE",
-              "REJECTED_EXPIRED_SUBMISSION",
-              "REJECTED_OTHER"
-            ],
-            "example": "PENDING"
+            "example": "PENDING",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Status"
+              }
+            ]
           },
           "rejectionMessage": {
             "type": "string",
@@ -12054,24 +12198,13 @@
         "type": "object",
         "properties": {
           "status": {
-            "type": "string",
             "description": "Status of the reimbursement request",
-            "enum": [
-              "PENDING",
-              "APPROVED",
-              "SUBMITTED_TO_ASA",
-              "DEPOSIT",
-              "REJECTED_INVALID_RECEIPT",
-              "REJECTED_WRONG_ADDRESS",
-              "REJECTED_WRONG_DESCRIPTION",
-              "REJECTED_INCORRECT_AMOUNT",
-              "REJECTED_DUPLICATE_SUBMISSION",
-              "REJECTED_MISSING_INFORMATION",
-              "REJECTED_INELIGIBLE_EXPENSE",
-              "REJECTED_EXPIRED_SUBMISSION",
-              "REJECTED_OTHER"
-            ],
-            "example": "PENDING"
+            "example": "PENDING",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Status"
+              }
+            ]
           },
           "rejectionMessage": {
             "type": "string",
@@ -12093,9 +12226,13 @@
             "example": "Travel expenses for attending the hackathon"
           },
           "category": {
-            "type": "string",
             "description": "Category of the expense",
-            "example": "Travel"
+            "example": "Travel",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Category"
+              }
+            ]
           },
           "updatedAt": {
             "type": "number",
@@ -12507,6 +12644,13 @@
           "email"
         ]
       },
+      "ReservationType": {
+        "type": "string",
+        "enum": [
+          "participant",
+          "admin"
+        ]
+      },
       "ReservationEntity": {
         "type": "object",
         "properties": {
@@ -12521,10 +12665,10 @@
             "nullable": true
           },
           "reservationType": {
-            "type": "string",
-            "enum": [
-              "participant",
-              "admin"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ReservationType"
+              }
             ]
           },
           "startTime": {
@@ -12573,6 +12717,30 @@
           "hackathonId"
         ]
       },
+      "YearStanding": {
+        "type": "string",
+        "enum": [
+          "Freshman",
+          "Sophomore",
+          "Junior",
+          "Senior",
+          "Other"
+        ]
+      },
+      "OrganizerTeam": {
+        "type": "string",
+        "enum": [
+          "Communications",
+          "Design",
+          "Education",
+          "Entertainment",
+          "Finance",
+          "Logistics",
+          "Marketing",
+          "Sponsorship",
+          "Technology"
+        ]
+      },
       "OrganizerApplicationCreateEntity": {
         "type": "object",
         "properties": {
@@ -12583,44 +12751,27 @@
             "type": "string"
           },
           "yearStanding": {
-            "type": "string",
-            "enum": [
-              "Freshman",
-              "Sophomore",
-              "Junior",
-              "Senior",
-              "Other"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/YearStanding"
+              }
             ]
           },
           "major": {
             "type": "string"
           },
           "firstChoiceTeam": {
-            "type": "string",
-            "enum": [
-              "Communications",
-              "Design",
-              "Education",
-              "Entertainment",
-              "Finance",
-              "Logistics",
-              "Marketing",
-              "Sponsorship",
-              "Technology"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OrganizerTeam"
+              }
             ]
           },
           "secondChoiceTeam": {
-            "type": "string",
-            "enum": [
-              "Communications",
-              "Design",
-              "Education",
-              "Entertainment",
-              "Finance",
-              "Logistics",
-              "Marketing",
-              "Sponsorship",
-              "Technology"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OrganizerTeam"
+              }
             ]
           },
           "whyHackpsu": {
@@ -12658,44 +12809,27 @@
             "type": "string"
           },
           "yearStanding": {
-            "type": "string",
-            "enum": [
-              "Freshman",
-              "Sophomore",
-              "Junior",
-              "Senior",
-              "Other"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/YearStanding"
+              }
             ]
           },
           "major": {
             "type": "string"
           },
           "firstChoiceTeam": {
-            "type": "string",
-            "enum": [
-              "Communications",
-              "Design",
-              "Education",
-              "Entertainment",
-              "Finance",
-              "Logistics",
-              "Marketing",
-              "Sponsorship",
-              "Technology"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OrganizerTeam"
+              }
             ]
           },
           "secondChoiceTeam": {
-            "type": "string",
-            "enum": [
-              "Communications",
-              "Design",
-              "Education",
-              "Entertainment",
-              "Finance",
-              "Logistics",
-              "Marketing",
-              "Sponsorship",
-              "Technology"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OrganizerTeam"
+              }
             ]
           },
           "resumeUrl": {
@@ -12711,37 +12845,28 @@
             "type": "string"
           },
           "firstChoiceStatus": {
-            "type": "string",
-            "enum": [
-              "pending",
-              "accepted",
-              "rejected"
-            ],
-            "default": "pending"
+            "default": "pending",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ApplicationStatus"
+              }
+            ]
           },
           "secondChoiceStatus": {
-            "type": "string",
-            "enum": [
-              "pending",
-              "accepted",
-              "rejected"
-            ],
-            "default": "pending"
+            "default": "pending",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ApplicationStatus"
+              }
+            ]
           },
           "assignedTeam": {
-            "type": "string",
-            "enum": [
-              "Communications",
-              "Design",
-              "Education",
-              "Entertainment",
-              "Finance",
-              "Logistics",
-              "Marketing",
-              "Sponsorship",
-              "Technology"
-            ],
-            "nullable": true
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OrganizerTeam"
+              }
+            ]
           },
           "createdAt": {
             "format": "date-time",
@@ -12770,17 +12895,10 @@
         "type": "object",
         "properties": {
           "team": {
-            "type": "string",
-            "enum": [
-              "Communications",
-              "Design",
-              "Education",
-              "Entertainment",
-              "Finance",
-              "Logistics",
-              "Marketing",
-              "Sponsorship",
-              "Technology"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OrganizerTeam"
+              }
             ]
           }
         },

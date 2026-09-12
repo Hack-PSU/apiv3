@@ -5,7 +5,7 @@
  * Official HackPSU API V3
  * OpenAPI spec version: 3.0
  */
-import type { RegistrationWithScoreDtoApplicationStatus } from './registrationWithScoreDtoApplicationStatus';
+import type { ApplicationStatus } from './applicationStatus';
 import type { RegistrationWithScoreDtoDriving } from './registrationWithScoreDtoDriving';
 import type { RegistrationWithScoreDtoFirstHackathon } from './registrationWithScoreDtoFirstHackathon';
 import type { RegistrationWithScoreDtoTravelReimbursement } from './registrationWithScoreDtoTravelReimbursement';
@@ -43,7 +43,7 @@ export interface RegistrationWithScoreDto {
   travelMethod?: string | null;
   /** @nullable */
   travelAdditional?: string | null;
-  applicationStatus: RegistrationWithScoreDtoApplicationStatus;
+  applicationStatus: ApplicationStatus;
   /** @nullable */
   acceptedAt?: number | null;
   /** @nullable */

@@ -5,8 +5,8 @@
  * Official HackPSU API V3
  * OpenAPI spec version: 3.0
  */
-import type { UpdateStatusDtoStatus } from './updateStatusDtoStatus';
+import type { ApplicationStatus } from './applicationStatus';
 
 export interface UpdateStatusDto {
-  status: UpdateStatusDtoStatus;
+  status: ApplicationStatus;
 }

@@ -5,11 +5,11 @@
  * Official HackPSU API V3
  * OpenAPI spec version: 3.0
  */
-import type { OptionalStatusStatus } from './optionalStatusStatus';
+import type { Status } from './status';
 
 export interface OptionalStatus {
   /** Status of the reimbursement request */
-  status?: OptionalStatusStatus;
+  status?: Status;
   /** Optional custom message explaining the rejection in more detail */
   rejectionMessage?: string;
 }

@@ -6,10 +6,10 @@
  * OpenAPI spec version: 3.0
  */
 
-export type ReservationEntityReservationType = typeof ReservationEntityReservationType[keyof typeof ReservationEntityReservationType];
+export type ReservationType = typeof ReservationType[keyof typeof ReservationType];
 
 
-export const ReservationEntityReservationType = {
+export const ReservationType = {
   participant: 'participant',
   admin: 'admin',
 } as const;

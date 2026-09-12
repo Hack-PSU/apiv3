@@ -5,6 +5,7 @@
  * Official HackPSU API V3
  * OpenAPI spec version: 3.0
  */
+import type { SponsorType } from './sponsorType';
 
 export interface SponsorCreateEntity {
   name: string;
@@ -13,7 +14,7 @@ export interface SponsorCreateEntity {
   link?: string | null;
   order: number;
   hackathonId?: string;
-  sponsorType: string;
+  sponsorType: SponsorType;
   /** @nullable */
   lightLogo?: Blob | null;
   /** @nullable */

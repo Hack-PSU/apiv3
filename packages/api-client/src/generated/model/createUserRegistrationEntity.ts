@@ -5,7 +5,7 @@
  * Official HackPSU API V3
  * OpenAPI spec version: 3.0
  */
-import type { CreateUserRegistrationEntityApplicationStatus } from './createUserRegistrationEntityApplicationStatus';
+import type { ApplicationStatus } from './applicationStatus';
 import type { CreateUserRegistrationEntityDriving } from './createUserRegistrationEntityDriving';
 import type { CreateUserRegistrationEntityFirstHackathon } from './createUserRegistrationEntityFirstHackathon';
 import type { CreateUserRegistrationEntityTravelReimbursement } from './createUserRegistrationEntityTravelReimbursement';
@@ -40,7 +40,7 @@ export interface CreateUserRegistrationEntity {
   travelMethod?: string | null;
   /** @nullable */
   travelAdditional?: string | null;
-  applicationStatus: CreateUserRegistrationEntityApplicationStatus;
+  applicationStatus: ApplicationStatus;
   /** @nullable */
   acceptedAt?: number | null;
   /** @nullable */

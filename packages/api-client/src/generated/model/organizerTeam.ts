@@ -6,10 +6,10 @@
  * OpenAPI spec version: 3.0
  */
 
-export type OrganizerApplicationCreateEntityFirstChoiceTeam = typeof OrganizerApplicationCreateEntityFirstChoiceTeam[keyof typeof OrganizerApplicationCreateEntityFirstChoiceTeam];
+export type OrganizerTeam = typeof OrganizerTeam[keyof typeof OrganizerTeam];
 
 
-export const OrganizerApplicationCreateEntityFirstChoiceTeam = {
+export const OrganizerTeam = {
   Communications: 'Communications',
   Design: 'Design',
   Education: 'Education',

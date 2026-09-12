@@ -5,21 +5,22 @@
  * Official HackPSU API V3
  * OpenAPI spec version: 3.0
  */
+import type { Category } from './category';
 import type { FinanceCreateEntityReminderSent } from './financeCreateEntityReminderSent';
-import type { FinanceCreateEntityStatus } from './financeCreateEntityStatus';
-import type { FinanceCreateEntitySubmitterType } from './financeCreateEntitySubmitterType';
+import type { Status } from './status';
+import type { SubmitterType } from './submitterType';
 
 export interface FinanceCreateEntity {
   /** Amount to be reimbursed */
   amount: number;
   /** Type of the submitter (USER or ORGANIZER) */
-  submitterType: FinanceCreateEntitySubmitterType;
+  submitterType: SubmitterType;
   /** ID of the submitter (User or Organizer) */
   submitterId: string;
   /** Description of the expense */
   description: string;
   /** Category of the expense */
-  category: string;
+  category: Category;
   street: string;
   city: string;
   state: string;
@@ -27,7 +28,7 @@ export interface FinanceCreateEntity {
   /** Checks whether 4 day reminder was already sent */
   reminderSent: FinanceCreateEntityReminderSent;
   /** Status of the reimbursement request */
-  status?: FinanceCreateEntityStatus;
+  status?: Status;
   /** Optional custom message explaining the rejection in more detail */
   rejectionMessage?: string;
 }

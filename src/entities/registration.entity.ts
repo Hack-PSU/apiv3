@@ -213,7 +213,7 @@ export class Registration extends Entity {
   @Column({ type: "string", required: false, nullable: true })
   travelAdditional?: string;
 
-  @ApiProperty({ enum: ApplicationStatus, default: ApplicationStatus.PENDING })
+  @ApiProperty({ enum: ApplicationStatus, enumName: "ApplicationStatus", default: ApplicationStatus.PENDING })
   @IsEnum(ApplicationStatus)
   @Column({ type: "string" })
   applicationStatus: ApplicationStatus = ApplicationStatus.PENDING;

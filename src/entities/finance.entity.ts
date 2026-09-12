@@ -259,7 +259,7 @@ export class Finance extends Entity {
 
   @ApiProperty({
     description: "Status of the reimbursement request",
-    enum: Status,
+    enum: Status, enumName: "Status",
     example: Status.PENDING,
   })
   @IsEnum(Status)
@@ -268,7 +268,7 @@ export class Finance extends Entity {
 
   @ApiProperty({
     description: "Type of the submitter (USER or ORGANIZER)",
-    enum: SubmitterType,
+    enum: SubmitterType, enumName: "SubmitterType",
     example: SubmitterType.USER,
   })
   @IsEnum(SubmitterType)
@@ -312,6 +312,8 @@ export class Finance extends Entity {
 
   @ApiProperty({
     description: "Category of the expense",
+    enum: Category,
+    enumName: "Category",
     example: "Travel",
   })
   @IsEnum(Category)

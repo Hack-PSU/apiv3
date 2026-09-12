@@ -5,14 +5,14 @@
  * Official HackPSU API V3
  * OpenAPI spec version: 3.0
  */
-import type { ReservationEntityReservationType } from './reservationEntityReservationType';
+import type { ReservationType } from './reservationType';
 
 export interface ReservationEntity {
   id: string;
   locationId: number;
   /** @nullable */
   teamId: string | null;
-  reservationType: ReservationEntityReservationType;
+  reservationType: ReservationType;
   startTime: number;
   endTime: number;
   hackathonId: string;

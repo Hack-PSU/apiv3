@@ -6,10 +6,10 @@
  * OpenAPI spec version: 3.0
  */
 
-export type BroadcastMessageEntityBroadcast = typeof BroadcastMessageEntityBroadcast[keyof typeof BroadcastMessageEntityBroadcast];
+export type DefaultTopic = typeof DefaultTopic[keyof typeof DefaultTopic];
 
 
-export const BroadcastMessageEntityBroadcast = {
+export const DefaultTopic = {
   ALL: 'ALL',
   ORGANIZER: 'ORGANIZER',
 } as const;

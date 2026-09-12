@@ -6,10 +6,10 @@
  * OpenAPI spec version: 3.0
  */
 
-export type OrganizerApplicationCreateEntityYearStanding = typeof OrganizerApplicationCreateEntityYearStanding[keyof typeof OrganizerApplicationCreateEntityYearStanding];
+export type YearStanding = typeof YearStanding[keyof typeof YearStanding];
 
 
-export const OrganizerApplicationCreateEntityYearStanding = {
+export const YearStanding = {
   Freshman: 'Freshman',
   Sophomore: 'Sophomore',
   Junior: 'Junior',

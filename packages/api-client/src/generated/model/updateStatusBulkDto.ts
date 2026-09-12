@@ -5,9 +5,9 @@
  * Official HackPSU API V3
  * OpenAPI spec version: 3.0
  */
-import type { UpdateStatusBulkDtoStatus } from './updateStatusBulkDtoStatus';
+import type { ApplicationStatus } from './applicationStatus';
 
 export interface UpdateStatusBulkDto {
   userIds: string[];
-  status: UpdateStatusBulkDtoStatus;
+  status: ApplicationStatus;
 }

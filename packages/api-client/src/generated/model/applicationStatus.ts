@@ -6,10 +6,10 @@
  * OpenAPI spec version: 3.0
  */
 
-export type RegistrationWithScoreDtoApplicationStatus = typeof RegistrationWithScoreDtoApplicationStatus[keyof typeof RegistrationWithScoreDtoApplicationStatus];
+export type ApplicationStatus = typeof ApplicationStatus[keyof typeof ApplicationStatus];
 
 
-export const RegistrationWithScoreDtoApplicationStatus = {
+export const ApplicationStatus = {
   pending: 'pending',
   accepted: 'accepted',
   rejected: 'rejected',

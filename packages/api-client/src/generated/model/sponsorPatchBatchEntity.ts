@@ -5,12 +5,13 @@
  * Official HackPSU API V3
  * OpenAPI spec version: 3.0
  */
+import type { SponsorType } from './sponsorType';
 
 export interface SponsorPatchBatchEntity {
   level?: string;
   /** @nullable */
   link?: string | null;
   order?: number;
-  sponsorType?: string;
+  sponsorType?: SponsorType;
   id: number;
 }

@@ -6,10 +6,10 @@
  * OpenAPI spec version: 3.0
  */
 
-export type ECClassResponseRequirement = typeof ECClassResponseRequirement[keyof typeof ECClassResponseRequirement];
+export type Requirements = typeof Requirements[keyof typeof Requirements];
 
 
-export const ECClassResponseRequirement = {
+export const Requirements = {
   'check-in': 'check-in',
   submit: 'submit',
   expo: 'expo',

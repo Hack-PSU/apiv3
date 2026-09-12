@@ -5,29 +5,25 @@
  * Official HackPSU API V3
  * OpenAPI spec version: 3.0
  */
-import type { OrganizerApplicationEntityAssignedTeam } from './organizerApplicationEntityAssignedTeam';
-import type { OrganizerApplicationEntityFirstChoiceStatus } from './organizerApplicationEntityFirstChoiceStatus';
-import type { OrganizerApplicationEntityFirstChoiceTeam } from './organizerApplicationEntityFirstChoiceTeam';
-import type { OrganizerApplicationEntitySecondChoiceStatus } from './organizerApplicationEntitySecondChoiceStatus';
-import type { OrganizerApplicationEntitySecondChoiceTeam } from './organizerApplicationEntitySecondChoiceTeam';
-import type { OrganizerApplicationEntityYearStanding } from './organizerApplicationEntityYearStanding';
+import type { ApplicationStatus } from './applicationStatus';
+import type { OrganizerTeam } from './organizerTeam';
+import type { YearStanding } from './yearStanding';
 
 export interface OrganizerApplicationEntity {
   id: number;
   name: string;
   email: string;
-  yearStanding: OrganizerApplicationEntityYearStanding;
+  yearStanding: YearStanding;
   major: string;
-  firstChoiceTeam: OrganizerApplicationEntityFirstChoiceTeam;
-  secondChoiceTeam: OrganizerApplicationEntitySecondChoiceTeam;
+  firstChoiceTeam: OrganizerTeam;
+  secondChoiceTeam: OrganizerTeam;
   resumeUrl: string;
   whyHackpsu: string;
   newIdea: string;
   whatExcitesYou: string;
-  firstChoiceStatus?: OrganizerApplicationEntityFirstChoiceStatus;
-  secondChoiceStatus?: OrganizerApplicationEntitySecondChoiceStatus;
-  /** @nullable */
-  assignedTeam?: OrganizerApplicationEntityAssignedTeam;
+  firstChoiceStatus?: ApplicationStatus;
+  secondChoiceStatus?: ApplicationStatus;
+  assignedTeam?: OrganizerTeam | null;
   createdAt?: string;
   updatedAt?: string;
 }

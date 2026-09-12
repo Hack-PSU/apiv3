@@ -5,6 +5,7 @@
  * Official HackPSU API V3
  * OpenAPI spec version: 3.0
  */
+import type { Category } from './category';
 import type { FinancePatchEntityReminderSent } from './financePatchEntityReminderSent';
 
 export interface FinancePatchEntity {
@@ -13,7 +14,7 @@ export interface FinancePatchEntity {
   /** Description of the expense */
   description?: string;
   /** Category of the expense */
-  category?: string;
+  category?: Category;
   /** Timestamp when the record was last updated in milliseconds */
   updatedAt?: number;
   street?: string;
