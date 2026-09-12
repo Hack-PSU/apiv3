@@ -62,21 +62,21 @@ export class Registration extends Entity {
   @Column({ type: "string" })
   userId: string;
 
-  @ApiProperty({ type: Boolean, default: false })
+  @ApiProperty({ required: false, type: Boolean, default: false })
   @IsOptional()
   @IsBoolean()
   @Type(() => Boolean)
   @Column({ type: "boolean" })
   travelReimbursement = false;
 
-  @ApiProperty({ type: Boolean, default: false })
+  @ApiProperty({ required: false, type: Boolean, default: false })
   @IsOptional()
   @IsBoolean()
   @Type(() => Boolean)
   @Column({ type: "boolean" })
   driving = false;
 
-  @ApiProperty({ type: Boolean, default: false })
+  @ApiProperty({ required: false, type: Boolean, default: false })
   @IsOptional()
   @IsBoolean()
   @Type(() => Boolean)
@@ -172,7 +172,7 @@ export class Registration extends Entity {
   @Column({ type: "string" })
   veteran: string;
 
-  @ApiProperty()
+  @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
   @Column({ type: "string", required: false })
@@ -213,7 +213,12 @@ export class Registration extends Entity {
   @Column({ type: "string", required: false, nullable: true })
   travelAdditional?: string;
 
-  @ApiProperty({ enum: ApplicationStatus, enumName: "ApplicationStatus", default: ApplicationStatus.PENDING })
+  @ApiProperty({
+    enum: ApplicationStatus,
+    enumName: "ApplicationStatus",
+    default: ApplicationStatus.PENDING,
+    required: false,
+  })
   @IsEnum(ApplicationStatus)
   @Column({ type: "string" })
   applicationStatus: ApplicationStatus = ApplicationStatus.PENDING;

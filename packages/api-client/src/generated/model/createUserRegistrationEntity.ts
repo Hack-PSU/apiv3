@@ -8,9 +8,9 @@
 import type { ApplicationStatus } from './applicationStatus';
 
 export interface CreateUserRegistrationEntity {
-  travelReimbursement: boolean;
-  driving: boolean;
-  firstHackathon: boolean;
+  travelReimbursement?: boolean;
+  driving?: boolean;
+  firstHackathon?: boolean;
   academicYear: string;
   educationalInstitutionType: string;
   codingExperience: string;
@@ -37,7 +37,7 @@ export interface CreateUserRegistrationEntity {
   travelMethod?: string | null;
   /** @nullable */
   travelAdditional?: string | null;
-  applicationStatus: ApplicationStatus;
+  applicationStatus?: ApplicationStatus;
   /** @nullable */
   acceptedAt?: number | null;
   /** @nullable */
