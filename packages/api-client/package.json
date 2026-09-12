@@ -31,7 +31,7 @@
     "build": "tsup",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "npm run build",
-    "test": "yarn build && node --test test/*.test.mjs"
+    "test": "yarn build && node --experimental-strip-types --test test/*.test.mjs"
   },
   "peerDependencies": {
     "@tanstack/react-query": "^5.0.0",
