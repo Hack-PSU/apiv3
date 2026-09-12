@@ -105,7 +105,8 @@ export class TeamController {
     query: [
       {
         name: "active",
-        type: ActiveTeamsParams,
+        type: Boolean,
+        required: false,
       },
     ],
     response: {

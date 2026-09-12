@@ -5,11 +5,12 @@
  * Official HackPSU API V3
  * OpenAPI spec version: 3.0
  */
+import type { EventType } from './eventType';
 
 export interface EventEntity {
   id: string;
   name: string;
-  type: string;
+  type: EventType;
   description: string;
   locationId: number;
   icon: string;

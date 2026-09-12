@@ -28,16 +28,15 @@ import type {
   BadRequestExceptionResponse,
   ExceptionResponse,
   JudgingAssignmentEntity,
+  JudgingAssignmentResponse,
   ProjectBreakdownEntity,
-  ProjectCreateEntity,
-  ProjectEntity,
-  ProjectPatchEntity,
   ScoreCreateEntity,
   ScoreDataEntity,
   ScoreGetAllParams,
   ScorePatchEntity,
   ScoreResponseEntity,
-  ScoreUpdateEntity
+  ScoreUpdateEntity,
+  SingleJudgingAssignmentResponse
 } from '../model';
 
 import { customFetch } from '../../fetcher';
@@ -170,7 +169,10 @@ export const getJudgingAssignJudgingUrl = () => {
   return `/judging/assign`
 }
 
-export const judgingAssignJudging = async (judgingAssignmentEntity: JudgingAssignmentEntity, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+/**
+ * @summary Assign Projects To Judges
+ */
+export const judgingAssignJudging = async (judgingAssignmentEntity: JudgingAssignmentEntity, options?: Parameters<typeof customFetch>[1]): Promise<JudgingAssignmentResponse> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -186,7 +188,7 @@ export const judgingAssignJudging = async (judgingAssignmentEntity: JudgingAssig
     }
     return headers;
   };
-return customFetch<void>(getJudgingAssignJudgingUrl(),
+return customFetch<JudgingAssignmentResponse>(getJudgingAssignJudgingUrl(),
   {
     ...options,
     method: 'POST',
@@ -201,7 +203,7 @@ return customFetch<void>(getJudgingAssignJudgingUrl(),
 
 export const getJudgingAssignJudgingMutationKey = () => ['judgingAssignJudging'] as const;
 
-export const getJudgingAssignJudgingMutationOptions = <TError = unknown,
+export const getJudgingAssignJudgingMutationOptions = <TError = BadRequestExceptionResponse | ExceptionResponse,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof judgingAssignJudging>>, TError,JudgingAssignJudgingMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof judgingAssignJudging>>, TError,JudgingAssignJudgingMutationVariables, TContext> => {
 
@@ -230,10 +232,13 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type JudgingAssignJudgingMutationResult = NonNullable<Awaited<ReturnType<typeof judgingAssignJudging>>>
     export type JudgingAssignJudgingMutationBody = JudgingAssignmentEntity
-    export type JudgingAssignJudgingMutationError = unknown
+    export type JudgingAssignJudgingMutationError = BadRequestExceptionResponse | ExceptionResponse
     export type JudgingAssignJudgingMutationVariables = {data: JudgingAssignmentEntity}
 
-    export const useJudgingAssignJudging = <TError = unknown,
+    /**
+ * @summary Assign Projects To Judges
+ */
+export const useJudgingAssignJudging = <TError = BadRequestExceptionResponse | ExceptionResponse,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof judgingAssignJudging>>, TError,JudgingAssignJudgingMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof judgingAssignJudging>>,
@@ -251,9 +256,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
   return `/judging/assign/${judgeId}`
 }
 
-export const judgingAssignAdditionalProjects = async (judgeId: string, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+/**
+ * @summary Assign One More Project To A Judge
+ */
+export const judgingAssignAdditionalProjects = async (judgeId: string, options?: Parameters<typeof customFetch>[1]): Promise<SingleJudgingAssignmentResponse> => {
 
-  return customFetch<void>(getJudgingAssignAdditionalProjectsUrl(judgeId),
+  return customFetch<SingleJudgingAssignmentResponse>(getJudgingAssignAdditionalProjectsUrl(judgeId),
   {
     ...options,
     method: 'POST'
@@ -268,7 +276,7 @@ export const judgingAssignAdditionalProjects = async (judgeId: string, options?:
 
 export const getJudgingAssignAdditionalProjectsMutationKey = () => ['judgingAssignAdditionalProjects'] as const;
 
-export const getJudgingAssignAdditionalProjectsMutationOptions = <TError = unknown,
+export const getJudgingAssignAdditionalProjectsMutationOptions = <TError = ExceptionResponse,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof judgingAssignAdditionalProjects>>, TError,JudgingAssignAdditionalProjectsMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof judgingAssignAdditionalProjects>>, TError,JudgingAssignAdditionalProjectsMutationVariables, TContext> => {
 
@@ -297,10 +305,13 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type JudgingAssignAdditionalProjectsMutationResult = NonNullable<Awaited<ReturnType<typeof judgingAssignAdditionalProjects>>>
 
-    export type JudgingAssignAdditionalProjectsMutationError = unknown
+    export type JudgingAssignAdditionalProjectsMutationError = ExceptionResponse
     export type JudgingAssignAdditionalProjectsMutationVariables = {judgeId: string}
 
-    export const useJudgingAssignAdditionalProjects = <TError = unknown,
+    /**
+ * @summary Assign One More Project To A Judge
+ */
+export const useJudgingAssignAdditionalProjects = <TError = ExceptionResponse,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof judgingAssignAdditionalProjects>>, TError,JudgingAssignAdditionalProjectsMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof judgingAssignAdditionalProjects>>,
@@ -309,709 +320,6 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getJudgingAssignAdditionalProjectsMutationOptions(options), queryClient);
-    }
-    export const getProjectGetAllUrl = () => {
-
-
-
-
-  return `/judging/projects`
-}
-
-/**
- * @summary Get All Projects
- */
-export const projectGetAll = async ( options?: Parameters<typeof customFetch>[1]): Promise<ProjectEntity[]> => {
-
-  return customFetch<ProjectEntity[]>(getProjectGetAllUrl(),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getProjectGetAllQueryKey = () => {
-    return [
-    `/judging/projects`
-    ] as const;
-    }
-
-
-export const getProjectGetAllQueryOptions = <TData = Awaited<ReturnType<typeof projectGetAll>>, TError = ExceptionResponse>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof projectGetAll>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getProjectGetAllQueryKey();
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof projectGetAll>>> = ({ signal }) => projectGetAll({ signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof projectGetAll>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type ProjectGetAllQueryResult = NonNullable<Awaited<ReturnType<typeof projectGetAll>>>
-export type ProjectGetAllQueryError = ExceptionResponse
-
-
-export function useProjectGetAll<TData = Awaited<ReturnType<typeof projectGetAll>>, TError = ExceptionResponse>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof projectGetAll>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof projectGetAll>>,
-          TError,
-          Awaited<ReturnType<typeof projectGetAll>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useProjectGetAll<TData = Awaited<ReturnType<typeof projectGetAll>>, TError = ExceptionResponse>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof projectGetAll>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof projectGetAll>>,
-          TError,
-          Awaited<ReturnType<typeof projectGetAll>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useProjectGetAll<TData = Awaited<ReturnType<typeof projectGetAll>>, TError = ExceptionResponse>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof projectGetAll>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-/**
- * @summary Get All Projects
- */
-
-export function useProjectGetAll<TData = Awaited<ReturnType<typeof projectGetAll>>, TError = ExceptionResponse>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof projectGetAll>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getProjectGetAllQueryOptions(options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-export const getProjectCreateOneUrl = () => {
-
-
-
-
-  return `/judging/projects`
-}
-
-/**
- * @summary Create a Project
- */
-export const projectCreateOne = async (projectCreateEntity: ProjectCreateEntity, options?: Parameters<typeof customFetch>[1]): Promise<ProjectEntity> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Symbol.iterator in h) {
-      return Object.fromEntries(
-        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
-      );
-    }
-    const headers: Record<string, string | readonly string[]> = {};
-    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
-      if (value !== undefined) headers[name] = value;
-    }
-    return headers;
-  };
-return customFetch<ProjectEntity>(getProjectCreateOneUrl(),
-  {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(projectCreateEntity)
-  }
-);}
-
-
-
-
-
-export const getProjectCreateOneMutationKey = () => ['projectCreateOne'] as const;
-
-export const getProjectCreateOneMutationOptions = <TError = BadRequestExceptionResponse | ExceptionResponse,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof projectCreateOne>>, TError,ProjectCreateOneMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof projectCreateOne>>, TError,ProjectCreateOneMutationVariables, TContext> => {
-
-const mutationKey = getProjectCreateOneMutationKey();
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof projectCreateOne>>, ProjectCreateOneMutationVariables> = (props) => {
-          const {data} = props ?? {};
-
-          return  projectCreateOne(data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type ProjectCreateOneMutationResult = NonNullable<Awaited<ReturnType<typeof projectCreateOne>>>
-    export type ProjectCreateOneMutationBody = ProjectCreateEntity
-    export type ProjectCreateOneMutationError = BadRequestExceptionResponse | ExceptionResponse
-    export type ProjectCreateOneMutationVariables = {data: ProjectCreateEntity}
-
-    /**
- * @summary Create a Project
- */
-export const useProjectCreateOne = <TError = BadRequestExceptionResponse | ExceptionResponse,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof projectCreateOne>>, TError,ProjectCreateOneMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof projectCreateOne>>,
-        TError,
-        ProjectCreateOneMutationVariables,
-        TContext
-      > => {
-      return useMutation(getProjectCreateOneMutationOptions(options), queryClient);
-    }
-    export const getProjectGetOneUrl = (id: number,) => {
-
-
-
-
-  return `/judging/projects/${id}`
-}
-
-/**
- * @summary Get a Project
- */
-export const projectGetOne = async (id: number, options?: Parameters<typeof customFetch>[1]): Promise<ProjectEntity> => {
-
-  return customFetch<ProjectEntity>(getProjectGetOneUrl(id),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getProjectGetOneQueryKey = (id: number,) => {
-    return [
-    `/judging/projects/${id}`
-    ] as const;
-    }
-
-
-export const getProjectGetOneQueryOptions = <TData = Awaited<ReturnType<typeof projectGetOne>>, TError = ExceptionResponse>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof projectGetOne>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getProjectGetOneQueryKey(id);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof projectGetOne>>> = ({ signal }) => projectGetOne(id, { signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof projectGetOne>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type ProjectGetOneQueryResult = NonNullable<Awaited<ReturnType<typeof projectGetOne>>>
-export type ProjectGetOneQueryError = ExceptionResponse
-
-
-export function useProjectGetOne<TData = Awaited<ReturnType<typeof projectGetOne>>, TError = ExceptionResponse>(
- id: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof projectGetOne>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof projectGetOne>>,
-          TError,
-          Awaited<ReturnType<typeof projectGetOne>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useProjectGetOne<TData = Awaited<ReturnType<typeof projectGetOne>>, TError = ExceptionResponse>(
- id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof projectGetOne>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof projectGetOne>>,
-          TError,
-          Awaited<ReturnType<typeof projectGetOne>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useProjectGetOne<TData = Awaited<ReturnType<typeof projectGetOne>>, TError = ExceptionResponse>(
- id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof projectGetOne>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-/**
- * @summary Get a Project
- */
-
-export function useProjectGetOne<TData = Awaited<ReturnType<typeof projectGetOne>>, TError = ExceptionResponse>(
- id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof projectGetOne>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getProjectGetOneQueryOptions(id,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-export const getProjectPatchOneUrl = (id: number,) => {
-
-
-
-
-  return `/judging/projects/${id}`
-}
-
-/**
- * @summary Patch a Project
- */
-export const projectPatchOne = async (id: number,
-    projectPatchEntity: ProjectPatchEntity, options?: Parameters<typeof customFetch>[1]): Promise<ProjectEntity> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Symbol.iterator in h) {
-      return Object.fromEntries(
-        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
-      );
-    }
-    const headers: Record<string, string | readonly string[]> = {};
-    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
-      if (value !== undefined) headers[name] = value;
-    }
-    return headers;
-  };
-return customFetch<ProjectEntity>(getProjectPatchOneUrl(id),
-  {
-    ...options,
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(projectPatchEntity)
-  }
-);}
-
-
-
-
-
-export const getProjectPatchOneMutationKey = () => ['projectPatchOne'] as const;
-
-export const getProjectPatchOneMutationOptions = <TError = BadRequestExceptionResponse | ExceptionResponse,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof projectPatchOne>>, TError,ProjectPatchOneMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof projectPatchOne>>, TError,ProjectPatchOneMutationVariables, TContext> => {
-
-const mutationKey = getProjectPatchOneMutationKey();
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof projectPatchOne>>, ProjectPatchOneMutationVariables> = (props) => {
-          const {id,data} = props ?? {};
-
-          return  projectPatchOne(id,data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type ProjectPatchOneMutationResult = NonNullable<Awaited<ReturnType<typeof projectPatchOne>>>
-    export type ProjectPatchOneMutationBody = ProjectPatchEntity
-    export type ProjectPatchOneMutationError = BadRequestExceptionResponse | ExceptionResponse
-    export type ProjectPatchOneMutationVariables = {id: number;data: ProjectPatchEntity}
-
-    /**
- * @summary Patch a Project
- */
-export const useProjectPatchOne = <TError = BadRequestExceptionResponse | ExceptionResponse,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof projectPatchOne>>, TError,ProjectPatchOneMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof projectPatchOne>>,
-        TError,
-        ProjectPatchOneMutationVariables,
-        TContext
-      > => {
-      return useMutation(getProjectPatchOneMutationOptions(options), queryClient);
-    }
-    export const getProjectReplaceOneUrl = (id: number,) => {
-
-
-
-
-  return `/judging/projects/${id}`
-}
-
-/**
- * @summary Replace a Project
- */
-export const projectReplaceOne = async (id: number,
-    projectCreateEntity: ProjectCreateEntity, options?: Parameters<typeof customFetch>[1]): Promise<ProjectEntity> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Symbol.iterator in h) {
-      return Object.fromEntries(
-        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
-      );
-    }
-    const headers: Record<string, string | readonly string[]> = {};
-    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
-      if (value !== undefined) headers[name] = value;
-    }
-    return headers;
-  };
-return customFetch<ProjectEntity>(getProjectReplaceOneUrl(id),
-  {
-    ...options,
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(projectCreateEntity)
-  }
-);}
-
-
-
-
-
-export const getProjectReplaceOneMutationKey = () => ['projectReplaceOne'] as const;
-
-export const getProjectReplaceOneMutationOptions = <TError = BadRequestExceptionResponse | ExceptionResponse,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof projectReplaceOne>>, TError,ProjectReplaceOneMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof projectReplaceOne>>, TError,ProjectReplaceOneMutationVariables, TContext> => {
-
-const mutationKey = getProjectReplaceOneMutationKey();
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof projectReplaceOne>>, ProjectReplaceOneMutationVariables> = (props) => {
-          const {id,data} = props ?? {};
-
-          return  projectReplaceOne(id,data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type ProjectReplaceOneMutationResult = NonNullable<Awaited<ReturnType<typeof projectReplaceOne>>>
-    export type ProjectReplaceOneMutationBody = ProjectCreateEntity
-    export type ProjectReplaceOneMutationError = BadRequestExceptionResponse | ExceptionResponse
-    export type ProjectReplaceOneMutationVariables = {id: number;data: ProjectCreateEntity}
-
-    /**
- * @summary Replace a Project
- */
-export const useProjectReplaceOne = <TError = BadRequestExceptionResponse | ExceptionResponse,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof projectReplaceOne>>, TError,ProjectReplaceOneMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof projectReplaceOne>>,
-        TError,
-        ProjectReplaceOneMutationVariables,
-        TContext
-      > => {
-      return useMutation(getProjectReplaceOneMutationOptions(options), queryClient);
-    }
-    export const getProjectDeleteOneUrl = (id: number,) => {
-
-
-
-
-  return `/judging/projects/${id}`
-}
-
-/**
- * @summary Delete a Project
- */
-export const projectDeleteOne = async (id: number, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
-
-  return customFetch<void>(getProjectDeleteOneUrl(id),
-  {
-    ...options,
-    method: 'DELETE'
-
-
-  }
-);}
-
-
-
-
-
-export const getProjectDeleteOneMutationKey = () => ['projectDeleteOne'] as const;
-
-export const getProjectDeleteOneMutationOptions = <TError = ExceptionResponse,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof projectDeleteOne>>, TError,ProjectDeleteOneMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof projectDeleteOne>>, TError,ProjectDeleteOneMutationVariables, TContext> => {
-
-const mutationKey = getProjectDeleteOneMutationKey();
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof projectDeleteOne>>, ProjectDeleteOneMutationVariables> = (props) => {
-          const {id} = props ?? {};
-
-          return  projectDeleteOne(id,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type ProjectDeleteOneMutationResult = NonNullable<Awaited<ReturnType<typeof projectDeleteOne>>>
-
-    export type ProjectDeleteOneMutationError = ExceptionResponse
-    export type ProjectDeleteOneMutationVariables = {id: number}
-
-    /**
- * @summary Delete a Project
- */
-export const useProjectDeleteOne = <TError = ExceptionResponse,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof projectDeleteOne>>, TError,ProjectDeleteOneMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof projectDeleteOne>>,
-        TError,
-        ProjectDeleteOneMutationVariables,
-        TContext
-      > => {
-      return useMutation(getProjectDeleteOneMutationOptions(options), queryClient);
-    }
-    export const getProjectGetProjectsByTeamUrl = (teamId: string,) => {
-
-
-
-
-  return `/judging/projects/team/${teamId}`
-}
-
-/**
- * @summary Get Projects by Team ID
- */
-export const projectGetProjectsByTeam = async (teamId: string, options?: Parameters<typeof customFetch>[1]): Promise<ProjectEntity[]> => {
-
-  return customFetch<ProjectEntity[]>(getProjectGetProjectsByTeamUrl(teamId),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getProjectGetProjectsByTeamQueryKey = (teamId: string,) => {
-    return [
-    `/judging/projects/team/${teamId}`
-    ] as const;
-    }
-
-
-export const getProjectGetProjectsByTeamQueryOptions = <TData = Awaited<ReturnType<typeof projectGetProjectsByTeam>>, TError = ExceptionResponse>(teamId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof projectGetProjectsByTeam>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getProjectGetProjectsByTeamQueryKey(teamId);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof projectGetProjectsByTeam>>> = ({ signal }) => projectGetProjectsByTeam(teamId, { signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: teamId !== null && teamId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof projectGetProjectsByTeam>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type ProjectGetProjectsByTeamQueryResult = NonNullable<Awaited<ReturnType<typeof projectGetProjectsByTeam>>>
-export type ProjectGetProjectsByTeamQueryError = ExceptionResponse
-
-
-export function useProjectGetProjectsByTeam<TData = Awaited<ReturnType<typeof projectGetProjectsByTeam>>, TError = ExceptionResponse>(
- teamId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof projectGetProjectsByTeam>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof projectGetProjectsByTeam>>,
-          TError,
-          Awaited<ReturnType<typeof projectGetProjectsByTeam>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useProjectGetProjectsByTeam<TData = Awaited<ReturnType<typeof projectGetProjectsByTeam>>, TError = ExceptionResponse>(
- teamId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof projectGetProjectsByTeam>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof projectGetProjectsByTeam>>,
-          TError,
-          Awaited<ReturnType<typeof projectGetProjectsByTeam>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useProjectGetProjectsByTeam<TData = Awaited<ReturnType<typeof projectGetProjectsByTeam>>, TError = ExceptionResponse>(
- teamId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof projectGetProjectsByTeam>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-/**
- * @summary Get Projects by Team ID
- */
-
-export function useProjectGetProjectsByTeam<TData = Awaited<ReturnType<typeof projectGetProjectsByTeam>>, TError = ExceptionResponse>(
- teamId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof projectGetProjectsByTeam>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getProjectGetProjectsByTeamQueryOptions(teamId,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-export const getProjectUploadCsvUrl = () => {
-
-
-
-
-  return `/judging/projects/upload-csv`
-}
-
-export const projectUploadCsv = async ( options?: Parameters<typeof customFetch>[1]): Promise<void> => {
-
-  return customFetch<void>(getProjectUploadCsvUrl(),
-  {
-    ...options,
-    method: 'POST'
-
-
-  }
-);}
-
-
-
-
-
-export const getProjectUploadCsvMutationKey = () => ['projectUploadCsv'] as const;
-
-export const getProjectUploadCsvMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof projectUploadCsv>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof projectUploadCsv>>, TError,void, TContext> => {
-
-const mutationKey = getProjectUploadCsvMutationKey();
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof projectUploadCsv>>, void> = () => {
-
-
-          return  projectUploadCsv(requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type ProjectUploadCsvMutationResult = NonNullable<Awaited<ReturnType<typeof projectUploadCsv>>>
-
-    export type ProjectUploadCsvMutationError = unknown
-
-
-    export const useProjectUploadCsv = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof projectUploadCsv>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof projectUploadCsv>>,
-        TError,
-        void,
-        TContext
-      > => {
-      return useMutation(getProjectUploadCsvMutationOptions(options), queryClient);
     }
     export const getScoreGetAllUrl = (params?: ScoreGetAllParams,) => {
   const normalizedParams = new URLSearchParams();

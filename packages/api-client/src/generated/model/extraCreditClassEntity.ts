@@ -5,11 +5,11 @@
  * Official HackPSU API V3
  * OpenAPI spec version: 3.0
  */
-import type { ExtraCreditClassEntityRequirement } from './extraCreditClassEntityRequirement';
+import type { Requirements } from './requirements';
 
 export interface ExtraCreditClassEntity {
   id: number;
   name: string;
   hackathonId?: string;
-  requirement: ExtraCreditClassEntityRequirement;
+  requirement: Requirements;
 }

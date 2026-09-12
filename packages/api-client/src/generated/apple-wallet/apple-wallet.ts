@@ -15,6 +15,10 @@ import type {
   UseMutationResult
 } from '@tanstack/react-query';
 
+import type {
+  ExceptionResponse
+} from '../model';
+
 import { customFetch } from '../../fetcher';
 
 
@@ -30,9 +34,12 @@ export const getAppleWalletCreatePassUrl = (id: string,) => {
   return `/wallet/apple/${id}/pass`
 }
 
-export const appleWalletCreatePass = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+/**
+ * @summary Create an Apple Wallet pass
+ */
+export const appleWalletCreatePass = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<Blob> => {
 
-  return customFetch<void>(getAppleWalletCreatePassUrl(id),
+  return customFetch<Blob>(getAppleWalletCreatePassUrl(id),
   {
     ...options,
     method: 'POST'
@@ -47,7 +54,7 @@ export const appleWalletCreatePass = async (id: string, options?: Parameters<typ
 
 export const getAppleWalletCreatePassMutationKey = () => ['appleWalletCreatePass'] as const;
 
-export const getAppleWalletCreatePassMutationOptions = <TError = unknown,
+export const getAppleWalletCreatePassMutationOptions = <TError = ExceptionResponse,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof appleWalletCreatePass>>, TError,AppleWalletCreatePassMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof appleWalletCreatePass>>, TError,AppleWalletCreatePassMutationVariables, TContext> => {
 
@@ -76,10 +83,13 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type AppleWalletCreatePassMutationResult = NonNullable<Awaited<ReturnType<typeof appleWalletCreatePass>>>
 
-    export type AppleWalletCreatePassMutationError = unknown
+    export type AppleWalletCreatePassMutationError = ExceptionResponse
     export type AppleWalletCreatePassMutationVariables = {id: string}
 
-    export const useAppleWalletCreatePass = <TError = unknown,
+    /**
+ * @summary Create an Apple Wallet pass
+ */
+export const useAppleWalletCreatePass = <TError = ExceptionResponse,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof appleWalletCreatePass>>, TError,AppleWalletCreatePassMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof appleWalletCreatePass>>,

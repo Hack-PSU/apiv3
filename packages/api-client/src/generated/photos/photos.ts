@@ -25,6 +25,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  MessageResponse,
   PhotoDeletePhotoParams,
   PhotoGetAllPendingPhotos200Item,
   PhotoGetAllPhotos200Item,
@@ -446,9 +447,9 @@ export const getPhotoApprovePhotoUrl = (filename: string,) => {
 /**
  * @summary Approve a photo (admin only)
  */
-export const photoApprovePhoto = async (filename: string, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+export const photoApprovePhoto = async (filename: string, options?: Parameters<typeof customFetch>[1]): Promise<MessageResponse> => {
 
-  return customFetch<void>(getPhotoApprovePhotoUrl(filename),
+  return customFetch<MessageResponse>(getPhotoApprovePhotoUrl(filename),
   {
     ...options,
     method: 'PATCH'
@@ -519,9 +520,9 @@ export const usePhotoApprovePhoto = <TError = unknown,
 /**
  * @summary Reject a photo (admin only)
  */
-export const photoRejectPhoto = async (filename: string, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+export const photoRejectPhoto = async (filename: string, options?: Parameters<typeof customFetch>[1]): Promise<MessageResponse> => {
 
-  return customFetch<void>(getPhotoRejectPhotoUrl(filename),
+  return customFetch<MessageResponse>(getPhotoRejectPhotoUrl(filename),
   {
     ...options,
     method: 'PATCH'

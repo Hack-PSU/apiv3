@@ -58,7 +58,7 @@ export class OrganizerApplication extends Entity {
   @Column({ type: "string" })
   email: string;
 
-  @ApiProperty({ enum: YearStanding })
+  @ApiProperty({ enum: YearStanding, enumName: "YearStanding" })
   @IsEnum(YearStanding)
   @Column({ type: "string" })
   yearStanding: YearStanding;
@@ -68,12 +68,12 @@ export class OrganizerApplication extends Entity {
   @Column({ type: "string" })
   major: string;
 
-  @ApiProperty({ enum: OrganizerTeam })
+  @ApiProperty({ enum: OrganizerTeam, enumName: "OrganizerTeam" })
   @IsEnum(OrganizerTeam)
   @Column({ type: "string" })
   firstChoiceTeam: OrganizerTeam;
 
-  @ApiProperty({ enum: OrganizerTeam })
+  @ApiProperty({ enum: OrganizerTeam, enumName: "OrganizerTeam" })
   @IsEnum(OrganizerTeam)
   @Column({ type: "string" })
   secondChoiceTeam: OrganizerTeam;
@@ -99,7 +99,7 @@ export class OrganizerApplication extends Entity {
   whatExcitesYou: string;
 
   @ApiProperty({
-    enum: ApplicationStatus,
+    enum: ApplicationStatus, enumName: "ApplicationStatus",
     default: ApplicationStatus.PENDING,
     required: false,
   })
@@ -109,7 +109,7 @@ export class OrganizerApplication extends Entity {
   firstChoiceStatus?: ApplicationStatus;
 
   @ApiProperty({
-    enum: ApplicationStatus,
+    enum: ApplicationStatus, enumName: "ApplicationStatus",
     default: ApplicationStatus.PENDING,
     required: false,
   })
@@ -118,7 +118,7 @@ export class OrganizerApplication extends Entity {
   @Column({ type: "string", required: false })
   secondChoiceStatus?: ApplicationStatus;
 
-  @ApiProperty({ enum: OrganizerTeam, required: false, nullable: true })
+  @ApiProperty({ enum: OrganizerTeam, enumName: "OrganizerTeam", required: false, nullable: true })
   @IsOptional()
   @IsEnum(OrganizerTeam)
   @Column({ type: "string", required: false, nullable: true })

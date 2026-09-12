@@ -6,12 +6,12 @@
  * OpenAPI spec version: 3.0
  */
 import type { ECClassAssignedUser } from './eCClassAssignedUser';
-import type { ECClassResponseRequirement } from './eCClassResponseRequirement';
+import type { Requirements } from './requirements';
 
 export interface ECClassResponse {
   id: number;
   name: string;
   hackathonId?: string;
-  requirement: ECClassResponseRequirement;
+  requirement: Requirements;
   users: ECClassAssignedUser[];
 }

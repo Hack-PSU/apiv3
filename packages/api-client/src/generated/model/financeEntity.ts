@@ -5,9 +5,10 @@
  * Official HackPSU API V3
  * OpenAPI spec version: 3.0
  */
+import type { Category } from './category';
 import type { FinanceEntityReminderSent } from './financeEntityReminderSent';
-import type { FinanceEntityStatus } from './financeEntityStatus';
-import type { FinanceEntitySubmitterType } from './financeEntitySubmitterType';
+import type { Status } from './status';
+import type { SubmitterType } from './submitterType';
 
 export interface FinanceEntity {
   /** Unique identifier for the finance record */
@@ -15,9 +16,9 @@ export interface FinanceEntity {
   /** Amount to be reimbursed */
   amount: number;
   /** Status of the reimbursement request */
-  status: FinanceEntityStatus;
+  status: Status;
   /** Type of the submitter (USER or ORGANIZER) */
-  submitterType: FinanceEntitySubmitterType;
+  submitterType: SubmitterType;
   /** ID of the submitter (User or Organizer) */
   submitterId: string;
   /** URL to the uploaded receipt */
@@ -27,7 +28,7 @@ export interface FinanceEntity {
   /** Description of the expense */
   description: string;
   /** Category of the expense */
-  category: string;
+  category: Category;
   /** Timestamp when the record was created in milliseconds */
   createdAt: number;
   /** Timestamp when the record was last updated in milliseconds */

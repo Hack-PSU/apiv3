@@ -54,7 +54,7 @@ export class Event extends Entity {
   @Column({ type: "string" })
   name: string;
 
-  @ApiProperty()
+  @ApiProperty({ enum: EventType, enumName: "EventType" })
   @IsEnum(EventType)
   @Column({ type: "string" })
   type: "activity" | "food" | "workshop" | "checkIn";

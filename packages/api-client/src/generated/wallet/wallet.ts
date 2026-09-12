@@ -15,6 +15,11 @@ import type {
   UseMutationResult
 } from '@tanstack/react-query';
 
+import type {
+  ExceptionResponse,
+  WalletPassResponse
+} from '../model';
+
 import { customFetch } from '../../fetcher';
 
 
@@ -30,9 +35,12 @@ export const getWalletCreatePassUrl = (id: string,) => {
   return `/wallet/${id}/pass`
 }
 
-export const walletCreatePass = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+/**
+ * @summary Create a Google Wallet pass
+ */
+export const walletCreatePass = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<WalletPassResponse> => {
 
-  return customFetch<void>(getWalletCreatePassUrl(id),
+  return customFetch<WalletPassResponse>(getWalletCreatePassUrl(id),
   {
     ...options,
     method: 'POST'
@@ -47,7 +55,7 @@ export const walletCreatePass = async (id: string, options?: Parameters<typeof c
 
 export const getWalletCreatePassMutationKey = () => ['walletCreatePass'] as const;
 
-export const getWalletCreatePassMutationOptions = <TError = unknown,
+export const getWalletCreatePassMutationOptions = <TError = ExceptionResponse,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof walletCreatePass>>, TError,WalletCreatePassMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof walletCreatePass>>, TError,WalletCreatePassMutationVariables, TContext> => {
 
@@ -76,10 +84,13 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type WalletCreatePassMutationResult = NonNullable<Awaited<ReturnType<typeof walletCreatePass>>>
 
-    export type WalletCreatePassMutationError = unknown
+    export type WalletCreatePassMutationError = ExceptionResponse
     export type WalletCreatePassMutationVariables = {id: string}
 
-    export const useWalletCreatePass = <TError = unknown,
+    /**
+ * @summary Create a Google Wallet pass
+ */
+export const useWalletCreatePass = <TError = ExceptionResponse,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof walletCreatePass>>, TError,WalletCreatePassMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof walletCreatePass>>,

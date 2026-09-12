@@ -1,5 +1,6 @@
 import { Controller, NotFoundException, Param, Post } from "@nestjs/common";
-import { ApiTags } from "@nestjs/swagger";
+import { ApiProperty, ApiTags } from "@nestjs/swagger";
+import { ApiDoc } from "common/docs";
 import { GoogleWalletService } from "common/gcp/wallet/google-wallet.service";
 import { HackathonPassData } from "common/gcp/wallet/google-wallet.types";
 import { InjectRepository, Repository } from "common/objection";
@@ -8,6 +9,11 @@ import { RestrictedRoles, Role } from "common/gcp";
 import { DateTime } from "luxon";
 
 @ApiTags("Wallet")
+class WalletPassResponse {
+  @ApiProperty({ description: "Google Wallet save link for the generated pass" })
+  walletLink: string;
+}
+
 @Controller("wallet")
 export class WalletController {
   constructor(
@@ -25,6 +31,15 @@ export class WalletController {
     predicate: (req) => req.user && req.user.sub === req.params.id,
   })
   @Post(":id/pass")
+  @ApiDoc({
+    summary: "Create a Google Wallet pass",
+    params: [{ name: "id", type: String, description: "A valid user ID" }],
+    response: {
+      created: { type: WalletPassResponse },
+    },
+    auth: Role.NONE,
+    restricted: true,
+  })
   async createPass(
     @Param("id") userId: string,
   ): Promise<{ walletLink: string }> {

@@ -59,7 +59,7 @@ export class Sponsor extends Entity {
   @Column({ type: "string", required: false })
   hackathonId: string;
 
-  @ApiProperty()
+  @ApiProperty({ enum: SponsorType, enumName: "SponsorType" })
   @IsEnum(SponsorType)
   @Column({ type: "string" })
   sponsorType: SponsorType;

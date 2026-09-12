@@ -5,11 +5,10 @@
  * Official HackPSU API V3
  * OpenAPI spec version: 3.0
  */
-import type { ActiveHackathonParams } from './activeHackathonParams';
 
 export type HackathonGetAllParams = {
 /**
  * active can either be a boolean or undefined
  */
-active: ActiveHackathonParams;
+active?: boolean;
 };

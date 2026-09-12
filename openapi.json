@@ -7,11 +7,11 @@
         "parameters": [
           {
             "name": "active",
-            "required": true,
+            "required": false,
             "in": "query",
             "description": "active can either be a boolean or undefined",
             "schema": {
-              "$ref": "#/components/schemas/ActiveHackathonParams"
+              "type": "boolean"
             }
           }
         ],
@@ -1363,11 +1363,11 @@
         "parameters": [
           {
             "name": "active",
-            "required": true,
+            "required": false,
             "in": "query",
             "description": "active can either be a boolean or undefined",
             "schema": {
-              "$ref": "#/components/schemas/ActiveUsersParams"
+              "type": "boolean"
             }
           }
         ],
@@ -2823,6 +2823,7 @@
             "name": "id",
             "required": true,
             "in": "path",
+            "description": "A valid organizer ID",
             "schema": {
               "type": "string"
             }
@@ -2830,9 +2831,47 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganizerScansEntity"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExceptionResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExceptionResponse"
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "oauth2": [
+              "EXEC"
+            ]
+          }
+        ],
+        "summary": "Get An Organizer With Their Scans",
         "tags": [
           "Organizers"
         ]
@@ -3127,9 +3166,47 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JudgingAssignmentResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestExceptionResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExceptionResponse"
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "oauth2": [
+              "EXEC"
+            ]
+          }
+        ],
+        "summary": "Assign Projects To Judges",
         "tags": [
           "Judging"
         ]
@@ -3143,6 +3220,7 @@
             "name": "judgeId",
             "required": true,
             "in": "path",
+            "description": "A valid organizer ID",
             "schema": {
               "type": "string"
             }
@@ -3150,9 +3228,37 @@
         ],
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SingleJudgingAssignmentResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExceptionResponse"
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "oauth2": [
+              "TEAM"
+            ]
+          }
+        ],
+        "summary": "Assign One More Project To A Judge",
         "tags": [
           "Judging"
         ]
@@ -3199,7 +3305,7 @@
         ],
         "summary": "Get All Projects",
         "tags": [
-          "Judging"
+          "Project"
         ]
       },
       "post": {
@@ -3259,7 +3365,7 @@
         ],
         "summary": "Create a Project",
         "tags": [
-          "Judging"
+          "Project"
         ]
       }
     },
@@ -3311,7 +3417,7 @@
         ],
         "summary": "Get a Project",
         "tags": [
-          "Judging"
+          "Project"
         ]
       },
       "patch": {
@@ -3381,7 +3487,7 @@
         ],
         "summary": "Patch a Project",
         "tags": [
-          "Judging"
+          "Project"
         ]
       },
       "put": {
@@ -3451,7 +3557,7 @@
         ],
         "summary": "Replace a Project",
         "tags": [
-          "Judging"
+          "Project"
         ]
       },
       "delete": {
@@ -3494,7 +3600,7 @@
         ],
         "summary": "Delete a Project",
         "tags": [
-          "Judging"
+          "Project"
         ]
       }
     },
@@ -3549,7 +3655,7 @@
         ],
         "summary": "Get Projects by Team ID",
         "tags": [
-          "Judging"
+          "Project"
         ]
       }
     },
@@ -3557,13 +3663,54 @@
       "post": {
         "operationId": "project_uploadCsv",
         "parameters": [],
-        "responses": {
-          "201": {
-            "description": ""
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/UploadProjectsCsvBody"
+              }
+            }
           }
         },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProjectEntity"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExceptionResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "oauth2": [
+              "TECH"
+            ]
+          }
+        ],
+        "summary": "Create Projects From A CSV",
         "tags": [
-          "Judging"
+          "Project"
         ]
       }
     },
@@ -4428,9 +4575,40 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OrganizerScansEntity"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExceptionResponse"
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "oauth2": [
+              "EXEC"
+            ]
+          }
+        ],
+        "summary": "Get All Scans Grouped By Organizer",
         "tags": [
           "Scans"
         ]
@@ -4444,6 +4622,7 @@
             "name": "id",
             "required": true,
             "in": "path",
+            "description": "A valid organizer ID",
             "schema": {
               "type": "string"
             }
@@ -4451,9 +4630,50 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ScanEntity"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExceptionResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExceptionResponse"
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "oauth2": [
+              "EXEC"
+            ]
+          }
+        ],
+        "summary": "Get All Scans For An Organizer",
         "tags": [
           "Scans"
         ]
@@ -5827,9 +6047,40 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AnalyticsScansResponse"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExceptionResponse"
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "oauth2": [
+              "TEAM"
+            ]
+          }
+        ],
+        "summary": "Get scan count for each organizer",
         "tags": [
           "Analytics"
         ]
@@ -5934,6 +6185,17 @@
         "operationId": "analytics_getPdf",
         "parameters": [],
         "responses": {
+          "200": {
+            "description": "The rendered report",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "content": {
@@ -5943,6 +6205,9 @@
                 }
               }
             }
+          },
+          "503": {
+            "description": "Chart rendering is unavailable because the canvas dependency is not present in this build"
           }
         },
         "security": [
@@ -6248,6 +6513,7 @@
             "name": "id",
             "required": true,
             "in": "path",
+            "description": "A valid user ID",
             "schema": {
               "type": "string"
             }
@@ -6255,9 +6521,47 @@
         ],
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WalletPassResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExceptionResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExceptionResponse"
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "oauth2": [
+              "NONE"
+            ]
+          }
+        ],
+        "summary": "Create a Google Wallet pass",
         "tags": [
           "Wallet"
         ]
@@ -6271,6 +6575,7 @@
             "name": "id",
             "required": true,
             "in": "path",
+            "description": "A valid user ID",
             "schema": {
               "type": "string"
             }
@@ -6278,9 +6583,48 @@
         ],
         "responses": {
           "201": {
-            "description": ""
+            "description": "A signed .pkpass bundle",
+            "content": {
+              "application/vnd.apple.pkpass": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExceptionResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExceptionResponse"
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "oauth2": [
+              "NONE"
+            ]
+          }
+        ],
+        "summary": "Create an Apple Wallet pass",
         "tags": [
           "AppleWallet"
         ]
@@ -6291,6 +6635,16 @@
         "operationId": "email_getEmailForwarding",
         "parameters": [],
         "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmailForwardingResponse"
+                }
+              }
+            }
+          },
           "400": {
             "description": "",
             "content": {
@@ -6991,11 +7345,11 @@
         "parameters": [
           {
             "name": "active",
-            "required": true,
+            "required": false,
             "in": "query",
             "description": "active can either be a boolean or undefined",
             "schema": {
-              "$ref": "#/components/schemas/ActiveTeamsParams"
+              "type": "boolean"
             }
           }
         ],
@@ -7583,6 +7937,7 @@
             "name": "filename",
             "required": true,
             "in": "path",
+            "description": "The stored photo filename",
             "schema": {
               "type": "string"
             }
@@ -7590,7 +7945,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Photo approved successfully"
+            "description": "Photo approved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponse"
+                }
+              }
+            }
           }
         },
         "summary": "Approve a photo (admin only)",
@@ -7607,6 +7969,7 @@
             "name": "filename",
             "required": true,
             "in": "path",
+            "description": "The stored photo filename",
             "schema": {
               "type": "string"
             }
@@ -7614,7 +7977,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Photo rejected successfully"
+            "description": "Photo rejected successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponse"
+                }
+              }
+            }
           }
         },
         "summary": "Reject a photo (admin only)",
@@ -7754,12 +8124,26 @@
             "name": "folderId",
             "required": true,
             "in": "path",
+            "description": "A valid Drive folder ID",
             "schema": {
               "type": "string"
             }
           }
         ],
         "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DrivePermissionEntity"
+                  }
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "content": {
@@ -7795,12 +8179,23 @@
             "name": "folderId",
             "required": true,
             "in": "path",
+            "description": "A valid Drive folder ID",
             "schema": {
               "type": "string"
             }
           }
         ],
         "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DriveFolderInfoEntity"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "content": {
@@ -7836,12 +8231,26 @@
             "name": "folderId",
             "required": true,
             "in": "path",
+            "description": "A valid Drive folder ID",
             "schema": {
               "type": "string"
             }
           }
         ],
         "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DriveFolderInfoEntity"
+                  }
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "content": {
@@ -7873,7 +8282,27 @@
       "post": {
         "operationId": "drive_createFolder",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateFolderBody"
+              }
+            }
+          }
+        },
         "responses": {
+          "201": {
+            "description": "The new folder ID",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "content": {
@@ -7909,12 +8338,33 @@
             "name": "folderId",
             "required": true,
             "in": "path",
+            "description": "A valid Drive folder ID",
             "schema": {
               "type": "string"
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShareFolderBody"
+              }
+            }
+          }
+        },
         "responses": {
+          "201": {
+            "description": "The new permission ID",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "content": {
@@ -7946,7 +8396,27 @@
       "post": {
         "operationId": "drive_createFolderStructure",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateFolderStructureBody"
+              }
+            }
+          }
+        },
         "responses": {
+          "201": {
+            "description": "The deepest created folder ID",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "content": {
@@ -7982,12 +8452,36 @@
             "name": "folderId",
             "required": true,
             "in": "path",
+            "description": "A valid Drive folder ID",
             "schema": {
               "type": "string"
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShareFolderMultipleBody"
+              }
+            }
+          }
+        },
         "responses": {
+          "201": {
+            "description": "The new permission IDs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "content": {
@@ -8353,11 +8847,49 @@
       "post": {
         "operationId": "apiKey_create",
         "parameters": [],
-        "responses": {
-          "201": {
-            "description": ""
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateApiKeyEntity"
+              }
+            }
           }
         },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateApiKeyResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExceptionResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "oauth2": [
+              "TECH"
+            ]
+          }
+        ],
+        "summary": "Create an API Key",
         "tags": [
           "API Keys"
         ]
@@ -8367,9 +8899,40 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ApiKeyEntity"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExceptionResponse"
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "oauth2": [
+              "TECH"
+            ]
+          }
+        ],
+        "summary": "Get All API Keys",
         "tags": [
           "API Keys"
         ]
@@ -8383,16 +8946,38 @@
             "name": "id",
             "required": true,
             "in": "path",
+            "description": "A valid API key ID",
             "schema": {
               "type": "string"
             }
           }
         ],
         "responses": {
-          "200": {
+          "204": {
             "description": ""
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExceptionResponse"
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "oauth2": [
+              "TECH"
+            ]
+          }
+        ],
+        "summary": "Revoke an API Key",
         "tags": [
           "API Keys"
         ]
@@ -8836,6 +9421,15 @@
       }
     },
     "schemas": {
+      "EventType": {
+        "type": "string",
+        "enum": [
+          "activity",
+          "food",
+          "workshop",
+          "checkIn"
+        ]
+      },
       "EventEntity": {
         "type": "object",
         "properties": {
@@ -8846,7 +9440,11 @@
             "type": "string"
           },
           "type": {
-            "type": "string"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EventType"
+              }
+            ]
           },
           "description": {
             "type": "string"
@@ -8894,6 +9492,13 @@
           "fastPass"
         ]
       },
+      "SponsorType": {
+        "type": "string",
+        "enum": [
+          "sponsor",
+          "partner"
+        ]
+      },
       "SponsorEntity": {
         "type": "object",
         "properties": {
@@ -8923,7 +9528,11 @@
             "type": "string"
           },
           "sponsorType": {
-            "type": "string"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SponsorType"
+              }
+            ]
           }
         },
         "required": [
@@ -9029,15 +9638,6 @@
           "message",
           "data"
         ]
-      },
-      "ActiveHackathonParams": {
-        "type": "object",
-        "properties": {
-          "active": {
-            "type": "boolean",
-            "description": "active can either be a boolean or undefined"
-          }
-        }
       },
       "ConditionalHackathonResponse": {
         "type": "object",
@@ -9281,7 +9881,11 @@
             "type": "string"
           },
           "type": {
-            "type": "string"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EventType"
+              }
+            ]
           },
           "description": {
             "type": "string"
@@ -9344,7 +9948,11 @@
             "type": "string"
           },
           "type": {
-            "type": "string"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EventType"
+              }
+            ]
           },
           "description": {
             "type": "string"
@@ -9398,7 +10006,11 @@
             "type": "string"
           },
           "type": {
-            "type": "string"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EventType"
+              }
+            ]
           },
           "description": {
             "type": "string"
@@ -9457,6 +10069,17 @@
             "type": "number"
           }
         }
+      },
+      "ApplicationStatus": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "accepted",
+          "rejected",
+          "waitlisted",
+          "confirmed",
+          "declined"
+        ]
       },
       "RegistrationEntity": {
         "type": "object",
@@ -9550,16 +10173,12 @@
             "nullable": true
           },
           "applicationStatus": {
-            "type": "string",
-            "enum": [
-              "pending",
-              "accepted",
-              "rejected",
-              "waitlisted",
-              "confirmed",
-              "declined"
-            ],
-            "default": "pending"
+            "default": "pending",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ApplicationStatus"
+              }
+            ]
           },
           "acceptedAt": {
             "type": "number",
@@ -9686,15 +10305,6 @@
           "resume",
           "registration"
         ]
-      },
-      "ActiveUsersParams": {
-        "type": "object",
-        "properties": {
-          "active": {
-            "type": "boolean",
-            "description": "active can either be a boolean or undefined"
-          }
-        }
       },
       "UserEntity": {
         "type": "object",
@@ -10036,16 +10646,12 @@
             "nullable": true
           },
           "applicationStatus": {
-            "type": "string",
-            "enum": [
-              "pending",
-              "accepted",
-              "rejected",
-              "waitlisted",
-              "confirmed",
-              "declined"
-            ],
-            "default": "pending"
+            "default": "pending",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ApplicationStatus"
+              }
+            ]
           },
           "acceptedAt": {
             "type": "number",
@@ -10091,6 +10697,15 @@
           "applicationStatus"
         ]
       },
+      "Requirements": {
+        "type": "string",
+        "enum": [
+          "check-in",
+          "submit",
+          "expo",
+          "other"
+        ]
+      },
       "ExtraCreditClassEntity": {
         "type": "object",
         "properties": {
@@ -10104,14 +10719,12 @@
             "type": "string"
           },
           "requirement": {
-            "type": "string",
-            "enum": [
-              "check-in",
-              "submit",
-              "expo",
-              "other"
-            ],
-            "default": "check-in"
+            "default": "check-in",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Requirements"
+              }
+            ]
           }
         },
         "required": [
@@ -10256,6 +10869,79 @@
           "lastName",
           "email",
           "privilege"
+        ]
+      },
+      "ScanEntity": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "hackathonId": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "eventId",
+          "userId"
+        ]
+      },
+      "OrganizerScansEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "privilege": {
+            "type": "number",
+            "description": "An organizer's permission level: 0 (NONE), 1 (Volunteer), 2 (Team), 3 (Exec), 4 (Tech Director)"
+          },
+          "team": {
+            "type": "string",
+            "nullable": true
+          },
+          "award": {
+            "type": "string",
+            "nullable": true
+          },
+          "judgingLocation": {
+            "type": "string",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean",
+            "default": true
+          },
+          "scans": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScanEntity"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "firstName",
+          "lastName",
+          "email",
+          "privilege",
+          "isActive",
+          "scans"
         ]
       },
       "ScoreDataEntity": {
@@ -10641,6 +11327,58 @@
           "projectsPerUser"
         ]
       },
+      "AssignedScore": {
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "number"
+          },
+          "judgeId": {
+            "type": "string"
+          },
+          "hackathonId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "projectId",
+          "judgeId",
+          "hackathonId"
+        ]
+      },
+      "JudgingAssignmentResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "assignments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AssignedScore"
+            }
+          }
+        },
+        "required": [
+          "message",
+          "assignments"
+        ]
+      },
+      "SingleJudgingAssignmentResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "assignment": {
+            "$ref": "#/components/schemas/AssignedScore"
+          }
+        },
+        "required": [
+          "message",
+          "assignment"
+        ]
+      },
       "ProjectEntity": {
         "type": "object",
         "properties": {
@@ -10734,6 +11472,19 @@
             "description": "Devpost submission link"
           }
         }
+      },
+      "UploadProjectsCsvBody": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary",
+            "description": "CSV with Project Title and Opt-In Prizes columns"
+          }
+        },
+        "required": [
+          "file"
+        ]
       },
       "ScoreJudgeEntity": {
         "type": "object",
@@ -11015,7 +11766,11 @@
             "type": "string"
           },
           "sponsorType": {
-            "type": "string"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SponsorType"
+              }
+            ]
           },
           "lightLogo": {
             "type": "string",
@@ -11055,7 +11810,11 @@
             "type": "string"
           },
           "sponsorType": {
-            "type": "string"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SponsorType"
+              }
+            ]
           },
           "lightLogo": {
             "type": "string",
@@ -11083,7 +11842,11 @@
             "type": "number"
           },
           "sponsorType": {
-            "type": "string"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SponsorType"
+              }
+            ]
           },
           "id": {
             "type": "number"
@@ -11091,27 +11854,6 @@
         },
         "required": [
           "id"
-        ]
-      },
-      "ScanEntity": {
-        "type": "object",
-        "properties": {
-          "eventId": {
-            "type": "string"
-          },
-          "userId": {
-            "type": "string"
-          },
-          "hackathonId": {
-            "type": "string"
-          },
-          "timestamp": {
-            "type": "number"
-          }
-        },
-        "required": [
-          "eventId",
-          "userId"
         ]
       },
       "AnalyticsEventsScansEntity": {
@@ -11124,7 +11866,11 @@
             "type": "string"
           },
           "type": {
-            "type": "string"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EventType"
+              }
+            ]
           },
           "description": {
             "type": "string"
@@ -11211,14 +11957,12 @@
             "type": "string"
           },
           "requirement": {
-            "type": "string",
-            "enum": [
-              "check-in",
-              "submit",
-              "expo",
-              "other"
-            ],
-            "default": "check-in"
+            "default": "check-in",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Requirements"
+              }
+            ]
           },
           "users": {
             "type": "array",
@@ -11244,14 +11988,12 @@
             "type": "string"
           },
           "requirement": {
-            "type": "string",
-            "enum": [
-              "check-in",
-              "submit",
-              "expo",
-              "other"
-            ],
-            "default": "check-in"
+            "default": "check-in",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Requirements"
+              }
+            ]
           }
         },
         "required": [
@@ -11269,14 +12011,12 @@
             "type": "string"
           },
           "requirement": {
-            "type": "string",
-            "enum": [
-              "check-in",
-              "submit",
-              "expo",
-              "other"
-            ],
-            "default": "check-in"
+            "default": "check-in",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Requirements"
+              }
+            ]
           }
         }
       },
@@ -11386,16 +12126,12 @@
             "nullable": true
           },
           "applicationStatus": {
-            "type": "string",
-            "enum": [
-              "pending",
-              "accepted",
-              "rejected",
-              "waitlisted",
-              "confirmed",
-              "declined"
-            ],
-            "default": "pending"
+            "default": "pending",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ApplicationStatus"
+              }
+            ]
           },
           "acceptedAt": {
             "type": "number",
@@ -11463,14 +12199,10 @@
         "type": "object",
         "properties": {
           "status": {
-            "type": "string",
-            "enum": [
-              "pending",
-              "accepted",
-              "rejected",
-              "waitlisted",
-              "confirmed",
-              "declined"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ApplicationStatus"
+              }
             ]
           }
         },
@@ -11488,14 +12220,10 @@
             }
           },
           "status": {
-            "type": "string",
-            "enum": [
-              "pending",
-              "accepted",
-              "rejected",
-              "waitlisted",
-              "confirmed",
-              "declined"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ApplicationStatus"
+              }
             ]
           }
         },
@@ -11582,6 +12310,13 @@
           "userId"
         ]
       },
+      "DefaultTopic": {
+        "type": "string",
+        "enum": [
+          "ALL",
+          "ORGANIZER"
+        ]
+      },
       "BroadcastMessageEntity": {
         "type": "object",
         "properties": {
@@ -11598,10 +12333,10 @@
             "type": "object"
           },
           "broadcast": {
-            "type": "string",
-            "enum": [
-              "ALL",
-              "ORGANIZER"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DefaultTopic"
+              }
             ]
           },
           "topic": {
@@ -11769,7 +12504,11 @@
             "type": "string"
           },
           "type": {
-            "type": "string"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EventType"
+              }
+            ]
           },
           "count": {
             "type": "number"
@@ -11779,6 +12518,29 @@
           "id",
           "name",
           "type",
+          "count"
+        ]
+      },
+      "AnalyticsScansResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "count": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "firstName",
+          "lastName",
           "count"
         ]
       },
@@ -11838,6 +12600,109 @@
           "other"
         ]
       },
+      "Status": {
+        "type": "string",
+        "enum": [
+          "PENDING",
+          "APPROVED",
+          "SUBMITTED_TO_ASA",
+          "DEPOSIT",
+          "REJECTED_INVALID_RECEIPT",
+          "REJECTED_WRONG_ADDRESS",
+          "REJECTED_WRONG_DESCRIPTION",
+          "REJECTED_INCORRECT_AMOUNT",
+          "REJECTED_DUPLICATE_SUBMISSION",
+          "REJECTED_MISSING_INFORMATION",
+          "REJECTED_INELIGIBLE_EXPENSE",
+          "REJECTED_EXPIRED_SUBMISSION",
+          "REJECTED_OTHER"
+        ],
+        "description": "Status of the reimbursement request"
+      },
+      "SubmitterType": {
+        "type": "string",
+        "enum": [
+          "USER",
+          "ORGANIZER"
+        ],
+        "description": "Type of the submitter (USER or ORGANIZER)"
+      },
+      "Category": {
+        "type": "string",
+        "enum": [
+          "Telephone Rental",
+          "Postage",
+          "Office Supplies",
+          "Copies",
+          "Equipment Rental",
+          "Equipment Purchase",
+          "Equipment Maintenance",
+          "Professional Services",
+          "Insurance Premiums",
+          "Advertising",
+          "Dues/Membership",
+          "Awards/Gifts",
+          "Photography",
+          "Clothing/Uniform",
+          "Registration/Tournament Fee",
+          "Instructor",
+          "Referees/Judges",
+          "Fine",
+          "Web Hosting",
+          "Books/Subscription",
+          "Printing",
+          "Fundraising",
+          "Donation",
+          "CD and DVD",
+          "Rush",
+          "Social",
+          "Facility Rental - Social",
+          "Food",
+          "Materials & Supplies",
+          "Meeting",
+          "Equipment Maintenance/Repairs",
+          "Prizes",
+          "Security",
+          "EMT Service",
+          "Catering",
+          "Meal",
+          "Banquet",
+          "Retreat",
+          "Festival/Fair Expense",
+          "Special Function",
+          "Collegian Ad",
+          "Banner",
+          "Honoraria - Speaker",
+          "Honoraria - DJ",
+          "Honoraria - Performing Artist",
+          "Speaker/Artist - Transportation",
+          "Speaker/Artist - Lodging",
+          "Speaker/Artist - Meal",
+          "Speaker/Artist - Parking",
+          "Program - Facility Rental",
+          "Program - Equipment Rental",
+          "Program - Purchase",
+          "Program - Sound System Rental",
+          "Program - Movie Rental",
+          "Program - Projectionist",
+          "Program - Professional Services",
+          "Program - Publicity",
+          "Program - Copies/Flyers/Posters",
+          "Program - Media Print/Broadcast",
+          "Program - Costume",
+          "Program - Set Construction",
+          "Program - Props",
+          "Program - Copyright/Licensing",
+          "General Operations ($50)",
+          "Travel - Transportation",
+          "Travel - Lodging",
+          "Travel - Registration",
+          "Travel - Meal",
+          "Travel - Conference",
+          "Refund"
+        ],
+        "description": "Category of the expense"
+      },
       "FinanceEntity": {
         "type": "object",
         "properties": {
@@ -11852,33 +12717,22 @@
             "example": 150.75
           },
           "status": {
-            "type": "string",
             "description": "Status of the reimbursement request",
-            "enum": [
-              "PENDING",
-              "APPROVED",
-              "SUBMITTED_TO_ASA",
-              "DEPOSIT",
-              "REJECTED_INVALID_RECEIPT",
-              "REJECTED_WRONG_ADDRESS",
-              "REJECTED_WRONG_DESCRIPTION",
-              "REJECTED_INCORRECT_AMOUNT",
-              "REJECTED_DUPLICATE_SUBMISSION",
-              "REJECTED_MISSING_INFORMATION",
-              "REJECTED_INELIGIBLE_EXPENSE",
-              "REJECTED_EXPIRED_SUBMISSION",
-              "REJECTED_OTHER"
-            ],
-            "example": "PENDING"
+            "example": "PENDING",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Status"
+              }
+            ]
           },
           "submitterType": {
-            "type": "string",
             "description": "Type of the submitter (USER or ORGANIZER)",
-            "enum": [
-              "USER",
-              "ORGANIZER"
-            ],
-            "example": "USER"
+            "example": "USER",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SubmitterType"
+              }
+            ]
           },
           "submitterId": {
             "type": "string",
@@ -11901,9 +12755,13 @@
             "example": "Travel expenses for attending the hackathon"
           },
           "category": {
-            "type": "string",
             "description": "Category of the expense",
-            "example": "Travel"
+            "example": "Travel",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Category"
+              }
+            ]
           },
           "createdAt": {
             "type": "number",
@@ -11968,13 +12826,13 @@
             "example": 150.75
           },
           "submitterType": {
-            "type": "string",
             "description": "Type of the submitter (USER or ORGANIZER)",
-            "enum": [
-              "USER",
-              "ORGANIZER"
-            ],
-            "example": "USER"
+            "example": "USER",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SubmitterType"
+              }
+            ]
           },
           "submitterId": {
             "type": "string",
@@ -11987,9 +12845,13 @@
             "example": "Travel expenses for attending the hackathon"
           },
           "category": {
-            "type": "string",
             "description": "Category of the expense",
-            "example": "Travel"
+            "example": "Travel",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Category"
+              }
+            ]
           },
           "street": {
             "type": "string",
@@ -12013,24 +12875,13 @@
             "default": false
           },
           "status": {
-            "type": "string",
             "description": "Status of the reimbursement request",
-            "enum": [
-              "PENDING",
-              "APPROVED",
-              "SUBMITTED_TO_ASA",
-              "DEPOSIT",
-              "REJECTED_INVALID_RECEIPT",
-              "REJECTED_WRONG_ADDRESS",
-              "REJECTED_WRONG_DESCRIPTION",
-              "REJECTED_INCORRECT_AMOUNT",
-              "REJECTED_DUPLICATE_SUBMISSION",
-              "REJECTED_MISSING_INFORMATION",
-              "REJECTED_INELIGIBLE_EXPENSE",
-              "REJECTED_EXPIRED_SUBMISSION",
-              "REJECTED_OTHER"
-            ],
-            "example": "PENDING"
+            "example": "PENDING",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Status"
+              }
+            ]
           },
           "rejectionMessage": {
             "type": "string",
@@ -12054,24 +12905,13 @@
         "type": "object",
         "properties": {
           "status": {
-            "type": "string",
             "description": "Status of the reimbursement request",
-            "enum": [
-              "PENDING",
-              "APPROVED",
-              "SUBMITTED_TO_ASA",
-              "DEPOSIT",
-              "REJECTED_INVALID_RECEIPT",
-              "REJECTED_WRONG_ADDRESS",
-              "REJECTED_WRONG_DESCRIPTION",
-              "REJECTED_INCORRECT_AMOUNT",
-              "REJECTED_DUPLICATE_SUBMISSION",
-              "REJECTED_MISSING_INFORMATION",
-              "REJECTED_INELIGIBLE_EXPENSE",
-              "REJECTED_EXPIRED_SUBMISSION",
-              "REJECTED_OTHER"
-            ],
-            "example": "PENDING"
+            "example": "PENDING",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Status"
+              }
+            ]
           },
           "rejectionMessage": {
             "type": "string",
@@ -12093,9 +12933,13 @@
             "example": "Travel expenses for attending the hackathon"
           },
           "category": {
-            "type": "string",
             "description": "Category of the expense",
-            "example": "Travel"
+            "example": "Travel",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Category"
+              }
+            ]
           },
           "updatedAt": {
             "type": "number",
@@ -12124,6 +12968,49 @@
             "default": false
           }
         }
+      },
+      "WalletPassResponse": {
+        "type": "object",
+        "properties": {
+          "walletLink": {
+            "type": "string",
+            "description": "Google Wallet save link for the generated pass"
+          }
+        },
+        "required": [
+          "walletLink"
+        ]
+      },
+      "EmailForwardingEntry": {
+        "type": "object",
+        "properties": {
+          "mailbox": {
+            "type": "string",
+            "description": "The hackpsu.org mailbox"
+          },
+          "forwardTo": {
+            "type": "string",
+            "description": "The address mail is forwarded to"
+          }
+        },
+        "required": [
+          "mailbox",
+          "forwardTo"
+        ]
+      },
+      "EmailForwardingResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EmailForwardingEntry"
+            }
+          }
+        },
+        "required": [
+          "ok"
+        ]
       },
       "InventoryCategoryEntity": {
         "type": "object",
@@ -12385,15 +13272,6 @@
           "reason"
         ]
       },
-      "ActiveTeamsParams": {
-        "type": "object",
-        "properties": {
-          "active": {
-            "type": "boolean",
-            "description": "active can either be a boolean or undefined"
-          }
-        }
-      },
       "TeamEntity": {
         "type": "object",
         "properties": {
@@ -12507,6 +13385,24 @@
           "email"
         ]
       },
+      "MessageResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ]
+      },
+      "ReservationType": {
+        "type": "string",
+        "enum": [
+          "participant",
+          "admin"
+        ]
+      },
       "ReservationEntity": {
         "type": "object",
         "properties": {
@@ -12521,10 +13417,10 @@
             "nullable": true
           },
           "reservationType": {
-            "type": "string",
-            "enum": [
-              "participant",
-              "admin"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ReservationType"
+              }
             ]
           },
           "startTime": {
@@ -12573,6 +13469,194 @@
           "hackathonId"
         ]
       },
+      "DrivePermissionEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "user",
+              "group",
+              "domain",
+              "anyone"
+            ]
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "owner",
+              "organizer",
+              "fileOrganizer",
+              "writer",
+              "commenter",
+              "reader"
+            ]
+          },
+          "emailAddress": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "domain": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "role"
+        ]
+      },
+      "DriveFolderInfoEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "mimeType": {
+            "type": "string"
+          },
+          "parents": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DrivePermissionEntity"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "mimeType",
+          "permissions"
+        ]
+      },
+      "CreateFolderBody": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "parentId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "ShareFolderBody": {
+        "type": "object",
+        "properties": {
+          "emailAddress": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "owner",
+              "writer",
+              "commenter",
+              "reader"
+            ]
+          },
+          "sendNotificationEmail": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "emailAddress",
+          "role"
+        ]
+      },
+      "CreateFolderStructureBody": {
+        "type": "object",
+        "properties": {
+          "folderStructure": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "parentId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "folderStructure"
+        ]
+      },
+      "FolderShare": {
+        "type": "object",
+        "properties": {
+          "emailAddress": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "owner",
+              "writer",
+              "commenter",
+              "reader"
+            ]
+          }
+        },
+        "required": [
+          "emailAddress",
+          "role"
+        ]
+      },
+      "ShareFolderMultipleBody": {
+        "type": "object",
+        "properties": {
+          "shares": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FolderShare"
+            }
+          }
+        },
+        "required": [
+          "shares"
+        ]
+      },
+      "YearStanding": {
+        "type": "string",
+        "enum": [
+          "Freshman",
+          "Sophomore",
+          "Junior",
+          "Senior",
+          "Other"
+        ]
+      },
+      "OrganizerTeam": {
+        "type": "string",
+        "enum": [
+          "Communications",
+          "Design",
+          "Education",
+          "Entertainment",
+          "Finance",
+          "Logistics",
+          "Marketing",
+          "Sponsorship",
+          "Technology"
+        ]
+      },
       "OrganizerApplicationCreateEntity": {
         "type": "object",
         "properties": {
@@ -12583,44 +13667,27 @@
             "type": "string"
           },
           "yearStanding": {
-            "type": "string",
-            "enum": [
-              "Freshman",
-              "Sophomore",
-              "Junior",
-              "Senior",
-              "Other"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/YearStanding"
+              }
             ]
           },
           "major": {
             "type": "string"
           },
           "firstChoiceTeam": {
-            "type": "string",
-            "enum": [
-              "Communications",
-              "Design",
-              "Education",
-              "Entertainment",
-              "Finance",
-              "Logistics",
-              "Marketing",
-              "Sponsorship",
-              "Technology"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OrganizerTeam"
+              }
             ]
           },
           "secondChoiceTeam": {
-            "type": "string",
-            "enum": [
-              "Communications",
-              "Design",
-              "Education",
-              "Entertainment",
-              "Finance",
-              "Logistics",
-              "Marketing",
-              "Sponsorship",
-              "Technology"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OrganizerTeam"
+              }
             ]
           },
           "whyHackpsu": {
@@ -12658,44 +13725,27 @@
             "type": "string"
           },
           "yearStanding": {
-            "type": "string",
-            "enum": [
-              "Freshman",
-              "Sophomore",
-              "Junior",
-              "Senior",
-              "Other"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/YearStanding"
+              }
             ]
           },
           "major": {
             "type": "string"
           },
           "firstChoiceTeam": {
-            "type": "string",
-            "enum": [
-              "Communications",
-              "Design",
-              "Education",
-              "Entertainment",
-              "Finance",
-              "Logistics",
-              "Marketing",
-              "Sponsorship",
-              "Technology"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OrganizerTeam"
+              }
             ]
           },
           "secondChoiceTeam": {
-            "type": "string",
-            "enum": [
-              "Communications",
-              "Design",
-              "Education",
-              "Entertainment",
-              "Finance",
-              "Logistics",
-              "Marketing",
-              "Sponsorship",
-              "Technology"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OrganizerTeam"
+              }
             ]
           },
           "resumeUrl": {
@@ -12711,37 +13761,28 @@
             "type": "string"
           },
           "firstChoiceStatus": {
-            "type": "string",
-            "enum": [
-              "pending",
-              "accepted",
-              "rejected"
-            ],
-            "default": "pending"
+            "default": "pending",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ApplicationStatus"
+              }
+            ]
           },
           "secondChoiceStatus": {
-            "type": "string",
-            "enum": [
-              "pending",
-              "accepted",
-              "rejected"
-            ],
-            "default": "pending"
+            "default": "pending",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ApplicationStatus"
+              }
+            ]
           },
           "assignedTeam": {
-            "type": "string",
-            "enum": [
-              "Communications",
-              "Design",
-              "Education",
-              "Entertainment",
-              "Finance",
-              "Logistics",
-              "Marketing",
-              "Sponsorship",
-              "Technology"
-            ],
-            "nullable": true
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OrganizerTeam"
+              }
+            ]
           },
           "createdAt": {
             "format": "date-time",
@@ -12770,22 +13811,72 @@
         "type": "object",
         "properties": {
           "team": {
-            "type": "string",
-            "enum": [
-              "Communications",
-              "Design",
-              "Education",
-              "Entertainment",
-              "Finance",
-              "Logistics",
-              "Marketing",
-              "Sponsorship",
-              "Technology"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OrganizerTeam"
+              }
             ]
           }
         },
         "required": [
           "team"
+        ]
+      },
+      "CreateApiKeyEntity": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "A human readable label for the key"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "ApiKeyEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "lastUsedAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "revokedAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "lastUsedAt",
+          "revokedAt",
+          "createdAt"
+        ]
+      },
+      "CreateApiKeyResponse": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "The raw key. Shown once, at creation, and never again."
+          },
+          "entity": {
+            "$ref": "#/components/schemas/ApiKeyEntity"
+          }
+        },
+        "required": [
+          "key",
+          "entity"
         ]
       },
       "TemplateMetadata": {

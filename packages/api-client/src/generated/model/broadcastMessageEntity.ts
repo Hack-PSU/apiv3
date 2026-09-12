@@ -5,14 +5,14 @@
  * Official HackPSU API V3
  * OpenAPI spec version: 3.0
  */
-import type { BroadcastMessageEntityBroadcast } from './broadcastMessageEntityBroadcast';
 import type { BroadcastMessageEntityMetadata } from './broadcastMessageEntityMetadata';
+import type { DefaultTopic } from './defaultTopic';
 
 export interface BroadcastMessageEntity {
   title: string;
   body: string;
   scheduleTime: number;
   metadata: BroadcastMessageEntityMetadata;
-  broadcast?: BroadcastMessageEntityBroadcast;
+  broadcast?: DefaultTopic;
   topic: string;
 }

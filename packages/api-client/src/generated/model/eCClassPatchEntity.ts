@@ -5,10 +5,10 @@
  * Official HackPSU API V3
  * OpenAPI spec version: 3.0
  */
-import type { ECClassPatchEntityRequirement } from './eCClassPatchEntityRequirement';
+import type { Requirements } from './requirements';
 
 export interface ECClassPatchEntity {
   name?: string;
   hackathonId?: string;
-  requirement?: ECClassPatchEntityRequirement;
+  requirement?: Requirements;
 }

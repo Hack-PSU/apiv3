@@ -59,7 +59,7 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   return result;
 };
 
-export const getHackathonGetAllUrl = (params: HackathonGetAllParams,) => {
+export const getHackathonGetAllUrl = (params?: HackathonGetAllParams,) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
@@ -77,7 +77,7 @@ export const getHackathonGetAllUrl = (params: HackathonGetAllParams,) => {
 /**
  * @summary Get All Hackathons
  */
-export const hackathonGetAll = async (params: HackathonGetAllParams, options?: Parameters<typeof customFetch>[1]): Promise<ConditionalHackathonResponse> => {
+export const hackathonGetAll = async (params?: HackathonGetAllParams, options?: Parameters<typeof customFetch>[1]): Promise<ConditionalHackathonResponse> => {
 
   return customFetch<ConditionalHackathonResponse>(getHackathonGetAllUrl(params),
   {
@@ -99,7 +99,7 @@ export const getHackathonGetAllQueryKey = (params?: HackathonGetAllParams,) => {
     }
 
 
-export const getHackathonGetAllQueryOptions = <TData = Awaited<ReturnType<typeof hackathonGetAll>>, TError = ExceptionResponse>(params: HackathonGetAllParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof hackathonGetAll>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+export const getHackathonGetAllQueryOptions = <TData = Awaited<ReturnType<typeof hackathonGetAll>>, TError = ExceptionResponse>(params?: HackathonGetAllParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof hackathonGetAll>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -122,7 +122,7 @@ export type HackathonGetAllQueryError = ExceptionResponse
 
 
 export function useHackathonGetAll<TData = Awaited<ReturnType<typeof hackathonGetAll>>, TError = ExceptionResponse>(
- params: HackathonGetAllParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof hackathonGetAll>>, TError, TData>> & Pick<
+ params: undefined |  HackathonGetAllParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof hackathonGetAll>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof hackathonGetAll>>,
           TError,
@@ -132,7 +132,7 @@ export function useHackathonGetAll<TData = Awaited<ReturnType<typeof hackathonGe
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useHackathonGetAll<TData = Awaited<ReturnType<typeof hackathonGetAll>>, TError = ExceptionResponse>(
- params: HackathonGetAllParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof hackathonGetAll>>, TError, TData>> & Pick<
+ params?: HackathonGetAllParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof hackathonGetAll>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof hackathonGetAll>>,
           TError,
@@ -142,7 +142,7 @@ export function useHackathonGetAll<TData = Awaited<ReturnType<typeof hackathonGe
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useHackathonGetAll<TData = Awaited<ReturnType<typeof hackathonGetAll>>, TError = ExceptionResponse>(
- params: HackathonGetAllParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof hackathonGetAll>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ params?: HackathonGetAllParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof hackathonGetAll>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -150,7 +150,7 @@ export function useHackathonGetAll<TData = Awaited<ReturnType<typeof hackathonGe
  */
 
 export function useHackathonGetAll<TData = Awaited<ReturnType<typeof hackathonGetAll>>, TError = ExceptionResponse>(
- params: HackathonGetAllParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof hackathonGetAll>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ params?: HackathonGetAllParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof hackathonGetAll>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 

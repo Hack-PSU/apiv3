@@ -5,17 +5,16 @@
  * Official HackPSU API V3
  * OpenAPI spec version: 3.0
  */
-import type { OrganizerApplicationCreateEntityFirstChoiceTeam } from './organizerApplicationCreateEntityFirstChoiceTeam';
-import type { OrganizerApplicationCreateEntitySecondChoiceTeam } from './organizerApplicationCreateEntitySecondChoiceTeam';
-import type { OrganizerApplicationCreateEntityYearStanding } from './organizerApplicationCreateEntityYearStanding';
+import type { OrganizerTeam } from './organizerTeam';
+import type { YearStanding } from './yearStanding';
 
 export interface OrganizerApplicationCreateEntity {
   name: string;
   email: string;
-  yearStanding: OrganizerApplicationCreateEntityYearStanding;
+  yearStanding: YearStanding;
   major: string;
-  firstChoiceTeam: OrganizerApplicationCreateEntityFirstChoiceTeam;
-  secondChoiceTeam: OrganizerApplicationCreateEntitySecondChoiceTeam;
+  firstChoiceTeam: OrganizerTeam;
+  secondChoiceTeam: OrganizerTeam;
   whyHackpsu: string;
   newIdea: string;
   whatExcitesYou: string;

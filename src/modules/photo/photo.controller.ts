@@ -14,13 +14,18 @@ import {
   UnauthorizedException,
 } from "@nestjs/common";
 import { Request } from "express";
-import { ApiTags } from "@nestjs/swagger";
+import { ApiProperty, ApiTags } from "@nestjs/swagger";
 import { ApiDoc } from "common/docs";
 import { Role, Roles } from "common/gcp";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { PhotoService } from "./photo.service";
 import { UploadedPhoto } from "./uploaded-photo.decorator";
 import { PaginatedPhotosResponse } from "./photo.types";
+
+class MessageResponse {
+  @ApiProperty()
+  message: string;
+}
 
 @ApiTags("Photos")
 @Controller("photos")
@@ -269,10 +274,11 @@ export class PhotoController {
   @Roles(Role.TEAM)
   @ApiDoc({
     summary: "Approve a photo (admin only)",
+    params: [
+      { name: "filename", type: String, description: "The stored photo filename" },
+    ],
     response: {
-      ok: {
-        description: "Photo approved successfully",
-      },
+      ok: { type: MessageResponse, description: "Photo approved successfully" },
     },
   })
   async approvePhoto(
@@ -302,10 +308,11 @@ export class PhotoController {
   @Roles(Role.TEAM)
   @ApiDoc({
     summary: "Reject a photo (admin only)",
+    params: [
+      { name: "filename", type: String, description: "The stored photo filename" },
+    ],
     response: {
-      ok: {
-        description: "Photo rejected successfully",
-      },
+      ok: { type: MessageResponse, description: "Photo rejected successfully" },
     },
   })
   async rejectPhoto(

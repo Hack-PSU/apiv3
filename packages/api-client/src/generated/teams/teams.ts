@@ -56,7 +56,7 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   return result;
 };
 
-export const getTeamGetAllUrl = (params: TeamGetAllParams,) => {
+export const getTeamGetAllUrl = (params?: TeamGetAllParams,) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
@@ -74,7 +74,7 @@ export const getTeamGetAllUrl = (params: TeamGetAllParams,) => {
 /**
  * @summary Get All Teams
  */
-export const teamGetAll = async (params: TeamGetAllParams, options?: Parameters<typeof customFetch>[1]): Promise<TeamEntity[]> => {
+export const teamGetAll = async (params?: TeamGetAllParams, options?: Parameters<typeof customFetch>[1]): Promise<TeamEntity[]> => {
 
   return customFetch<TeamEntity[]>(getTeamGetAllUrl(params),
   {
@@ -96,7 +96,7 @@ export const getTeamGetAllQueryKey = (params?: TeamGetAllParams,) => {
     }
 
 
-export const getTeamGetAllQueryOptions = <TData = Awaited<ReturnType<typeof teamGetAll>>, TError = ExceptionResponse>(params: TeamGetAllParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof teamGetAll>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+export const getTeamGetAllQueryOptions = <TData = Awaited<ReturnType<typeof teamGetAll>>, TError = ExceptionResponse>(params?: TeamGetAllParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof teamGetAll>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -119,7 +119,7 @@ export type TeamGetAllQueryError = ExceptionResponse
 
 
 export function useTeamGetAll<TData = Awaited<ReturnType<typeof teamGetAll>>, TError = ExceptionResponse>(
- params: TeamGetAllParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof teamGetAll>>, TError, TData>> & Pick<
+ params: undefined |  TeamGetAllParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof teamGetAll>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof teamGetAll>>,
           TError,
@@ -129,7 +129,7 @@ export function useTeamGetAll<TData = Awaited<ReturnType<typeof teamGetAll>>, TE
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useTeamGetAll<TData = Awaited<ReturnType<typeof teamGetAll>>, TError = ExceptionResponse>(
- params: TeamGetAllParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof teamGetAll>>, TError, TData>> & Pick<
+ params?: TeamGetAllParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof teamGetAll>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof teamGetAll>>,
           TError,
@@ -139,7 +139,7 @@ export function useTeamGetAll<TData = Awaited<ReturnType<typeof teamGetAll>>, TE
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useTeamGetAll<TData = Awaited<ReturnType<typeof teamGetAll>>, TError = ExceptionResponse>(
- params: TeamGetAllParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof teamGetAll>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ params?: TeamGetAllParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof teamGetAll>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -147,7 +147,7 @@ export function useTeamGetAll<TData = Awaited<ReturnType<typeof teamGetAll>>, TE
  */
 
 export function useTeamGetAll<TData = Awaited<ReturnType<typeof teamGetAll>>, TError = ExceptionResponse>(
- params: TeamGetAllParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof teamGetAll>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ params?: TeamGetAllParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof teamGetAll>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 

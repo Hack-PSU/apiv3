@@ -28,6 +28,7 @@ import type {
   BadRequestExceptionResponse,
   EmailAddEmailForwardingParams,
   EmailDeleteEmailForwardingParams,
+  EmailForwardingResponse,
   ExceptionResponse
 } from '../model';
 
@@ -64,9 +65,9 @@ export const getEmailGetEmailForwardingUrl = () => {
 /**
  * @summary Get all email forwarding settings for hackpsu.org
  */
-export const emailGetEmailForwarding = async ( options?: Parameters<typeof customFetch>[1]): Promise<unknown> => {
+export const emailGetEmailForwarding = async ( options?: Parameters<typeof customFetch>[1]): Promise<EmailForwardingResponse> => {
 
-  return customFetch<unknown>(getEmailGetEmailForwardingUrl(),
+  return customFetch<EmailForwardingResponse>(getEmailGetEmailForwardingUrl(),
   {
     ...options,
     method: 'GET'

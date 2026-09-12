@@ -24,6 +24,7 @@ import type {
   AnalyticsApplicationsResponse,
   AnalyticsEventsResponse,
   AnalyticsGetCheckInsParams,
+  AnalyticsScansResponse,
   AnalyticsSummaryResponse,
   CheckInsResponse,
   ExceptionResponse
@@ -259,9 +260,12 @@ export const getAnalyticsGetOrganizerScansUrl = () => {
   return `/analytics/scans`
 }
 
-export const analyticsGetOrganizerScans = async ( options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+/**
+ * @summary Get scan count for each organizer
+ */
+export const analyticsGetOrganizerScans = async ( options?: Parameters<typeof customFetch>[1]): Promise<AnalyticsScansResponse[]> => {
 
-  return customFetch<void>(getAnalyticsGetOrganizerScansUrl(),
+  return customFetch<AnalyticsScansResponse[]>(getAnalyticsGetOrganizerScansUrl(),
   {
     ...options,
     method: 'GET'
@@ -281,7 +285,7 @@ export const getAnalyticsGetOrganizerScansQueryKey = () => {
     }
 
 
-export const getAnalyticsGetOrganizerScansQueryOptions = <TData = Awaited<ReturnType<typeof analyticsGetOrganizerScans>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof analyticsGetOrganizerScans>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+export const getAnalyticsGetOrganizerScansQueryOptions = <TData = Awaited<ReturnType<typeof analyticsGetOrganizerScans>>, TError = ExceptionResponse>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof analyticsGetOrganizerScans>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -300,10 +304,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type AnalyticsGetOrganizerScansQueryResult = NonNullable<Awaited<ReturnType<typeof analyticsGetOrganizerScans>>>
-export type AnalyticsGetOrganizerScansQueryError = unknown
+export type AnalyticsGetOrganizerScansQueryError = ExceptionResponse
 
 
-export function useAnalyticsGetOrganizerScans<TData = Awaited<ReturnType<typeof analyticsGetOrganizerScans>>, TError = unknown>(
+export function useAnalyticsGetOrganizerScans<TData = Awaited<ReturnType<typeof analyticsGetOrganizerScans>>, TError = ExceptionResponse>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof analyticsGetOrganizerScans>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof analyticsGetOrganizerScans>>,
@@ -313,7 +317,7 @@ export function useAnalyticsGetOrganizerScans<TData = Awaited<ReturnType<typeof 
       >, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAnalyticsGetOrganizerScans<TData = Awaited<ReturnType<typeof analyticsGetOrganizerScans>>, TError = unknown>(
+export function useAnalyticsGetOrganizerScans<TData = Awaited<ReturnType<typeof analyticsGetOrganizerScans>>, TError = ExceptionResponse>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof analyticsGetOrganizerScans>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof analyticsGetOrganizerScans>>,
@@ -323,12 +327,15 @@ export function useAnalyticsGetOrganizerScans<TData = Awaited<ReturnType<typeof 
       >, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAnalyticsGetOrganizerScans<TData = Awaited<ReturnType<typeof analyticsGetOrganizerScans>>, TError = unknown>(
+export function useAnalyticsGetOrganizerScans<TData = Awaited<ReturnType<typeof analyticsGetOrganizerScans>>, TError = ExceptionResponse>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof analyticsGetOrganizerScans>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get scan count for each organizer
+ */
 
-export function useAnalyticsGetOrganizerScans<TData = Awaited<ReturnType<typeof analyticsGetOrganizerScans>>, TError = unknown>(
+export function useAnalyticsGetOrganizerScans<TData = Awaited<ReturnType<typeof analyticsGetOrganizerScans>>, TError = ExceptionResponse>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof analyticsGetOrganizerScans>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -563,9 +570,9 @@ export const getAnalyticsGetPdfUrl = () => {
 /**
  * @summary Generate analytics PDF report
  */
-export const analyticsGetPdf = async ( options?: Parameters<typeof customFetch>[1]): Promise<unknown> => {
+export const analyticsGetPdf = async ( options?: Parameters<typeof customFetch>[1]): Promise<Blob> => {
 
-  return customFetch<unknown>(getAnalyticsGetPdfUrl(),
+  return customFetch<Blob>(getAnalyticsGetPdfUrl(),
   {
     ...options,
     method: 'GET'
@@ -585,7 +592,7 @@ export const getAnalyticsGetPdfQueryKey = () => {
     }
 
 
-export const getAnalyticsGetPdfQueryOptions = <TData = Awaited<ReturnType<typeof analyticsGetPdf>>, TError = ExceptionResponse>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof analyticsGetPdf>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+export const getAnalyticsGetPdfQueryOptions = <TData = Awaited<ReturnType<typeof analyticsGetPdf>>, TError = ExceptionResponse | void>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof analyticsGetPdf>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -604,10 +611,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type AnalyticsGetPdfQueryResult = NonNullable<Awaited<ReturnType<typeof analyticsGetPdf>>>
-export type AnalyticsGetPdfQueryError = ExceptionResponse
+export type AnalyticsGetPdfQueryError = ExceptionResponse | void
 
 
-export function useAnalyticsGetPdf<TData = Awaited<ReturnType<typeof analyticsGetPdf>>, TError = ExceptionResponse>(
+export function useAnalyticsGetPdf<TData = Awaited<ReturnType<typeof analyticsGetPdf>>, TError = ExceptionResponse | void>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof analyticsGetPdf>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof analyticsGetPdf>>,
@@ -617,7 +624,7 @@ export function useAnalyticsGetPdf<TData = Awaited<ReturnType<typeof analyticsGe
       >, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAnalyticsGetPdf<TData = Awaited<ReturnType<typeof analyticsGetPdf>>, TError = ExceptionResponse>(
+export function useAnalyticsGetPdf<TData = Awaited<ReturnType<typeof analyticsGetPdf>>, TError = ExceptionResponse | void>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof analyticsGetPdf>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof analyticsGetPdf>>,
@@ -627,7 +634,7 @@ export function useAnalyticsGetPdf<TData = Awaited<ReturnType<typeof analyticsGe
       >, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAnalyticsGetPdf<TData = Awaited<ReturnType<typeof analyticsGetPdf>>, TError = ExceptionResponse>(
+export function useAnalyticsGetPdf<TData = Awaited<ReturnType<typeof analyticsGetPdf>>, TError = ExceptionResponse | void>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof analyticsGetPdf>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -635,7 +642,7 @@ export function useAnalyticsGetPdf<TData = Awaited<ReturnType<typeof analyticsGe
  * @summary Generate analytics PDF report
  */
 
-export function useAnalyticsGetPdf<TData = Awaited<ReturnType<typeof analyticsGetPdf>>, TError = ExceptionResponse>(
+export function useAnalyticsGetPdf<TData = Awaited<ReturnType<typeof analyticsGetPdf>>, TError = ExceptionResponse | void>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof analyticsGetPdf>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {

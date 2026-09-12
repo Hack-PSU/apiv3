@@ -25,7 +25,13 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
-  ExceptionResponse
+  CreateFolderBody,
+  CreateFolderStructureBody,
+  DriveFolderInfoEntity,
+  DrivePermissionEntity,
+  ExceptionResponse,
+  ShareFolderBody,
+  ShareFolderMultipleBody
 } from '../model';
 
 import { customFetch } from '../../fetcher';
@@ -61,9 +67,9 @@ export const getDriveGetFolderPermissionsUrl = (folderId: string,) => {
 /**
  * @summary Get folder permissions
  */
-export const driveGetFolderPermissions = async (folderId: string, options?: Parameters<typeof customFetch>[1]): Promise<unknown> => {
+export const driveGetFolderPermissions = async (folderId: string, options?: Parameters<typeof customFetch>[1]): Promise<DrivePermissionEntity[]> => {
 
-  return customFetch<unknown>(getDriveGetFolderPermissionsUrl(folderId),
+  return customFetch<DrivePermissionEntity[]>(getDriveGetFolderPermissionsUrl(folderId),
   {
     ...options,
     method: 'GET'
@@ -161,9 +167,9 @@ export const getDriveGetFolderInfoUrl = (folderId: string,) => {
 /**
  * @summary Get folder info with permissions
  */
-export const driveGetFolderInfo = async (folderId: string, options?: Parameters<typeof customFetch>[1]): Promise<unknown> => {
+export const driveGetFolderInfo = async (folderId: string, options?: Parameters<typeof customFetch>[1]): Promise<DriveFolderInfoEntity> => {
 
-  return customFetch<unknown>(getDriveGetFolderInfoUrl(folderId),
+  return customFetch<DriveFolderInfoEntity>(getDriveGetFolderInfoUrl(folderId),
   {
     ...options,
     method: 'GET'
@@ -261,9 +267,9 @@ export const getDriveListSubfoldersUrl = (folderId: string,) => {
 /**
  * @summary List all subfolders with permissions
  */
-export const driveListSubfolders = async (folderId: string, options?: Parameters<typeof customFetch>[1]): Promise<unknown> => {
+export const driveListSubfolders = async (folderId: string, options?: Parameters<typeof customFetch>[1]): Promise<DriveFolderInfoEntity[]> => {
 
-  return customFetch<unknown>(getDriveListSubfoldersUrl(folderId),
+  return customFetch<DriveFolderInfoEntity[]>(getDriveListSubfoldersUrl(folderId),
   {
     ...options,
     method: 'GET'
@@ -361,14 +367,28 @@ export const getDriveCreateFolderUrl = () => {
 /**
  * @summary Create a new folder
  */
-export const driveCreateFolder = async ( options?: Parameters<typeof customFetch>[1]): Promise<unknown> => {
+export const driveCreateFolder = async (createFolderBody: CreateFolderBody, options?: Parameters<typeof customFetch>[1]): Promise<string> => {
 
-  return customFetch<unknown>(getDriveCreateFolderUrl(),
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<string>(getDriveCreateFolderUrl(),
   {
     ...options,
-    method: 'POST'
-
-
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(createFolderBody)
   }
 );}
 
@@ -379,8 +399,8 @@ export const driveCreateFolder = async ( options?: Parameters<typeof customFetch
 export const getDriveCreateFolderMutationKey = () => ['driveCreateFolder'] as const;
 
 export const getDriveCreateFolderMutationOptions = <TError = ExceptionResponse,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof driveCreateFolder>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof driveCreateFolder>>, TError,void, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof driveCreateFolder>>, TError,DriveCreateFolderMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof driveCreateFolder>>, TError,DriveCreateFolderMutationVariables, TContext> => {
 
 const mutationKey = getDriveCreateFolderMutationKey();
 const {mutation: mutationOptions, request: requestOptions} = options ?
@@ -392,10 +412,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof driveCreateFolder>>, void> = () => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof driveCreateFolder>>, DriveCreateFolderMutationVariables> = (props) => {
+          const {data} = props ?? {};
 
-
-          return  driveCreateFolder(requestOptions)
+          return  driveCreateFolder(data,requestOptions)
         }
 
 
@@ -406,19 +426,19 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type DriveCreateFolderMutationResult = NonNullable<Awaited<ReturnType<typeof driveCreateFolder>>>
-
+    export type DriveCreateFolderMutationBody = CreateFolderBody
     export type DriveCreateFolderMutationError = ExceptionResponse
-
+    export type DriveCreateFolderMutationVariables = {data: CreateFolderBody}
 
     /**
  * @summary Create a new folder
  */
 export const useDriveCreateFolder = <TError = ExceptionResponse,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof driveCreateFolder>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof driveCreateFolder>>, TError,DriveCreateFolderMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof driveCreateFolder>>,
         TError,
-        void,
+        DriveCreateFolderMutationVariables,
         TContext
       > => {
       return useMutation(getDriveCreateFolderMutationOptions(options), queryClient);
@@ -434,14 +454,29 @@ export const useDriveCreateFolder = <TError = ExceptionResponse,
 /**
  * @summary Share a folder with a user
  */
-export const driveShareFolder = async (folderId: string, options?: Parameters<typeof customFetch>[1]): Promise<unknown> => {
+export const driveShareFolder = async (folderId: string,
+    shareFolderBody: ShareFolderBody, options?: Parameters<typeof customFetch>[1]): Promise<string> => {
 
-  return customFetch<unknown>(getDriveShareFolderUrl(folderId),
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<string>(getDriveShareFolderUrl(folderId),
   {
     ...options,
-    method: 'POST'
-
-
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(shareFolderBody)
   }
 );}
 
@@ -466,9 +501,9 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof driveShareFolder>>, DriveShareFolderMutationVariables> = (props) => {
-          const {folderId} = props ?? {};
+          const {folderId,data} = props ?? {};
 
-          return  driveShareFolder(folderId,requestOptions)
+          return  driveShareFolder(folderId,data,requestOptions)
         }
 
 
@@ -479,9 +514,9 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type DriveShareFolderMutationResult = NonNullable<Awaited<ReturnType<typeof driveShareFolder>>>
-
+    export type DriveShareFolderMutationBody = ShareFolderBody
     export type DriveShareFolderMutationError = ExceptionResponse
-    export type DriveShareFolderMutationVariables = {folderId: string}
+    export type DriveShareFolderMutationVariables = {folderId: string;data: ShareFolderBody}
 
     /**
  * @summary Share a folder with a user
@@ -507,14 +542,28 @@ export const useDriveShareFolder = <TError = ExceptionResponse,
 /**
  * @summary Create nested folder structure
  */
-export const driveCreateFolderStructure = async ( options?: Parameters<typeof customFetch>[1]): Promise<unknown> => {
+export const driveCreateFolderStructure = async (createFolderStructureBody: CreateFolderStructureBody, options?: Parameters<typeof customFetch>[1]): Promise<string> => {
 
-  return customFetch<unknown>(getDriveCreateFolderStructureUrl(),
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<string>(getDriveCreateFolderStructureUrl(),
   {
     ...options,
-    method: 'POST'
-
-
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(createFolderStructureBody)
   }
 );}
 
@@ -525,8 +574,8 @@ export const driveCreateFolderStructure = async ( options?: Parameters<typeof cu
 export const getDriveCreateFolderStructureMutationKey = () => ['driveCreateFolderStructure'] as const;
 
 export const getDriveCreateFolderStructureMutationOptions = <TError = ExceptionResponse,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof driveCreateFolderStructure>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof driveCreateFolderStructure>>, TError,void, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof driveCreateFolderStructure>>, TError,DriveCreateFolderStructureMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof driveCreateFolderStructure>>, TError,DriveCreateFolderStructureMutationVariables, TContext> => {
 
 const mutationKey = getDriveCreateFolderStructureMutationKey();
 const {mutation: mutationOptions, request: requestOptions} = options ?
@@ -538,10 +587,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof driveCreateFolderStructure>>, void> = () => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof driveCreateFolderStructure>>, DriveCreateFolderStructureMutationVariables> = (props) => {
+          const {data} = props ?? {};
 
-
-          return  driveCreateFolderStructure(requestOptions)
+          return  driveCreateFolderStructure(data,requestOptions)
         }
 
 
@@ -552,19 +601,19 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type DriveCreateFolderStructureMutationResult = NonNullable<Awaited<ReturnType<typeof driveCreateFolderStructure>>>
-
+    export type DriveCreateFolderStructureMutationBody = CreateFolderStructureBody
     export type DriveCreateFolderStructureMutationError = ExceptionResponse
-
+    export type DriveCreateFolderStructureMutationVariables = {data: CreateFolderStructureBody}
 
     /**
  * @summary Create nested folder structure
  */
 export const useDriveCreateFolderStructure = <TError = ExceptionResponse,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof driveCreateFolderStructure>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof driveCreateFolderStructure>>, TError,DriveCreateFolderStructureMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof driveCreateFolderStructure>>,
         TError,
-        void,
+        DriveCreateFolderStructureMutationVariables,
         TContext
       > => {
       return useMutation(getDriveCreateFolderStructureMutationOptions(options), queryClient);
@@ -580,14 +629,29 @@ export const useDriveCreateFolderStructure = <TError = ExceptionResponse,
 /**
  * @summary Share folder with multiple users
  */
-export const driveShareFolderWithMultiple = async (folderId: string, options?: Parameters<typeof customFetch>[1]): Promise<unknown> => {
+export const driveShareFolderWithMultiple = async (folderId: string,
+    shareFolderMultipleBody: ShareFolderMultipleBody, options?: Parameters<typeof customFetch>[1]): Promise<string[]> => {
 
-  return customFetch<unknown>(getDriveShareFolderWithMultipleUrl(folderId),
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<string[]>(getDriveShareFolderWithMultipleUrl(folderId),
   {
     ...options,
-    method: 'POST'
-
-
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(shareFolderMultipleBody)
   }
 );}
 
@@ -612,9 +676,9 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof driveShareFolderWithMultiple>>, DriveShareFolderWithMultipleMutationVariables> = (props) => {
-          const {folderId} = props ?? {};
+          const {folderId,data} = props ?? {};
 
-          return  driveShareFolderWithMultiple(folderId,requestOptions)
+          return  driveShareFolderWithMultiple(folderId,data,requestOptions)
         }
 
 
@@ -625,9 +689,9 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type DriveShareFolderWithMultipleMutationResult = NonNullable<Awaited<ReturnType<typeof driveShareFolderWithMultiple>>>
-
+    export type DriveShareFolderWithMultipleMutationBody = ShareFolderMultipleBody
     export type DriveShareFolderWithMultipleMutationError = ExceptionResponse
-    export type DriveShareFolderWithMultipleMutationVariables = {folderId: string}
+    export type DriveShareFolderWithMultipleMutationVariables = {folderId: string;data: ShareFolderMultipleBody}
 
     /**
  * @summary Share folder with multiple users

@@ -5,10 +5,11 @@
  * Official HackPSU API V3
  * OpenAPI spec version: 3.0
  */
+import type { EventType } from './eventType';
 
 export interface AnalyticsEventsResponse {
   id: string;
   name: string;
-  type: string;
+  type: EventType;
   count: number;
 }
