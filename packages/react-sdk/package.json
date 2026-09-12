@@ -1,0 +1,59 @@
+{
+  "name": "@hackpsu/react-sdk",
+  "version": "1.0.0",
+  "description": "Auth, providers, and the typed HackPSU API client for React frontends",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Hack-PSU/apiv3.git",
+    "directory": "packages/react-sdk"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "yarn build"
+  },
+  "peerDependencies": {
+    "@tanstack/react-query": "^5.0.0",
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
+  },
+  "dependencies": {
+    "@hackpsu/api-client": "1.0.0",
+    "firebase": "^12.0.0",
+    "jwt-decode": "^4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "posthog-js": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@tanstack/react-query": "^5.90.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "posthog-js": "^1.300.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tsup": "^8.5.0",
+    "typescript": "^5.7.0"
+  }
+}

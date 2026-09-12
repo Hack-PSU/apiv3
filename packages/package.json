@@ -1,0 +1,15 @@
+{
+  "name": "@hackpsu/packages",
+  "private": true,
+  "description": "Workspace root for HackPSU's published frontend packages. Deliberately separate from the API's own package.json so the Docker image never installs React.",
+  "workspaces": [
+    "api-client",
+    "react-sdk"
+  ],
+  "scripts": {
+    "generate": "yarn workspace @hackpsu/api-client generate",
+    "build": "yarn workspace @hackpsu/api-client build && yarn workspace @hackpsu/react-sdk build",
+    "typecheck": "yarn workspaces run typecheck",
+    "test": "yarn workspace @hackpsu/api-client test"
+  }
+}
