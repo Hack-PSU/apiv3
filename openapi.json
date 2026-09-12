@@ -8119,7 +8119,9 @@
             "required": true,
             "in": "path",
             "description": "The team to fetch applications for",
-            "schema": {}
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -11531,7 +11533,7 @@
             "type": "boolean"
           },
           "broadcast": {
-            "type": "object"
+            "type": "string"
           }
         },
         "required": [
@@ -11596,7 +11598,11 @@
             "type": "object"
           },
           "broadcast": {
-            "type": "object"
+            "type": "string",
+            "enum": [
+              "ALL",
+              "ORGANIZER"
+            ]
           },
           "topic": {
             "type": "string"
@@ -11607,7 +11613,6 @@
           "body",
           "scheduleTime",
           "metadata",
-          "broadcast",
           "topic"
         ]
       },

@@ -6,4 +6,10 @@
  * OpenAPI spec version: 3.0
  */
 
-export type BroadcastMessageEntityBroadcast = { [key: string]: unknown };
+export type BroadcastMessageEntityBroadcast = typeof BroadcastMessageEntityBroadcast[keyof typeof BroadcastMessageEntityBroadcast];
+
+
+export const BroadcastMessageEntityBroadcast = {
+  ALL: 'ALL',
+  ORGANIZER: 'ORGANIZER',
+} as const;

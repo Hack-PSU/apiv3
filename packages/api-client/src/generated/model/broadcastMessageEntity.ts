@@ -13,6 +13,6 @@ export interface BroadcastMessageEntity {
   body: string;
   scheduleTime: number;
   metadata: BroadcastMessageEntityMetadata;
-  broadcast: BroadcastMessageEntityBroadcast;
+  broadcast?: BroadcastMessageEntityBroadcast;
   topic: string;
 }

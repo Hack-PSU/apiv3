@@ -110,6 +110,7 @@ export class OrganizerApplicationController {
     params: [
       {
         name: "team",
+        type: String,
         description: "The team to fetch applications for",
       },
     ],

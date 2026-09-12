@@ -237,7 +237,7 @@ export function useOrganizerApplicationGetAll<TData = Awaited<ReturnType<typeof 
 
 
 
-export const getOrganizerApplicationGetByTeamUrl = (team: unknown,) => {
+export const getOrganizerApplicationGetByTeamUrl = (team: string,) => {
 
 
 
@@ -248,7 +248,7 @@ export const getOrganizerApplicationGetByTeamUrl = (team: unknown,) => {
 /**
  * @summary Get applications for a specific team
  */
-export const organizerApplicationGetByTeam = async (team: unknown, options?: Parameters<typeof customFetch>[1]): Promise<OrganizerApplicationGetByTeam200> => {
+export const organizerApplicationGetByTeam = async (team: string, options?: Parameters<typeof customFetch>[1]): Promise<OrganizerApplicationGetByTeam200> => {
 
   return customFetch<OrganizerApplicationGetByTeam200>(getOrganizerApplicationGetByTeamUrl(team),
   {
@@ -263,14 +263,14 @@ export const organizerApplicationGetByTeam = async (team: unknown, options?: Par
 
 
 
-export const getOrganizerApplicationGetByTeamQueryKey = (team: unknown,) => {
+export const getOrganizerApplicationGetByTeamQueryKey = (team: string,) => {
     return [
     `/organizer-applications/by-team/${team}`
     ] as const;
     }
 
 
-export const getOrganizerApplicationGetByTeamQueryOptions = <TData = Awaited<ReturnType<typeof organizerApplicationGetByTeam>>, TError = ExceptionResponse>(team: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizerApplicationGetByTeam>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+export const getOrganizerApplicationGetByTeamQueryOptions = <TData = Awaited<ReturnType<typeof organizerApplicationGetByTeam>>, TError = ExceptionResponse>(team: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizerApplicationGetByTeam>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -293,7 +293,7 @@ export type OrganizerApplicationGetByTeamQueryError = ExceptionResponse
 
 
 export function useOrganizerApplicationGetByTeam<TData = Awaited<ReturnType<typeof organizerApplicationGetByTeam>>, TError = ExceptionResponse>(
- team: unknown, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizerApplicationGetByTeam>>, TError, TData>> & Pick<
+ team: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizerApplicationGetByTeam>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof organizerApplicationGetByTeam>>,
           TError,
@@ -303,7 +303,7 @@ export function useOrganizerApplicationGetByTeam<TData = Awaited<ReturnType<type
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useOrganizerApplicationGetByTeam<TData = Awaited<ReturnType<typeof organizerApplicationGetByTeam>>, TError = ExceptionResponse>(
- team: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizerApplicationGetByTeam>>, TError, TData>> & Pick<
+ team: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizerApplicationGetByTeam>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof organizerApplicationGetByTeam>>,
           TError,
@@ -313,7 +313,7 @@ export function useOrganizerApplicationGetByTeam<TData = Awaited<ReturnType<type
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useOrganizerApplicationGetByTeam<TData = Awaited<ReturnType<typeof organizerApplicationGetByTeam>>, TError = ExceptionResponse>(
- team: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizerApplicationGetByTeam>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ team: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizerApplicationGetByTeam>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -321,7 +321,7 @@ export function useOrganizerApplicationGetByTeam<TData = Awaited<ReturnType<type
  */
 
 export function useOrganizerApplicationGetByTeam<TData = Awaited<ReturnType<typeof organizerApplicationGetByTeam>>, TError = ExceptionResponse>(
- team: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizerApplicationGetByTeam>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ team: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizerApplicationGetByTeam>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 

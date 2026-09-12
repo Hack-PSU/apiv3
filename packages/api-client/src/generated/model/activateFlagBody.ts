@@ -5,10 +5,9 @@
  * Official HackPSU API V3
  * OpenAPI spec version: 3.0
  */
-import type { ActivateFlagBodyBroadcast } from './activateFlagBodyBroadcast';
 
 export interface ActivateFlagBody {
   name: string;
   isEnabled: boolean;
-  broadcast?: ActivateFlagBodyBroadcast;
+  broadcast?: string;
 }
