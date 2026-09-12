@@ -34,7 +34,6 @@ import type {
   ExtraCreditAssignmentEntity,
   ExtraCreditClassEntity,
   RegistrationEntity,
-  StreamableFile,
   UserCreateEntity,
   UserEntity,
   UserGetAllParams,
@@ -283,9 +282,9 @@ export const useUserCreateOne = <TError = BadRequestExceptionResponse | Exceptio
 /**
  * @summary Get All Resumes
  */
-export const userGetAllResumes = async ( options?: Parameters<typeof customFetch>[1]): Promise<StreamableFile> => {
+export const userGetAllResumes = async ( options?: Parameters<typeof customFetch>[1]): Promise<Blob> => {
 
-  return customFetch<StreamableFile>(getUserGetAllResumesUrl(),
+  return customFetch<Blob>(getUserGetAllResumesUrl(),
   {
     ...options,
     method: 'GET'
@@ -960,9 +959,9 @@ export const useUserRegisterUser = <TError = BadRequestExceptionResponse | Excep
 /**
  * @summary Get User Resume
  */
-export const userGetResume = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<StreamableFile> => {
+export const userGetResume = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<Blob> => {
 
-  return customFetch<StreamableFile>(getUserGetResumeUrl(id),
+  return customFetch<Blob>(getUserGetResumeUrl(id),
   {
     ...options,
     method: 'GET'

@@ -137,6 +137,7 @@ export class Registration extends Entity {
     nullable: true,
     default: false,
   })
+  @ApiProperty()
   @IsOptional()
   @IsBoolean()
   @Type(() => Boolean)
@@ -149,6 +150,7 @@ export class Registration extends Entity {
     nullable: true,
     default: false,
   })
+  @ApiProperty()
   @IsOptional()
   @IsBoolean()
   @Type(() => Boolean)
@@ -161,6 +163,7 @@ export class Registration extends Entity {
     nullable: true,
     default: false,
   })
+  @ApiProperty()
   @IsOptional()
   @IsBoolean()
   @Type(() => Boolean)

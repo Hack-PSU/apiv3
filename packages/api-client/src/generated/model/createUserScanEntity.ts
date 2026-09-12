@@ -7,6 +7,8 @@
  */
 
 export interface CreateUserScanEntity {
+  /** Organizer who recorded the scan */
+  organizerId: string;
   hackathonId?: string;
   timestamp?: number;
 }

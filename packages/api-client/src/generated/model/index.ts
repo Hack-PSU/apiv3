@@ -161,7 +161,6 @@ export * from './sponsorPatchEntity';
 export * from './sponsorType';
 export * from './staticActiveHackathonEntity';
 export * from './status';
-export * from './streamableFile';
 export * from './submitterType';
 export * from './teamCreateEntity';
 export * from './teamEntity';
