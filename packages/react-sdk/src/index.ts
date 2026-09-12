@@ -47,6 +47,14 @@ export { Role, DEFAULT_AUTH_SERVICE_URL, resolveConfig } from "./config";
 export type { HackPSUConfig, ResolvedHackPSUConfig } from "./config";
 export { getRole, ROLE_NAMES } from "./roles";
 export { getFirebaseAuth } from "./firebase";
+// Exposed so an app can reach the token directly if it talks to the auth
+// service outside the provider.
+export {
+  captureSessionToken,
+  getSessionToken,
+  clearSessionToken,
+  withSessionAuth,
+} from "./session-token";
 
 // The generated API client, so apps install one package rather than two.
 // Named rather than star re-exports: Next forbids `export *` inside the
