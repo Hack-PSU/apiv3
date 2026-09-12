@@ -3,6 +3,7 @@
   "paths": {
     "/hackathons": {
       "get": {
+        "description": "Returns every hackathon, or only the inactive ones when active=false. Passing active=true instead returns the single active hackathon; prefer GET /hackathons/active for that, which is typed as one object.",
         "operationId": "hackathon_getAll",
         "parameters": [
           {
@@ -21,7 +22,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ConditionalHackathonResponse"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ConditionalHackathonResponse"
+                  }
                 }
               }
             }
@@ -4689,7 +4693,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AnalyticsEventsScansEntity"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AnalyticsEventsScansEntity"
+                  }
                 }
               }
             }
@@ -6009,7 +6016,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AnalyticsEventsResponse"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AnalyticsEventsResponse"
+                  }
                 }
               }
             }

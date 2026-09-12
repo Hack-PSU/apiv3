@@ -468,9 +468,9 @@ export const getScanGetAllByEventUrl = () => {
 /**
  * @summary Get All Scans For All Events
  */
-export const scanGetAllByEvent = async ( options?: Parameters<typeof customFetch>[1]): Promise<AnalyticsEventsScansEntity> => {
+export const scanGetAllByEvent = async ( options?: Parameters<typeof customFetch>[1]): Promise<AnalyticsEventsScansEntity[]> => {
 
-  return customFetch<AnalyticsEventsScansEntity>(getScanGetAllByEventUrl(),
+  return customFetch<AnalyticsEventsScansEntity[]>(getScanGetAllByEventUrl(),
   {
     ...options,
     method: 'GET'
