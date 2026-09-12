@@ -10101,15 +10101,15 @@
             "type": "string"
           },
           "travelReimbursement": {
-            "type": "object",
+            "type": "boolean",
             "default": false
           },
           "driving": {
-            "type": "object",
+            "type": "boolean",
             "default": false
           },
           "firstHackathon": {
-            "type": "object",
+            "type": "boolean",
             "default": false
           },
           "academicYear": {
@@ -10577,15 +10577,15 @@
         "type": "object",
         "properties": {
           "travelReimbursement": {
-            "type": "object",
+            "type": "boolean",
             "default": false
           },
           "driving": {
-            "type": "object",
+            "type": "boolean",
             "default": false
           },
           "firstHackathon": {
-            "type": "object",
+            "type": "boolean",
             "default": false
           },
           "academicYear": {
@@ -12054,15 +12054,15 @@
             "type": "string"
           },
           "travelReimbursement": {
-            "type": "object",
+            "type": "boolean",
             "default": false
           },
           "driving": {
-            "type": "object",
+            "type": "boolean",
             "default": false
           },
           "firstHackathon": {
-            "type": "object",
+            "type": "boolean",
             "default": false
           },
           "academicYear": {
@@ -12815,7 +12815,7 @@
             "example": "62704"
           },
           "reminderSent": {
-            "type": "object",
+            "type": "boolean",
             "description": "Checks whether 4 day reminder was already sent",
             "default": false
           }
@@ -12890,7 +12890,7 @@
             "example": "62704"
           },
           "reminderSent": {
-            "type": "object",
+            "type": "boolean",
             "description": "Checks whether 4 day reminder was already sent",
             "default": false
           },
@@ -12983,7 +12983,7 @@
             "example": "62704"
           },
           "reminderSent": {
-            "type": "object",
+            "type": "boolean",
             "description": "Checks whether 4 day reminder was already sent",
             "default": false
           }

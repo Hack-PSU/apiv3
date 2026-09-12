@@ -6,7 +6,6 @@
  * OpenAPI spec version: 3.0
  */
 import type { Category } from './category';
-import type { FinancePatchEntityReminderSent } from './financePatchEntityReminderSent';
 
 export interface FinancePatchEntity {
   /** Amount to be reimbursed */
@@ -22,5 +21,5 @@ export interface FinancePatchEntity {
   state?: string;
   postalCode?: string;
   /** Checks whether 4 day reminder was already sent */
-  reminderSent?: FinancePatchEntityReminderSent;
+  reminderSent?: boolean;
 }

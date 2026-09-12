@@ -6,16 +6,13 @@
  * OpenAPI spec version: 3.0
  */
 import type { ApplicationStatus } from './applicationStatus';
-import type { RegistrationWithScoreDtoDriving } from './registrationWithScoreDtoDriving';
-import type { RegistrationWithScoreDtoFirstHackathon } from './registrationWithScoreDtoFirstHackathon';
-import type { RegistrationWithScoreDtoTravelReimbursement } from './registrationWithScoreDtoTravelReimbursement';
 
 export interface RegistrationWithScoreDto {
   id: number;
   userId: string;
-  travelReimbursement: RegistrationWithScoreDtoTravelReimbursement;
-  driving: RegistrationWithScoreDtoDriving;
-  firstHackathon: RegistrationWithScoreDtoFirstHackathon;
+  travelReimbursement: boolean;
+  driving: boolean;
+  firstHackathon: boolean;
   academicYear: string;
   educationalInstitutionType: string;
   codingExperience: string;

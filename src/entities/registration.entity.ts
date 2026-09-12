@@ -62,21 +62,21 @@ export class Registration extends Entity {
   @Column({ type: "string" })
   userId: string;
 
-  @ApiProperty({ default: false })
+  @ApiProperty({ type: Boolean, default: false })
   @IsOptional()
   @IsBoolean()
   @Type(() => Boolean)
   @Column({ type: "boolean" })
   travelReimbursement = false;
 
-  @ApiProperty({ default: false })
+  @ApiProperty({ type: Boolean, default: false })
   @IsOptional()
   @IsBoolean()
   @Type(() => Boolean)
   @Column({ type: "boolean" })
   driving = false;
 
-  @ApiProperty({ default: false })
+  @ApiProperty({ type: Boolean, default: false })
   @IsOptional()
   @IsBoolean()
   @Type(() => Boolean)
