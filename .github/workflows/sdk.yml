@@ -4,9 +4,9 @@ name: SDK
 #
 # On every push to main the OpenAPI document is regenerated from the NestJS app.
 # If it changed, the client is regenerated, both packages are version-bumped and
-# published, and the refreshed artifacts are committed back. The previous SDK
-# died because this step did not exist: entities kept changing and npm never saw
-# a new version.
+# published to Artifact Registry, and the refreshed artifacts are committed back.
+# The previous SDK died because this step did not exist: entities kept changing
+# and the registry never saw a new version.
 
 on:
   push:
@@ -99,7 +99,7 @@ jobs:
           path: openapi.json
 
   publish:
-    name: Publish to npm
+    name: Publish to Artifact Registry
     needs: build
     if: >
       github.event_name == 'workflow_dispatch' ||
