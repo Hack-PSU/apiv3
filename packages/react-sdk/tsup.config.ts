@@ -4,7 +4,9 @@ export default defineConfig({
   entry: { index: "src/index.ts" },
   format: ["cjs", "esm"],
   dts: true,
-  sourcemap: true,
+  // Source maps would reference ../src, which is not published, so they
+  // would add ~1.7MB per install without ever resolving.
+  sourcemap: false,
   clean: true,
   splitting: false,
   // Rollup's treeshaker drops module-level directives, which silently stripped
