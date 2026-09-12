@@ -26,12 +26,12 @@ import type {
 
 import type {
   MessageResponse,
+  PaginatedPhotosResponse,
   PhotoDeletePhotoParams,
-  PhotoGetAllPendingPhotos200Item,
-  PhotoGetAllPhotos200Item,
-  PhotoGetPaginatedPhotos200,
   PhotoGetPaginatedPhotosParams,
-  PhotoUploadPhoto201
+  PhotoItem,
+  UploadPhotoBody,
+  UploadPhotoResponse
 } from '../model';
 
 import { customFetch } from '../../fetcher';
@@ -67,14 +67,19 @@ export const getPhotoUploadPhotoUrl = () => {
 /**
  * @summary Upload a photo
  */
-export const photoUploadPhoto = async ( options?: Parameters<typeof customFetch>[1]): Promise<PhotoUploadPhoto201> => {
+export const photoUploadPhoto = async (uploadPhotoBody: UploadPhotoBody, options?: Parameters<typeof customFetch>[1]): Promise<UploadPhotoResponse> => {
+    const formData = new FormData();
+formData.append(`photo`, uploadPhotoBody.photo);
+if(uploadPhotoBody.fileType !== undefined) {
+ formData.append(`fileType`, uploadPhotoBody.fileType);
+ }
 
-  return customFetch<PhotoUploadPhoto201>(getPhotoUploadPhotoUrl(),
+  return customFetch<UploadPhotoResponse>(getPhotoUploadPhotoUrl(),
   {
     ...options,
     method: 'POST'
-
-
+    ,
+    body: formData
   }
 );}
 
@@ -85,8 +90,8 @@ export const photoUploadPhoto = async ( options?: Parameters<typeof customFetch>
 export const getPhotoUploadPhotoMutationKey = () => ['photoUploadPhoto'] as const;
 
 export const getPhotoUploadPhotoMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof photoUploadPhoto>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof photoUploadPhoto>>, TError,void, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof photoUploadPhoto>>, TError,PhotoUploadPhotoMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof photoUploadPhoto>>, TError,PhotoUploadPhotoMutationVariables, TContext> => {
 
 const mutationKey = getPhotoUploadPhotoMutationKey();
 const {mutation: mutationOptions, request: requestOptions} = options ?
@@ -98,10 +103,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof photoUploadPhoto>>, void> = () => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof photoUploadPhoto>>, PhotoUploadPhotoMutationVariables> = (props) => {
+          const {data} = props ?? {};
 
-
-          return  photoUploadPhoto(requestOptions)
+          return  photoUploadPhoto(data,requestOptions)
         }
 
 
@@ -112,19 +117,19 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type PhotoUploadPhotoMutationResult = NonNullable<Awaited<ReturnType<typeof photoUploadPhoto>>>
-
+    export type PhotoUploadPhotoMutationBody = UploadPhotoBody
     export type PhotoUploadPhotoMutationError = unknown
-
+    export type PhotoUploadPhotoMutationVariables = {data: UploadPhotoBody}
 
     /**
  * @summary Upload a photo
  */
 export const usePhotoUploadPhoto = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof photoUploadPhoto>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof photoUploadPhoto>>, TError,PhotoUploadPhotoMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof photoUploadPhoto>>,
         TError,
-        void,
+        PhotoUploadPhotoMutationVariables,
         TContext
       > => {
       return useMutation(getPhotoUploadPhotoMutationOptions(options), queryClient);
@@ -140,9 +145,9 @@ export const usePhotoUploadPhoto = <TError = unknown,
 /**
  * @summary Get all approved photos
  */
-export const photoGetAllPhotos = async ( options?: Parameters<typeof customFetch>[1]): Promise<PhotoGetAllPhotos200Item[]> => {
+export const photoGetAllPhotos = async ( options?: Parameters<typeof customFetch>[1]): Promise<PhotoItem[]> => {
 
-  return customFetch<PhotoGetAllPhotos200Item[]>(getPhotoGetAllPhotosUrl(),
+  return customFetch<PhotoItem[]>(getPhotoGetAllPhotosUrl(),
   {
     ...options,
     method: 'GET'
@@ -247,9 +252,9 @@ export const getPhotoGetPaginatedPhotosUrl = (params?: PhotoGetPaginatedPhotosPa
 /**
  * @summary Get paginated photos
  */
-export const photoGetPaginatedPhotos = async (params?: PhotoGetPaginatedPhotosParams, options?: Parameters<typeof customFetch>[1]): Promise<PhotoGetPaginatedPhotos200> => {
+export const photoGetPaginatedPhotos = async (params?: PhotoGetPaginatedPhotosParams, options?: Parameters<typeof customFetch>[1]): Promise<PaginatedPhotosResponse> => {
 
-  return customFetch<PhotoGetPaginatedPhotos200>(getPhotoGetPaginatedPhotosUrl(params),
+  return customFetch<PaginatedPhotosResponse>(getPhotoGetPaginatedPhotosUrl(params),
   {
     ...options,
     method: 'GET'
@@ -347,9 +352,9 @@ export const getPhotoGetAllPendingPhotosUrl = () => {
 /**
  * @summary Get all photos with approval status (admin only)
  */
-export const photoGetAllPendingPhotos = async ( options?: Parameters<typeof customFetch>[1]): Promise<PhotoGetAllPendingPhotos200Item[]> => {
+export const photoGetAllPendingPhotos = async ( options?: Parameters<typeof customFetch>[1]): Promise<PhotoItem[]> => {
 
-  return customFetch<PhotoGetAllPendingPhotos200Item[]>(getPhotoGetAllPendingPhotosUrl(),
+  return customFetch<PhotoItem[]>(getPhotoGetAllPendingPhotosUrl(),
   {
     ...options,
     method: 'GET'

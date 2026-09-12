@@ -6,16 +6,13 @@
  * OpenAPI spec version: 3.0
  */
 import type { ApplicationStatus } from './applicationStatus';
-import type { RegistrationWithScoreDtoDriving } from './registrationWithScoreDtoDriving';
-import type { RegistrationWithScoreDtoFirstHackathon } from './registrationWithScoreDtoFirstHackathon';
-import type { RegistrationWithScoreDtoTravelReimbursement } from './registrationWithScoreDtoTravelReimbursement';
 
 export interface RegistrationWithScoreDto {
   id: number;
   userId: string;
-  travelReimbursement: RegistrationWithScoreDtoTravelReimbursement;
-  driving: RegistrationWithScoreDtoDriving;
-  firstHackathon: RegistrationWithScoreDtoFirstHackathon;
+  travelReimbursement?: boolean;
+  driving?: boolean;
+  firstHackathon?: boolean;
   academicYear: string;
   educationalInstitutionType: string;
   codingExperience: string;
@@ -32,7 +29,7 @@ export interface RegistrationWithScoreDto {
   /** @nullable */
   shareEmailMlh?: boolean | null;
   veteran: string;
-  hackathonId: string;
+  hackathonId?: string;
   time: number;
   excitement: string;
   /** @nullable */
@@ -43,7 +40,7 @@ export interface RegistrationWithScoreDto {
   travelMethod?: string | null;
   /** @nullable */
   travelAdditional?: string | null;
-  applicationStatus: ApplicationStatus;
+  applicationStatus?: ApplicationStatus;
   /** @nullable */
   acceptedAt?: number | null;
   /** @nullable */
@@ -71,4 +68,8 @@ export interface RegistrationWithScoreDto {
      * @nullable
      */
   prioritized?: boolean | null;
+  /** Applicant's first name, joined from the user */
+  firstName: string;
+  /** Applicant's last name, joined from the user */
+  lastName: string;
 }

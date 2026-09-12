@@ -84,6 +84,56 @@ class CreateUserRegistrationEntity extends OmitType(RegistrationEntity, [
   "hackathonId",
 ] as const) {}
 
+class UserRegistrationExportRow {
+  @ApiProperty()
+  first_name: string;
+
+  @ApiProperty()
+  last_name: string;
+
+  @ApiProperty()
+  email: string;
+
+  @ApiProperty()
+  phone: string;
+
+  @ApiProperty()
+  age: number;
+
+  @ApiProperty()
+  country: string;
+
+  @ApiProperty()
+  university: string;
+
+  @ApiProperty()
+  academic_year: string;
+
+  @ApiProperty()
+  mlh_coc: boolean;
+
+  @ApiProperty()
+  mlh_dcp: boolean;
+
+  @ApiProperty()
+  share_address_mlh: boolean;
+
+  @ApiProperty()
+  share_address_sponsors: boolean;
+
+  @ApiProperty()
+  share_email_mlh: boolean;
+
+  @ApiProperty()
+  driving: boolean;
+
+  @ApiProperty()
+  travel_reimbursement: boolean;
+
+  @ApiProperty()
+  first_hackathon: boolean;
+}
+
 class UserProfileResponse extends UserEntity {
   @ApiProperty({
     type: RegistrationEntity,
@@ -220,7 +270,15 @@ export class UserController {
   @ApiDoc({
     summary: "Get All Resumes",
     response: {
-      ok: { type: StreamableFile },
+      custom: [
+        {
+          status: 200,
+          description: "A zip archive of every resume",
+          content: {
+            "application/zip": { schema: { type: "string", format: "binary" } },
+          },
+        },
+      ],
     },
     auth: Role.EXEC,
   })
@@ -614,7 +672,15 @@ export class UserController {
       },
     ],
     response: {
-      ok: { type: StreamableFile },
+      custom: [
+        {
+          status: 200,
+          description: "The applicant's resume",
+          content: {
+            "application/pdf": { schema: { type: "string", format: "binary" } },
+          },
+        },
+      ],
     },
     auth: Role.EXEC,
   })
@@ -820,31 +886,8 @@ export class UserController {
     summary: "Export Users and Registration Data",
     response: {
       ok: {
-        description: "Array of user and registration data for CSV export",
-        schema: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              first_name: { type: "string" },
-              last_name: { type: "string" },
-              email: { type: "string" },
-              phone: { type: "string" },
-              age: { type: "number" },
-              country: { type: "string" },
-              university: { type: "string" },
-              academic_year: { type: "string" },
-              mlh_coc: { type: "boolean" },
-              mlh_dcp: { type: "boolean" },
-              share_address_mlh: { type: "boolean" },
-              share_address_sponsors: { type: "boolean" },
-              share_email_mlh: { type: "boolean" },
-              driving: { type: "boolean" },
-              travel_reimbursement: { type: "boolean" },
-              first_hackathon: { type: "boolean" },
-            },
-          },
-        },
+        type: [UserRegistrationExportRow],
+        description: "One row per registered user",
       },
     },
     auth: Role.EXEC,

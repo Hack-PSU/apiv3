@@ -23,7 +23,7 @@ export class Reservation extends Entity {
   @Column({ type: "integer" })
   locationId: number;
 
-  @ApiProperty({ nullable: true })
+  @ApiProperty({ required: false, nullable: true })
   @IsOptional()
   @IsString()
   @Column({ type: "string", nullable: true })

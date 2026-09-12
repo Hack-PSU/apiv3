@@ -177,12 +177,15 @@ formData.append(`street`, financeCreateEntity.street);
 formData.append(`city`, financeCreateEntity.city);
 formData.append(`state`, financeCreateEntity.state);
 formData.append(`postalCode`, financeCreateEntity.postalCode);
-formData.append(`reminderSent`, JSON.stringify(financeCreateEntity.reminderSent));
+formData.append(`reminderSent`, financeCreateEntity.reminderSent.toString())
 if(financeCreateEntity.status !== undefined) {
  formData.append(`status`, financeCreateEntity.status);
  }
 if(financeCreateEntity.rejectionMessage !== undefined) {
  formData.append(`rejectionMessage`, financeCreateEntity.rejectionMessage);
+ }
+if(financeCreateEntity.receipt !== undefined) {
+ formData.append(`receipt`, financeCreateEntity.receipt);
  }
 
   return customFetch<FinanceEntity>(getFinanceCreateFinanceUrl(),

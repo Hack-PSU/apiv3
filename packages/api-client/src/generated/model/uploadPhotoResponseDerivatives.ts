@@ -6,4 +6,7 @@
  * OpenAPI spec version: 3.0
  */
 
-export type CreateUserRegistrationEntityTravelReimbursement = { [key: string]: unknown };
+/**
+ * Responsive image URLs keyed by variant
+ */
+export type UploadPhotoResponseDerivatives = {[key: string]: string};

@@ -6,8 +6,9 @@
  * OpenAPI spec version: 3.0
  */
 
-export interface ActivateFlagBody {
-  name: string;
-  isEnabled?: boolean;
-  broadcast?: string;
+export interface UploadPhotoBody {
+  /** The image to upload */
+  photo: Blob;
+  /** Explicit MIME type for the upload */
+  fileType?: string;
 }

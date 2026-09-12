@@ -6,14 +6,11 @@
  * OpenAPI spec version: 3.0
  */
 import type { ApplicationStatus } from './applicationStatus';
-import type { CreateUserRegistrationEntityDriving } from './createUserRegistrationEntityDriving';
-import type { CreateUserRegistrationEntityFirstHackathon } from './createUserRegistrationEntityFirstHackathon';
-import type { CreateUserRegistrationEntityTravelReimbursement } from './createUserRegistrationEntityTravelReimbursement';
 
 export interface CreateUserRegistrationEntity {
-  travelReimbursement: CreateUserRegistrationEntityTravelReimbursement;
-  driving: CreateUserRegistrationEntityDriving;
-  firstHackathon: CreateUserRegistrationEntityFirstHackathon;
+  travelReimbursement?: boolean;
+  driving?: boolean;
+  firstHackathon?: boolean;
   academicYear: string;
   educationalInstitutionType: string;
   codingExperience: string;
@@ -40,7 +37,7 @@ export interface CreateUserRegistrationEntity {
   travelMethod?: string | null;
   /** @nullable */
   travelAdditional?: string | null;
-  applicationStatus: ApplicationStatus;
+  applicationStatus?: ApplicationStatus;
   /** @nullable */
   acceptedAt?: number | null;
   /** @nullable */

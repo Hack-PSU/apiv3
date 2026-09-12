@@ -35,13 +35,13 @@ export class Sponsor extends Entity {
   @Column({ type: "string", required: false, nullable: true })
   link?: string;
 
-  @ApiProperty()
+  @ApiProperty({ required: false })
   @IsUrl()
   @IsOptional()
   @Column({ type: "string", required: false, nullable: true })
   darkLogo: string;
 
-  @ApiProperty()
+  @ApiProperty({ required: false })
   @IsUrl()
   @IsOptional()
   @Column({ type: "string", required: false, nullable: true })

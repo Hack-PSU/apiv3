@@ -75,11 +75,12 @@ export const getHackathonGetAllUrl = (params?: HackathonGetAllParams,) => {
 }
 
 /**
+ * Returns every hackathon, or only the inactive ones when active=false. Passing active=true instead returns the single active hackathon; prefer GET /hackathons/active for that, which is typed as one object.
  * @summary Get All Hackathons
  */
-export const hackathonGetAll = async (params?: HackathonGetAllParams, options?: Parameters<typeof customFetch>[1]): Promise<ConditionalHackathonResponse> => {
+export const hackathonGetAll = async (params?: HackathonGetAllParams, options?: Parameters<typeof customFetch>[1]): Promise<ConditionalHackathonResponse[]> => {
 
-  return customFetch<ConditionalHackathonResponse>(getHackathonGetAllUrl(params),
+  return customFetch<ConditionalHackathonResponse[]>(getHackathonGetAllUrl(params),
   {
     ...options,
     method: 'GET'

@@ -254,6 +254,7 @@ export class Finance extends Entity {
     },
     { each: true },
   )
+  @ApiProperty()
   @Column({ type: "number" })
   amount: number;
 
@@ -378,6 +379,7 @@ export class Finance extends Entity {
   postalCode: string;
 
   @ApiProperty({
+    type: Boolean,
     description: "Checks whether 4 day reminder was already sent",
     default: false,
   })

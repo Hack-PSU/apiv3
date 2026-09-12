@@ -76,6 +76,9 @@ formData.append(`secondChoiceTeam`, organizerApplicationCreateEntity.secondChoic
 formData.append(`whyHackpsu`, organizerApplicationCreateEntity.whyHackpsu);
 formData.append(`newIdea`, organizerApplicationCreateEntity.newIdea);
 formData.append(`whatExcitesYou`, organizerApplicationCreateEntity.whatExcitesYou);
+if(organizerApplicationCreateEntity.resume !== undefined) {
+ formData.append(`resume`, organizerApplicationCreateEntity.resume);
+ }
 
   return customFetch<OrganizerApplicationEntity>(getOrganizerApplicationCreateUrl(),
   {

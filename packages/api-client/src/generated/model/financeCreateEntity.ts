@@ -6,7 +6,6 @@
  * OpenAPI spec version: 3.0
  */
 import type { Category } from './category';
-import type { FinanceCreateEntityReminderSent } from './financeCreateEntityReminderSent';
 import type { Status } from './status';
 import type { SubmitterType } from './submitterType';
 
@@ -26,9 +25,11 @@ export interface FinanceCreateEntity {
   state: string;
   postalCode: string;
   /** Checks whether 4 day reminder was already sent */
-  reminderSent: FinanceCreateEntityReminderSent;
+  reminderSent: boolean;
   /** Status of the reimbursement request */
   status?: Status;
   /** Optional custom message explaining the rejection in more detail */
   rejectionMessage?: string;
+  /** Receipt image or PDF backing the request */
+  receipt?: Blob;
 }

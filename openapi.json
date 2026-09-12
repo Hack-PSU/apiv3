@@ -3,6 +3,7 @@
   "paths": {
     "/hackathons": {
       "get": {
+        "description": "Returns every hackathon, or only the inactive ones when active=false. Passing active=true instead returns the single active hackathon; prefer GET /hackathons/active for that, which is typed as one object.",
         "operationId": "hackathon_getAll",
         "parameters": [
           {
@@ -21,7 +22,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ConditionalHackathonResponse"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ConditionalHackathonResponse"
+                  }
                 }
               }
             }
@@ -1488,11 +1492,12 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "",
+            "description": "A zip archive of every resume",
             "content": {
-              "application/json": {
+              "application/zip": {
                 "schema": {
-                  "$ref": "#/components/schemas/StreamableFile"
+                  "type": "string",
+                  "format": "binary"
                 }
               }
             }
@@ -1958,11 +1963,12 @@
         ],
         "responses": {
           "200": {
-            "description": "",
+            "description": "The applicant's resume",
             "content": {
-              "application/json": {
+              "application/pdf": {
                 "schema": {
-                  "$ref": "#/components/schemas/StreamableFile"
+                  "type": "string",
+                  "format": "binary"
                 }
               }
             }
@@ -2341,63 +2347,13 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Array of user and registration data for CSV export",
+            "description": "One row per registered user",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "array",
                   "items": {
-                    "type": "object",
-                    "properties": {
-                      "first_name": {
-                        "type": "string"
-                      },
-                      "last_name": {
-                        "type": "string"
-                      },
-                      "email": {
-                        "type": "string"
-                      },
-                      "phone": {
-                        "type": "string"
-                      },
-                      "age": {
-                        "type": "number"
-                      },
-                      "country": {
-                        "type": "string"
-                      },
-                      "university": {
-                        "type": "string"
-                      },
-                      "academic_year": {
-                        "type": "string"
-                      },
-                      "mlh_coc": {
-                        "type": "boolean"
-                      },
-                      "mlh_dcp": {
-                        "type": "boolean"
-                      },
-                      "share_address_mlh": {
-                        "type": "boolean"
-                      },
-                      "share_address_sponsors": {
-                        "type": "boolean"
-                      },
-                      "share_email_mlh": {
-                        "type": "boolean"
-                      },
-                      "driving": {
-                        "type": "boolean"
-                      },
-                      "travel_reimbursement": {
-                        "type": "boolean"
-                      },
-                      "first_hackathon": {
-                        "type": "boolean"
-                      }
-                    }
+                    "$ref": "#/components/schemas/UserRegistrationExportRow"
                   }
                 }
               }
@@ -4070,7 +4026,7 @@
         "parameters": [
           {
             "name": "hackathonId",
-            "required": true,
+            "required": false,
             "in": "query",
             "description": "The ID of a valid hackathon",
             "schema": {
@@ -4689,7 +4645,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AnalyticsEventsScansEntity"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AnalyticsEventsScansEntity"
+                  }
                 }
               }
             }
@@ -6009,7 +5968,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AnalyticsEventsResponse"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AnalyticsEventsResponse"
+                  }
                 }
               }
             }
@@ -7702,28 +7664,23 @@
       "post": {
         "operationId": "photo_uploadPhoto",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/UploadPhotoBody"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
-            "description": "Photo uploaded successfully",
+            "description": "The stored photo and its derivatives",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "photoId": {
-                      "type": "string"
-                    },
-                    "photoUrl": {
-                      "type": "string"
-                    },
-                    "derivatives": {
-                      "type": "object",
-                      "additionalProperties": {
-                        "type": "string"
-                      },
-                      "description": "Responsive image URLs (e.g., webp_480, webp_960, webp_1600)"
-                    }
-                  }
+                  "$ref": "#/components/schemas/UploadPhotoResponse"
                 }
               }
             }
@@ -7741,32 +7698,13 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "List of all approved photos",
+            "description": "All approved photos",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "array",
                   "items": {
-                    "type": "object",
-                    "properties": {
-                      "name": {
-                        "type": "string"
-                      },
-                      "url": {
-                        "type": "string"
-                      },
-                      "createdAt": {
-                        "type": "string",
-                        "format": "date-time"
-                      },
-                      "derivatives": {
-                        "type": "object",
-                        "additionalProperties": {
-                          "type": "string"
-                        },
-                        "description": "Responsive image URLs (e.g., webp_480, webp_960, webp_1600)"
-                      }
-                    }
+                    "$ref": "#/components/schemas/PhotoItem"
                   }
                 }
               }
@@ -7815,59 +7753,11 @@
         ],
         "responses": {
           "200": {
-            "description": "Paginated photos with metadata",
+            "description": "A page of photos",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "photos": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "name": {
-                            "type": "string"
-                          },
-                          "url": {
-                            "type": "string"
-                          },
-                          "createdAt": {
-                            "type": "string",
-                            "format": "date-time"
-                          },
-                          "uploadedBy": {
-                            "type": "string",
-                            "nullable": true
-                          },
-                          "approvalStatus": {
-                            "type": "string",
-                            "nullable": true
-                          }
-                        }
-                      }
-                    },
-                    "pagination": {
-                      "type": "object",
-                      "properties": {
-                        "currentPage": {
-                          "type": "number"
-                        },
-                        "totalPages": {
-                          "type": "number"
-                        },
-                        "totalItems": {
-                          "type": "number"
-                        },
-                        "hasNext": {
-                          "type": "boolean"
-                        },
-                        "hasPrevious": {
-                          "type": "boolean"
-                        }
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/PaginatedPhotosResponse"
                 }
               }
             }
@@ -7885,38 +7775,13 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "List of all photos with approval status",
+            "description": "All photos, including pending ones",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "array",
                   "items": {
-                    "type": "object",
-                    "properties": {
-                      "name": {
-                        "type": "string"
-                      },
-                      "url": {
-                        "type": "string"
-                      },
-                      "createdAt": {
-                        "type": "string",
-                        "format": "date-time"
-                      },
-                      "uploadedBy": {
-                        "type": "string"
-                      },
-                      "approvalStatus": {
-                        "type": "string"
-                      },
-                      "derivatives": {
-                        "type": "object",
-                        "additionalProperties": {
-                          "type": "string"
-                        },
-                        "description": "Responsive image URLs (e.g., webp_480, webp_960, webp_1600)"
-                      }
-                    }
+                    "$ref": "#/components/schemas/PhotoItem"
                   }
                 }
               }
@@ -9484,8 +9349,6 @@
           "id",
           "name",
           "type",
-          "description",
-          "locationId",
           "icon",
           "startTime",
           "endTime",
@@ -9539,8 +9402,6 @@
           "id",
           "name",
           "level",
-          "darkLogo",
-          "lightLogo",
           "order",
           "sponsorType"
         ]
@@ -9931,8 +9792,6 @@
           "id",
           "name",
           "type",
-          "description",
-          "locationId",
           "icon",
           "startTime",
           "endTime",
@@ -9992,8 +9851,6 @@
         "required": [
           "name",
           "type",
-          "description",
-          "locationId",
           "startTime",
           "endTime",
           "fastPass"
@@ -10051,24 +9908,38 @@
       "CreateScanEntity": {
         "type": "object",
         "properties": {
+          "organizerId": {
+            "type": "string",
+            "description": "Organizer who recorded the scan"
+          },
           "hackathonId": {
             "type": "string"
           },
           "timestamp": {
             "type": "number"
           }
-        }
+        },
+        "required": [
+          "organizerId"
+        ]
       },
       "CreateUserScanEntity": {
         "type": "object",
         "properties": {
+          "organizerId": {
+            "type": "string",
+            "description": "Organizer who recorded the scan"
+          },
           "hackathonId": {
             "type": "string"
           },
           "timestamp": {
             "type": "number"
           }
-        }
+        },
+        "required": [
+          "organizerId"
+        ]
       },
       "ApplicationStatus": {
         "type": "string",
@@ -10091,15 +9962,15 @@
             "type": "string"
           },
           "travelReimbursement": {
-            "type": "object",
+            "type": "boolean",
             "default": false
           },
           "driving": {
-            "type": "object",
+            "type": "boolean",
             "default": false
           },
           "firstHackathon": {
-            "type": "object",
+            "type": "boolean",
             "default": false
           },
           "academicYear": {
@@ -10208,9 +10079,6 @@
         "required": [
           "id",
           "userId",
-          "travelReimbursement",
-          "driving",
-          "firstHackathon",
           "academicYear",
           "educationalInstitutionType",
           "codingExperience",
@@ -10221,10 +10089,8 @@
           "project",
           "expectations",
           "veteran",
-          "hackathonId",
           "time",
-          "excitement",
-          "applicationStatus"
+          "excitement"
         ]
       },
       "UserProfileResponse": {
@@ -10442,10 +10308,6 @@
           "country"
         ]
       },
-      "StreamableFile": {
-        "type": "object",
-        "properties": {}
-      },
       "UserPatchEntity": {
         "type": "object",
         "properties": {
@@ -10567,15 +10429,15 @@
         "type": "object",
         "properties": {
           "travelReimbursement": {
-            "type": "object",
+            "type": "boolean",
             "default": false
           },
           "driving": {
-            "type": "object",
+            "type": "boolean",
             "default": false
           },
           "firstHackathon": {
-            "type": "object",
+            "type": "boolean",
             "default": false
           },
           "academicYear": {
@@ -10679,9 +10541,6 @@
           }
         },
         "required": [
-          "travelReimbursement",
-          "driving",
-          "firstHackathon",
           "academicYear",
           "educationalInstitutionType",
           "codingExperience",
@@ -10693,8 +10552,7 @@
           "expectations",
           "veteran",
           "time",
-          "excitement",
-          "applicationStatus"
+          "excitement"
         ]
       },
       "Requirements": {
@@ -10746,6 +10604,77 @@
         "required": [
           "userId",
           "classId"
+        ]
+      },
+      "UserRegistrationExportRow": {
+        "type": "object",
+        "properties": {
+          "first_name": {
+            "type": "string"
+          },
+          "last_name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "age": {
+            "type": "number"
+          },
+          "country": {
+            "type": "string"
+          },
+          "university": {
+            "type": "string"
+          },
+          "academic_year": {
+            "type": "string"
+          },
+          "mlh_coc": {
+            "type": "boolean"
+          },
+          "mlh_dcp": {
+            "type": "boolean"
+          },
+          "share_address_mlh": {
+            "type": "boolean"
+          },
+          "share_address_sponsors": {
+            "type": "boolean"
+          },
+          "share_email_mlh": {
+            "type": "boolean"
+          },
+          "driving": {
+            "type": "boolean"
+          },
+          "travel_reimbursement": {
+            "type": "boolean"
+          },
+          "first_hackathon": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "first_name",
+          "last_name",
+          "email",
+          "phone",
+          "age",
+          "country",
+          "university",
+          "academic_year",
+          "mlh_coc",
+          "mlh_dcp",
+          "share_address_mlh",
+          "share_address_sponsors",
+          "share_email_mlh",
+          "driving",
+          "travel_reimbursement",
+          "first_hackathon"
         ]
       },
       "OrganizerEntity": {
@@ -10880,6 +10809,10 @@
           "userId": {
             "type": "string"
           },
+          "organizerId": {
+            "type": "string",
+            "description": "Organizer who recorded the scan"
+          },
           "hackathonId": {
             "type": "string"
           },
@@ -10889,7 +10822,8 @@
         },
         "required": [
           "eventId",
-          "userId"
+          "userId",
+          "organizerId"
         ]
       },
       "OrganizerScansEntity": {
@@ -11916,8 +11850,6 @@
           "id",
           "name",
           "type",
-          "description",
-          "locationId",
           "icon",
           "startTime",
           "endTime",
@@ -12044,15 +11976,15 @@
             "type": "string"
           },
           "travelReimbursement": {
-            "type": "object",
+            "type": "boolean",
             "default": false
           },
           "driving": {
-            "type": "object",
+            "type": "boolean",
             "default": false
           },
           "firstHackathon": {
-            "type": "object",
+            "type": "boolean",
             "default": false
           },
           "academicYear": {
@@ -12171,14 +12103,19 @@
             "type": "boolean",
             "nullable": true,
             "description": "Whether the applicant is prioritized"
+          },
+          "firstName": {
+            "type": "string",
+            "description": "Applicant's first name, joined from the user"
+          },
+          "lastName": {
+            "type": "string",
+            "description": "Applicant's last name, joined from the user"
           }
         },
         "required": [
           "id",
           "userId",
-          "travelReimbursement",
-          "driving",
-          "firstHackathon",
           "academicYear",
           "educationalInstitutionType",
           "codingExperience",
@@ -12189,10 +12126,10 @@
           "project",
           "expectations",
           "veteran",
-          "hackathonId",
           "time",
           "excitement",
-          "applicationStatus"
+          "firstName",
+          "lastName"
         ]
       },
       "UpdateStatusDto": {
@@ -12265,8 +12202,7 @@
           }
         },
         "required": [
-          "name",
-          "isEnabled"
+          "name"
         ]
       },
       "PatchFlagsBody": {
@@ -12275,7 +12211,7 @@
           "flags": {
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/FlagEntity"
             }
           }
         },
@@ -12305,8 +12241,6 @@
         "required": [
           "title",
           "body",
-          "scheduleTime",
-          "metadata",
           "userId"
         ]
       },
@@ -12345,10 +12279,7 @@
         },
         "required": [
           "title",
-          "body",
-          "scheduleTime",
-          "metadata",
-          "topic"
+          "body"
         ]
       },
       "RegistrationCounts": {
@@ -12795,7 +12726,7 @@
             "example": "62704"
           },
           "reminderSent": {
-            "type": "object",
+            "type": "boolean",
             "description": "Checks whether 4 day reminder was already sent",
             "default": false
           }
@@ -12870,7 +12801,7 @@
             "example": "62704"
           },
           "reminderSent": {
-            "type": "object",
+            "type": "boolean",
             "description": "Checks whether 4 day reminder was already sent",
             "default": false
           },
@@ -12886,6 +12817,11 @@
           "rejectionMessage": {
             "type": "string",
             "description": "Optional custom message explaining the rejection in more detail"
+          },
+          "receipt": {
+            "type": "string",
+            "format": "binary",
+            "description": "Receipt image or PDF backing the request"
           }
         },
         "required": [
@@ -12963,7 +12899,7 @@
             "example": "62704"
           },
           "reminderSent": {
-            "type": "object",
+            "type": "boolean",
             "description": "Checks whether 4 day reminder was already sent",
             "default": false
           }
@@ -13385,6 +13321,124 @@
           "email"
         ]
       },
+      "UploadPhotoBody": {
+        "type": "object",
+        "properties": {
+          "photo": {
+            "type": "string",
+            "format": "binary",
+            "description": "The image to upload"
+          },
+          "fileType": {
+            "type": "string",
+            "description": "Explicit MIME type for the upload"
+          }
+        },
+        "required": [
+          "photo"
+        ]
+      },
+      "UploadPhotoResponse": {
+        "type": "object",
+        "properties": {
+          "photoId": {
+            "type": "string"
+          },
+          "photoUrl": {
+            "type": "string"
+          },
+          "derivatives": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Responsive image URLs keyed by variant"
+          }
+        },
+        "required": [
+          "photoId",
+          "photoUrl",
+          "derivatives"
+        ]
+      },
+      "PhotoItem": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "uploadedBy": {
+            "type": "string"
+          },
+          "approvalStatus": {
+            "type": "string"
+          },
+          "derivatives": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Responsive image URLs keyed by variant, such as webp_480 or webp_1600"
+          }
+        },
+        "required": [
+          "name",
+          "url",
+          "createdAt"
+        ]
+      },
+      "PaginationMeta": {
+        "type": "object",
+        "properties": {
+          "currentPage": {
+            "type": "number"
+          },
+          "totalPages": {
+            "type": "number"
+          },
+          "totalItems": {
+            "type": "number"
+          },
+          "hasNext": {
+            "type": "boolean"
+          },
+          "hasPrevious": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "currentPage",
+          "totalPages",
+          "totalItems",
+          "hasNext",
+          "hasPrevious"
+        ]
+      },
+      "PaginatedPhotosResponse": {
+        "type": "object",
+        "properties": {
+          "photos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PhotoItem"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationMeta"
+          }
+        },
+        "required": [
+          "photos",
+          "pagination"
+        ]
+      },
       "MessageResponse": {
         "type": "object",
         "properties": {
@@ -13436,7 +13490,6 @@
         "required": [
           "id",
           "locationId",
-          "teamId",
           "reservationType",
           "startTime",
           "endTime",
@@ -13698,6 +13751,11 @@
           },
           "whatExcitesYou": {
             "type": "string"
+          },
+          "resume": {
+            "type": "string",
+            "format": "binary",
+            "description": "Applicant's resume"
           }
         },
         "required": [

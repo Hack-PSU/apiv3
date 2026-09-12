@@ -180,8 +180,12 @@ export const eventCreateOne = async (eventCreateEntity: EventCreateEntity, optio
     const formData = new FormData();
 formData.append(`name`, eventCreateEntity.name);
 formData.append(`type`, eventCreateEntity.type);
-formData.append(`description`, eventCreateEntity.description);
-formData.append(`locationId`, eventCreateEntity.locationId.toString())
+if(eventCreateEntity.description !== undefined) {
+ formData.append(`description`, eventCreateEntity.description);
+ }
+if(eventCreateEntity.locationId !== undefined) {
+ formData.append(`locationId`, eventCreateEntity.locationId.toString())
+ }
 formData.append(`startTime`, eventCreateEntity.startTime.toString())
 formData.append(`endTime`, eventCreateEntity.endTime.toString())
 if(eventCreateEntity.wsPresenterNames !== undefined) {
@@ -494,8 +498,12 @@ export const eventReplaceOne = async (id: string,
     const formData = new FormData();
 formData.append(`name`, eventCreateEntity.name);
 formData.append(`type`, eventCreateEntity.type);
-formData.append(`description`, eventCreateEntity.description);
-formData.append(`locationId`, eventCreateEntity.locationId.toString())
+if(eventCreateEntity.description !== undefined) {
+ formData.append(`description`, eventCreateEntity.description);
+ }
+if(eventCreateEntity.locationId !== undefined) {
+ formData.append(`locationId`, eventCreateEntity.locationId.toString())
+ }
 formData.append(`startTime`, eventCreateEntity.startTime.toString())
 formData.append(`endTime`, eventCreateEntity.endTime.toString())
 if(eventCreateEntity.wsPresenterNames !== undefined) {

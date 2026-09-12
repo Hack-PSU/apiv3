@@ -10,7 +10,7 @@ import type { UserMessageEntityMetadata } from './userMessageEntityMetadata';
 export interface UserMessageEntity {
   title: string;
   body: string;
-  scheduleTime: number;
-  metadata: UserMessageEntityMetadata;
+  scheduleTime?: number;
+  metadata?: UserMessageEntityMetadata;
   userId: string;
 }

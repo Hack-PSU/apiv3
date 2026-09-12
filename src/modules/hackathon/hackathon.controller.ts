@@ -142,6 +142,10 @@ export class HackathonController {
   @Roles(Role.TEAM)
   @ApiDoc({
     summary: "Get All Hackathons",
+    description:
+      "Returns every hackathon, or only the inactive ones when active=false. " +
+      "Passing active=true instead returns the single active hackathon; prefer " +
+      "GET /hackathons/active for that, which is typed as one object.",
     query: [
       {
         name: "active",
@@ -150,7 +154,7 @@ export class HackathonController {
       },
     ],
     response: {
-      ok: { type: ConditionalHackathonResponse },
+      ok: { type: [ConditionalHackathonResponse] },
     },
     auth: Role.TEAM,
   })

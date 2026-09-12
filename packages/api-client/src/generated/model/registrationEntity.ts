@@ -6,16 +6,13 @@
  * OpenAPI spec version: 3.0
  */
 import type { ApplicationStatus } from './applicationStatus';
-import type { RegistrationEntityDriving } from './registrationEntityDriving';
-import type { RegistrationEntityFirstHackathon } from './registrationEntityFirstHackathon';
-import type { RegistrationEntityTravelReimbursement } from './registrationEntityTravelReimbursement';
 
 export interface RegistrationEntity {
   id: number;
   userId: string;
-  travelReimbursement: RegistrationEntityTravelReimbursement;
-  driving: RegistrationEntityDriving;
-  firstHackathon: RegistrationEntityFirstHackathon;
+  travelReimbursement?: boolean;
+  driving?: boolean;
+  firstHackathon?: boolean;
   academicYear: string;
   educationalInstitutionType: string;
   codingExperience: string;
@@ -32,7 +29,7 @@ export interface RegistrationEntity {
   /** @nullable */
   shareEmailMlh?: boolean | null;
   veteran: string;
-  hackathonId: string;
+  hackathonId?: string;
   time: number;
   excitement: string;
   /** @nullable */
@@ -43,7 +40,7 @@ export interface RegistrationEntity {
   travelMethod?: string | null;
   /** @nullable */
   travelAdditional?: string | null;
-  applicationStatus: ApplicationStatus;
+  applicationStatus?: ApplicationStatus;
   /** @nullable */
   acceptedAt?: number | null;
   /** @nullable */

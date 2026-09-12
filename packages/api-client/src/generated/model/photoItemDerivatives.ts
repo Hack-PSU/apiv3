@@ -6,4 +6,7 @@
  * OpenAPI spec version: 3.0
  */
 
-export type CreateUserRegistrationEntityFirstHackathon = { [key: string]: unknown };
+/**
+ * Responsive image URLs keyed by variant, such as webp_480 or webp_1600
+ */
+export type PhotoItemDerivatives = {[key: string]: string};

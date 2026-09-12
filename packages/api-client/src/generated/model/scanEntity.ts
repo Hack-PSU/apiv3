@@ -9,6 +9,8 @@
 export interface ScanEntity {
   eventId: string;
   userId: string;
+  /** Organizer who recorded the scan */
+  organizerId: string;
   hackathonId?: string;
   timestamp?: number;
 }

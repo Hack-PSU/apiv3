@@ -17,12 +17,12 @@ export class MessageEntity {
   @IsString()
   body: string;
 
-  @ApiProperty()
+  @ApiProperty({ required: false })
   @IsOptional()
   @IsNumber()
   scheduleTime?: number;
 
-  @ApiProperty()
+  @ApiProperty({ required: false })
   @IsOptional()
   @IsObject()
   metadata?: Record<string, any>;
@@ -40,7 +40,7 @@ export class BroadcastMessageEntity extends MessageEntity {
   @IsEnum(DefaultTopic)
   broadcast?: DefaultTopic;
 
-  @ApiProperty()
+  @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
   topic?: string;

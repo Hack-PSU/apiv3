@@ -28,7 +28,7 @@ export class ActivateFlagBody extends OmitType(FlagEntity, [
   "isEnabled",
   "description",
 ] as const) {
-  @ApiProperty()
+  @ApiProperty({ required: false })
   @IsBoolean()
   @IsOptional()
   isEnabled?: boolean;
@@ -40,7 +40,7 @@ export class ActivateFlagBody extends OmitType(FlagEntity, [
 }
 
 export class PatchFlagsBody {
-  @ApiProperty()
+  @ApiProperty({ type: [FlagEntity] })
   @IsNotEmpty()
   @ValidateNested({ each: true })
   @Type(() => FlagEntity)

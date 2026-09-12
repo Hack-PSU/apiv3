@@ -34,13 +34,12 @@ import type {
   ExtraCreditAssignmentEntity,
   ExtraCreditClassEntity,
   RegistrationEntity,
-  StreamableFile,
   UserCreateEntity,
   UserEntity,
-  UserExportUsersRegistrationsData200Item,
   UserGetAllParams,
   UserPatchEntity,
   UserProfileResponse,
+  UserRegistrationExportRow,
   UserUpdateEntity
 } from '../model';
 
@@ -283,9 +282,9 @@ export const useUserCreateOne = <TError = BadRequestExceptionResponse | Exceptio
 /**
  * @summary Get All Resumes
  */
-export const userGetAllResumes = async ( options?: Parameters<typeof customFetch>[1]): Promise<StreamableFile> => {
+export const userGetAllResumes = async ( options?: Parameters<typeof customFetch>[1]): Promise<Blob> => {
 
-  return customFetch<StreamableFile>(getUserGetAllResumesUrl(),
+  return customFetch<Blob>(getUserGetAllResumesUrl(),
   {
     ...options,
     method: 'GET'
@@ -960,9 +959,9 @@ export const useUserRegisterUser = <TError = BadRequestExceptionResponse | Excep
 /**
  * @summary Get User Resume
  */
-export const userGetResume = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<StreamableFile> => {
+export const userGetResume = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<Blob> => {
 
-  return customFetch<StreamableFile>(getUserGetResumeUrl(id),
+  return customFetch<Blob>(getUserGetResumeUrl(id),
   {
     ...options,
     method: 'GET'
@@ -1400,9 +1399,9 @@ export const useUserUnassignUserFromClass = <TError = BadRequestExceptionRespons
 /**
  * @summary Export Users and Registration Data
  */
-export const userExportUsersRegistrationsData = async ( options?: Parameters<typeof customFetch>[1]): Promise<UserExportUsersRegistrationsData200Item[]> => {
+export const userExportUsersRegistrationsData = async ( options?: Parameters<typeof customFetch>[1]): Promise<UserRegistrationExportRow[]> => {
 
-  return customFetch<UserExportUsersRegistrationsData200Item[]>(getUserExportUsersRegistrationsDataUrl(),
+  return customFetch<UserRegistrationExportRow[]>(getUserExportUsersRegistrationsDataUrl(),
   {
     ...options,
     method: 'GET'

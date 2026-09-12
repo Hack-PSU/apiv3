@@ -365,7 +365,7 @@ export class AnalyticsController {
     summary: "Get Check-In count for each event",
     auth: Role.TEAM,
     response: {
-      ok: { type: AnalyticsEventsResponse },
+      ok: { type: [AnalyticsEventsResponse] },
     },
   })
   async getEventsAnalytics() {

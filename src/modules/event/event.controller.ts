@@ -32,6 +32,8 @@ import { nanoid } from "nanoid";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { UploadedIcon } from "modules/event/uploaded-icon.decorator";
 import { Express, Request } from "express";
+import { Transform } from "class-transformer";
+import { IsOptional } from "class-validator";
 import { EventService } from "modules/event/event.service";
 import { Scan, ScanEntity } from "entities/scan.entity";
 import { Role, Roles } from "common/gcp";
@@ -42,21 +44,6 @@ import { User } from "entities/user.entity";
 import { LocationEntity } from "entities/location.entity";
 import { Registration, ApplicationStatus } from "entities/registration.entity";
 import { GotifyService } from "common/gotify/gotify.service";
-import { PipeTransform, Injectable } from "@nestjs/common";
-
-@Injectable()
-class StringBooleanPipe implements PipeTransform {
-  transform(value: any) {
-    // Convert string "true"/"false" to actual booleans before other pipes process it
-    if (value && typeof value === "object" && "fastPass" in value) {
-      if (typeof value.fastPass === "string") {
-        value.fastPass = value.fastPass === "true";
-      }
-    }
-    return value;
-  }
-}
-
 class EventEntityResponse extends OmitType(EventEntity, ["wsUrls"] as const) {
   @ApiProperty({ type: [String] })
   wsUrls: string[];
@@ -68,6 +55,14 @@ class EventEntityResponse extends OmitType(EventEntity, ["wsUrls"] as const) {
 class EventCreateEntity extends OmitType(EventEntity, ["id", "icon"] as const) {
   @ApiProperty({ type: "string", format: "binary", required: false })
   icon?: any;
+
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (value === undefined || value === null) return false;
+    if (typeof value === "string") return value === "true";
+    return value;
+  })
+  fastPass?: boolean;
 }
 
 class EventPatchEntity extends PartialType(EventCreateEntity) {}
@@ -137,7 +132,6 @@ export class EventController {
   })
   async createOne(
     @Body(
-      new StringBooleanPipe(),
       new SanitizeFieldsPipe(["description"]),
       new ValidationPipe({
         forbidNonWhitelisted: true,

@@ -163,9 +163,9 @@ export const getAnalyticsGetEventsAnalyticsUrl = () => {
 /**
  * @summary Get Check-In count for each event
  */
-export const analyticsGetEventsAnalytics = async ( options?: Parameters<typeof customFetch>[1]): Promise<AnalyticsEventsResponse> => {
+export const analyticsGetEventsAnalytics = async ( options?: Parameters<typeof customFetch>[1]): Promise<AnalyticsEventsResponse[]> => {
 
-  return customFetch<AnalyticsEventsResponse>(getAnalyticsGetEventsAnalyticsUrl(),
+  return customFetch<AnalyticsEventsResponse[]>(getAnalyticsGetEventsAnalyticsUrl(),
   {
     ...options,
     method: 'GET'
