@@ -7,11 +7,11 @@
         "parameters": [
           {
             "name": "active",
-            "required": true,
+            "required": false,
             "in": "query",
             "description": "active can either be a boolean or undefined",
             "schema": {
-              "$ref": "#/components/schemas/ActiveHackathonParams"
+              "type": "boolean"
             }
           }
         ],
@@ -1363,11 +1363,11 @@
         "parameters": [
           {
             "name": "active",
-            "required": true,
+            "required": false,
             "in": "query",
             "description": "active can either be a boolean or undefined",
             "schema": {
-              "$ref": "#/components/schemas/ActiveUsersParams"
+              "type": "boolean"
             }
           }
         ],
@@ -6991,11 +6991,11 @@
         "parameters": [
           {
             "name": "active",
-            "required": true,
+            "required": false,
             "in": "query",
             "description": "active can either be a boolean or undefined",
             "schema": {
-              "$ref": "#/components/schemas/ActiveTeamsParams"
+              "type": "boolean"
             }
           }
         ],
@@ -9054,15 +9054,6 @@
           "data"
         ]
       },
-      "ActiveHackathonParams": {
-        "type": "object",
-        "properties": {
-          "active": {
-            "type": "boolean",
-            "description": "active can either be a boolean or undefined"
-          }
-        }
-      },
       "ConditionalHackathonResponse": {
         "type": "object",
         "properties": {
@@ -9729,15 +9720,6 @@
           "resume",
           "registration"
         ]
-      },
-      "ActiveUsersParams": {
-        "type": "object",
-        "properties": {
-          "active": {
-            "type": "boolean",
-            "description": "active can either be a boolean or undefined"
-          }
-        }
       },
       "UserEntity": {
         "type": "object",
@@ -12521,15 +12503,6 @@
           "itemId",
           "reason"
         ]
-      },
-      "ActiveTeamsParams": {
-        "type": "object",
-        "properties": {
-          "active": {
-            "type": "boolean",
-            "description": "active can either be a boolean or undefined"
-          }
-        }
       },
       "TeamEntity": {
         "type": "object",

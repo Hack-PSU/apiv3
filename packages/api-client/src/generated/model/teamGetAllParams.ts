@@ -5,11 +5,10 @@
  * Official HackPSU API V3
  * OpenAPI spec version: 3.0
  */
-import type { ActiveTeamsParams } from './activeTeamsParams';
 
 export type TeamGetAllParams = {
 /**
  * active can either be a boolean or undefined
  */
-active: ActiveTeamsParams;
+active?: boolean;
 };

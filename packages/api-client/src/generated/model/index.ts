@@ -8,9 +8,6 @@
 
 export * from './academicYearCounts';
 export * from './activateFlagBody';
-export * from './activeHackathonParams';
-export * from './activeTeamsParams';
-export * from './activeUsersParams';
 export * from './addUserByEmailEntity';
 export * from './allergenCounts';
 export * from './analyticsApplicationsResponse';

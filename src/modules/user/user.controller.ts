@@ -145,7 +145,8 @@ export class UserController {
     query: [
       {
         name: "active",
-        type: ActiveUsersParams,
+        type: Boolean,
+        required: false,
       },
     ],
     response: {

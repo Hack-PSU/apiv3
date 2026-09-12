@@ -5,11 +5,10 @@
  * Official HackPSU API V3
  * OpenAPI spec version: 3.0
  */
-import type { ActiveUsersParams } from './activeUsersParams';
 
 export type UserGetAllParams = {
 /**
  * active can either be a boolean or undefined
  */
-active: ActiveUsersParams;
+active?: boolean;
 };
