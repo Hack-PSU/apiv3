@@ -9,6 +9,12 @@ type AuthState = "checking" | "authenticated" | "unauthenticated" | "unauthorize
 
 export interface AuthGuardProps {
   children: ReactNode;
+  /**
+   * Minimum role for this subtree, overriding the provider's. Lets an app leave
+   * most routes public and gate only some of them, which is why it is separate
+   * from the provider-level default.
+   */
+  minimumRole?: Role;
   /** Rendered while the session is being verified. */
   loadingFallback?: ReactNode;
   /** Rendered when the user is signed in but lacks the minimum role. */
@@ -45,10 +51,12 @@ function Centered({ children }: { children: ReactNode }) {
  */
 export function AuthGuard({
   children,
+  minimumRole,
   loadingFallback,
   unauthorizedFallback,
 }: AuthGuardProps) {
   const { user, isLoading, token, verifySession, config } = useFirebase();
+  const requiredRole = minimumRole ?? config.minimumRole;
   const [authState, setAuthState] = useState<AuthState>("checking");
   const [retryCount, setRetryCount] = useState(0);
   const hasRedirected = useRef(false);
@@ -98,7 +106,7 @@ export function AuthGuard({
       }
     } else if (user) {
       const authorized =
-        config.minimumRole === Role.NONE || getRole(token) >= config.minimumRole;
+        requiredRole === Role.NONE || getRole(token) >= requiredRole;
       setAuthState(authorized ? "authenticated" : "unauthorized");
     } else {
       setAuthState("unauthenticated");
@@ -116,7 +124,7 @@ export function AuthGuard({
     user,
     token,
     config.loadingTimeout,
-    config.minimumRole,
+    requiredRole,
     retryVerification,
     redirectToAuth,
   ]);
@@ -135,7 +143,7 @@ export function AuthGuard({
         <p>You don&apos;t have sufficient permissions to access this application.</p>
         <p style={{ fontSize: "0.875rem", opacity: 0.7 }}>
           Your role: {ROLE_NAMES[userRole] ?? "Unknown"} / Required:{" "}
-          {ROLE_NAMES[config.minimumRole]}
+          {ROLE_NAMES[requiredRole]}
           {user?.email ? ` / Signed in as ${user.email}` : ""}
         </p>
         <button
