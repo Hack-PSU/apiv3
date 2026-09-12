@@ -5,7 +5,8 @@
  * Official HackPSU API V3
  * OpenAPI spec version: 3.0
  */
+import type { FlagEntity } from './flagEntity';
 
 export interface PatchFlagsBody {
-  flags: string[];
+  flags: FlagEntity[];
 }

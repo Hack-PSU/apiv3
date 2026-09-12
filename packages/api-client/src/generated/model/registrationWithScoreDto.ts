@@ -71,4 +71,8 @@ export interface RegistrationWithScoreDto {
      * @nullable
      */
   prioritized?: boolean | null;
+  /** Applicant's first name, joined from the user */
+  firstName: string;
+  /** Applicant's last name, joined from the user */
+  lastName: string;
 }

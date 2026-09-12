@@ -4074,7 +4074,7 @@
         "parameters": [
           {
             "name": "hackathonId",
-            "required": true,
+            "required": false,
             "in": "query",
             "description": "The ID of a valid hackathon",
             "schema": {
@@ -12181,6 +12181,14 @@
             "type": "boolean",
             "nullable": true,
             "description": "Whether the applicant is prioritized"
+          },
+          "firstName": {
+            "type": "string",
+            "description": "Applicant's first name, joined from the user"
+          },
+          "lastName": {
+            "type": "string",
+            "description": "Applicant's last name, joined from the user"
           }
         },
         "required": [
@@ -12202,7 +12210,9 @@
           "hackathonId",
           "time",
           "excitement",
-          "applicationStatus"
+          "applicationStatus",
+          "firstName",
+          "lastName"
         ]
       },
       "UpdateStatusDto": {
@@ -12285,7 +12295,7 @@
           "flags": {
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/FlagEntity"
             }
           }
         },

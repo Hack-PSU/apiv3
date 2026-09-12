@@ -56,7 +56,7 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   return result;
 };
 
-export const getSponsorGetAllUrl = (params: SponsorGetAllParams,) => {
+export const getSponsorGetAllUrl = (params?: SponsorGetAllParams,) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
@@ -74,7 +74,7 @@ export const getSponsorGetAllUrl = (params: SponsorGetAllParams,) => {
 /**
  * @summary Get All Sponsors
  */
-export const sponsorGetAll = async (params: SponsorGetAllParams, options?: Parameters<typeof customFetch>[1]): Promise<SponsorEntity[]> => {
+export const sponsorGetAll = async (params?: SponsorGetAllParams, options?: Parameters<typeof customFetch>[1]): Promise<SponsorEntity[]> => {
 
   return customFetch<SponsorEntity[]>(getSponsorGetAllUrl(params),
   {
@@ -96,7 +96,7 @@ export const getSponsorGetAllQueryKey = (params?: SponsorGetAllParams,) => {
     }
 
 
-export const getSponsorGetAllQueryOptions = <TData = Awaited<ReturnType<typeof sponsorGetAll>>, TError = ExceptionResponse>(params: SponsorGetAllParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof sponsorGetAll>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+export const getSponsorGetAllQueryOptions = <TData = Awaited<ReturnType<typeof sponsorGetAll>>, TError = ExceptionResponse>(params?: SponsorGetAllParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof sponsorGetAll>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -119,7 +119,7 @@ export type SponsorGetAllQueryError = ExceptionResponse
 
 
 export function useSponsorGetAll<TData = Awaited<ReturnType<typeof sponsorGetAll>>, TError = ExceptionResponse>(
- params: SponsorGetAllParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof sponsorGetAll>>, TError, TData>> & Pick<
+ params: undefined |  SponsorGetAllParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof sponsorGetAll>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof sponsorGetAll>>,
           TError,
@@ -129,7 +129,7 @@ export function useSponsorGetAll<TData = Awaited<ReturnType<typeof sponsorGetAll
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useSponsorGetAll<TData = Awaited<ReturnType<typeof sponsorGetAll>>, TError = ExceptionResponse>(
- params: SponsorGetAllParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof sponsorGetAll>>, TError, TData>> & Pick<
+ params?: SponsorGetAllParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof sponsorGetAll>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof sponsorGetAll>>,
           TError,
@@ -139,7 +139,7 @@ export function useSponsorGetAll<TData = Awaited<ReturnType<typeof sponsorGetAll
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useSponsorGetAll<TData = Awaited<ReturnType<typeof sponsorGetAll>>, TError = ExceptionResponse>(
- params: SponsorGetAllParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof sponsorGetAll>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ params?: SponsorGetAllParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof sponsorGetAll>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -147,7 +147,7 @@ export function useSponsorGetAll<TData = Awaited<ReturnType<typeof sponsorGetAll
  */
 
 export function useSponsorGetAll<TData = Awaited<ReturnType<typeof sponsorGetAll>>, TError = ExceptionResponse>(
- params: SponsorGetAllParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof sponsorGetAll>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ params?: SponsorGetAllParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof sponsorGetAll>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 

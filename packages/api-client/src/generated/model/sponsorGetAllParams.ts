@@ -10,5 +10,5 @@ export type SponsorGetAllParams = {
 /**
  * The ID of a valid hackathon
  */
-hackathonId: string;
+hackathonId?: string;
 };
