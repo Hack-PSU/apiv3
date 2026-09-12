@@ -174,15 +174,28 @@ jobs:
           yarn install --frozen-lockfile
           yarn generate
 
-      - name: Bump versions
+      # The registry, not package.json, is the source of truth for what has
+      # shipped. Deriving the next version from git would break whenever the
+      # release commit cannot be pushed back (branch protection rejects the
+      # bot), leaving package.json behind the registry and making every later
+      # release retry a version that already exists.
+      - name: Determine next version
         id: version
         working-directory: packages
         run: |
-          NEXT=$(node -p "
-            const v = require('./api-client/package.json').version.split('.');
-            v[2] = Number(v[2]) + 1;
-            v.join('.')
-          ")
+          LATEST=$(npm view @hackpsu/api-client version 2>/dev/null || true)
+          if [ -z "$LATEST" ]; then
+            LATEST=$(node -p "require('./api-client/package.json').version")
+            echo "Nothing published yet; starting from package.json ($LATEST)."
+            NEXT="$LATEST"
+          else
+            NEXT=$(node -p "
+              const v = '$LATEST'.split('.');
+              v[2] = Number(v[2]) + 1;
+              v.join('.')
+            ")
+            echo "Latest published is $LATEST; releasing $NEXT."
+          fi
           echo "version=$NEXT" >> "$GITHUB_OUTPUT"
 
           # Both packages move together, and react-sdk pins the exact client
@@ -214,15 +227,27 @@ jobs:
         working-directory: packages/react-sdk
         run: npm publish
 
-      - name: Commit regenerated artifacts
+      # Best effort only. The release is already published at this point, and
+      # the next one reads its version from the registry, so a rejected push
+      # costs nothing but a stale version field in git.
+      - name: Record the release in git
+        continue-on-error: true
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add openapi.json packages/api-client/src/generated \
             packages/api-client/package.json packages/react-sdk/package.json
+
           if git diff --cached --quiet; then
             echo "Nothing to commit."
+            exit 0
+          fi
+
+          git commit -m "chore(sdk): release v${{ steps.version.outputs.version }} [skip ci]"
+
+          if git push; then
+            echo "Recorded v${{ steps.version.outputs.version }} on main."
           else
-            git commit -m "chore(sdk): release v${{ steps.version.outputs.version }} [skip ci]"
-            git push
+            echo "::warning::Could not push the release commit; branch protection likely rejected it."
+            echo "::warning::v${{ steps.version.outputs.version }} is published regardless. Version fields in git stay at their previous value, which is expected."
           fi

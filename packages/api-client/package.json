@@ -1,6 +1,6 @@
 {
   "name": "@hackpsu/api-client",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Generated, fully typed client for the HackPSU API v3. Do not hand-edit src/generated.",
   "license": "MIT",
   "repository": {

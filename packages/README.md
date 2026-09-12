@@ -40,6 +40,12 @@ packages/api-client/src/generated/     committed, never hand-edited
 CI (`.github/workflows/sdk.yml`) runs this on every push and pull request, and
 fails the build if the committed `openapi.json` or generated client is stale.
 
+Version numbers come from the registry, not from `package.json`: CI reads the
+latest published version and increments the patch. The `version` fields in git
+are a starting point only and may lag what is published, because the release
+commit is rejected when branch protection requires pull requests. That is
+expected and harmless.
+
 On a push to `main` it publishes a patch release when that push changed
 `openapi.json`, `packages/api-client/src`, or `packages/react-sdk/src`. Docs and
 workflow edits do not trigger a release. `workflow_dispatch` with the `release`
