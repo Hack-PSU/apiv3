@@ -4,3 +4,5 @@ Dockerfile
 dist
 .env
 *service-account.json
+packages
+openapi.json

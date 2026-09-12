@@ -1,0 +1,228 @@
+name: SDK
+
+# Keeps @hackpsu/api-client in lockstep with the API.
+#
+# On every push to main the OpenAPI document is regenerated from the NestJS app.
+# If it changed, the client is regenerated, both packages are version-bumped and
+# published to Artifact Registry, and the refreshed artifacts are committed back.
+# The previous SDK died because this step did not exist: entities kept changing
+# and the registry never saw a new version.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "scripts/generate-openapi.ts"
+      - "packages/**"
+      - ".github/workflows/sdk.yml"
+  pull_request:
+    paths:
+      - "src/**"
+      - "scripts/generate-openapi.ts"
+      - "packages/**"
+      - ".github/workflows/sdk.yml"
+  workflow_dispatch:
+    inputs:
+      release:
+        description: "Publish a release now, even if nothing changed"
+        type: boolean
+        default: false
+
+concurrency:
+  group: sdk-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Generate, build and verify
+    runs-on: ubuntu-latest
+    outputs:
+      should-release: ${{ steps.release.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          # Needs the previous commit to tell whether this push changed anything
+          # worth releasing.
+          fetch-depth: 2
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: yarn
+          cache-dependency-path: yarn.lock
+
+      - name: Install API dependencies
+        run: yarn install --frozen-lockfile
+
+      # Compares commits, not the working tree: "did this push change anything
+      # that ships". Checking the working tree instead would be backwards, since
+      # the stale-artifact check below requires the tree to be clean, so a
+      # correct commit would always look like "nothing changed".
+      - name: Decide whether to release
+        id: release
+        run: |
+          if [ "${{ github.event_name }}" != "push" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Not a push; nothing to release."
+            exit 0
+          fi
+
+          if ! git rev-parse HEAD^ >/dev/null 2>&1; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "No parent commit; treating as releasable."
+            exit 0
+          fi
+
+          paths="openapi.json packages/api-client/src packages/react-sdk/src"
+          if git diff --quiet HEAD^ HEAD -- $paths; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No published code changed in this push."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "Releasable changes:"
+            git diff --stat HEAD^ HEAD -- $paths
+          fi
+
+      - name: Regenerate the OpenAPI document
+        run: yarn openapi
+
+      - name: Fail if the committed spec is stale
+        run: |
+          if ! git diff --quiet -- openapi.json; then
+            echo "::error::openapi.json is out of date."
+            echo "Run 'yarn openapi && (cd packages && yarn generate)' and commit the result."
+            git diff --stat -- openapi.json
+            exit 1
+          fi
+
+      - name: Install package dependencies
+        working-directory: packages
+        run: yarn install --frozen-lockfile
+
+      - name: Regenerate the typed client
+        working-directory: packages
+        run: yarn generate
+
+      - name: Fail if generated client is stale
+        run: |
+          if ! git diff --quiet -- packages/api-client/src/generated; then
+            echo "::error::packages/api-client/src/generated is out of date."
+            echo "Run 'yarn openapi && (cd packages && yarn generate)' and commit the result."
+            git diff --stat -- packages/api-client/src/generated
+            exit 1
+          fi
+
+      # Builds first: react-sdk type-checks against api-client's emitted
+      # declarations, so a bare typecheck would fail on a clean checkout.
+      - name: Build, type-check and test packages
+        working-directory: packages
+        run: yarn verify
+
+      - name: Upload spec artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: openapi
+          path: openapi.json
+
+  publish:
+    name: Publish to Artifact Registry
+    needs: build
+    if: >
+      (github.event_name == 'workflow_dispatch' && inputs.release) ||
+      (github.event_name == 'push' &&
+       github.ref == 'refs/heads/main' &&
+       needs.build.outputs.should-release == 'true')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          token: ${{ secrets.SDK_RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: yarn
+          cache-dependency-path: yarn.lock
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          credentials_json: ${{ secrets.GCP_DEPLOYER_SA_KEY }}
+
+      # Appends a short-lived Artifact Registry token to packages/.npmrc, which
+      # already carries the @hackpsu registry mapping.
+      - name: Authorize npm against Artifact Registry
+        working-directory: packages
+        run: |
+          npx --yes google-artifactregistry-auth \
+            --repo-config=./.npmrc \
+            --credential-config="$HOME/.npmrc"
+
+      - name: Install API dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Regenerate spec and client
+        run: |
+          yarn openapi
+          cd packages
+          yarn install --frozen-lockfile
+          yarn generate
+
+      - name: Bump versions
+        id: version
+        working-directory: packages
+        run: |
+          NEXT=$(node -p "
+            const v = require('./api-client/package.json').version.split('.');
+            v[2] = Number(v[2]) + 1;
+            v.join('.')
+          ")
+          echo "version=$NEXT" >> "$GITHUB_OUTPUT"
+
+          # Both packages move together, and react-sdk pins the exact client
+          # version so a consumer can never mix a new SDK with an old client.
+          node -e "
+            const fs = require('fs');
+            for (const p of ['api-client', 'react-sdk']) {
+              const file = p + '/package.json';
+              const pkg = JSON.parse(fs.readFileSync(file, 'utf8'));
+              pkg.version = '$NEXT';
+              if (pkg.dependencies?.['@hackpsu/api-client']) {
+                pkg.dependencies['@hackpsu/api-client'] = '$NEXT';
+              }
+              fs.writeFileSync(file, JSON.stringify(pkg, null, 2) + '\n');
+            }
+          "
+
+      - name: Build
+        working-directory: packages
+        run: yarn build
+
+      # publishConfig.registry in each package.json targets Artifact Registry;
+      # the token written above is picked up from ~/.npmrc.
+      - name: Publish @hackpsu/api-client
+        working-directory: packages/api-client
+        run: npm publish
+
+      - name: Publish @hackpsu/react-sdk
+        working-directory: packages/react-sdk
+        run: npm publish
+
+      - name: Commit regenerated artifacts
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add openapi.json packages/api-client/src/generated \
+            packages/api-client/package.json packages/react-sdk/package.json
+          if git diff --cached --quiet; then
+            echo "Nothing to commit."
+          else
+            git commit -m "chore(sdk): release v${{ steps.version.outputs.version }} [skip ci]"
+            git push
+          fi

@@ -107,6 +107,13 @@ export class OrganizerApplicationController {
   @Roles(Role.TEAM)
   @ApiDoc({
     summary: "Get applications for a specific team",
+    params: [
+      {
+        name: "team",
+        type: String,
+        description: "The team to fetch applications for",
+      },
+    ],
     response: {
       ok: {
         schema: {
