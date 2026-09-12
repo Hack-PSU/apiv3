@@ -184,6 +184,9 @@ if(financeCreateEntity.status !== undefined) {
 if(financeCreateEntity.rejectionMessage !== undefined) {
  formData.append(`rejectionMessage`, financeCreateEntity.rejectionMessage);
  }
+if(financeCreateEntity.receipt !== undefined) {
+ formData.append(`receipt`, financeCreateEntity.receipt);
+ }
 
   return customFetch<FinanceEntity>(getFinanceCreateFinanceUrl(),
   {

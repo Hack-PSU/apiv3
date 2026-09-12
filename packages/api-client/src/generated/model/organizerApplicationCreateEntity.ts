@@ -18,4 +18,6 @@ export interface OrganizerApplicationCreateEntity {
   whyHackpsu: string;
   newIdea: string;
   whatExcitesYou: string;
+  /** Applicant's resume */
+  resume?: Blob;
 }

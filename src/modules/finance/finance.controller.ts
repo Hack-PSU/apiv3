@@ -72,7 +72,15 @@ class OptionalStatus extends PartialType(
 export class FinanceCreateEntity extends IntersectionType(
   BaseFinanceCreateEntity,
   OptionalStatus,
-) {}
+) {
+  @ApiProperty({
+    type: "string",
+    format: "binary",
+    required: false,
+    description: "Receipt image or PDF backing the request",
+  })
+  receipt?: any;
+}
 
 export class FinancePatchEntity extends PartialType(
   OmitType(FinanceEntity, [
