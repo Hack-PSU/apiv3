@@ -20,7 +20,12 @@ import { Role, Roles } from "common/gcp";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { PhotoService } from "./photo.service";
 import { UploadedPhoto } from "./uploaded-photo.decorator";
-import { PaginatedPhotosResponse } from "./photo.types";
+import {
+  PaginatedPhotosResponse,
+  PhotoItem,
+  UploadPhotoBody,
+  UploadPhotoResponse,
+} from "./photo.types";
 
 class MessageResponse {
   @ApiProperty()
@@ -39,23 +44,12 @@ export class PhotoController {
     summary: "Upload a photo",
     request: {
       mimeTypes: ["multipart/form-data"],
+      body: { type: UploadPhotoBody },
     },
     response: {
       created: {
-        description: "Photo uploaded successfully",
-        schema: {
-          type: "object",
-          properties: {
-            photoId: { type: "string" },
-            photoUrl: { type: "string" },
-            derivatives: {
-              type: "object",
-              additionalProperties: { type: "string" },
-              description:
-                "Responsive image URLs (e.g., webp_480, webp_960, webp_1600)",
-            },
-          },
-        },
+        type: UploadPhotoResponse,
+        description: "The stored photo and its derivatives",
       },
     },
   })
@@ -95,24 +89,8 @@ export class PhotoController {
     summary: "Get all approved photos",
     response: {
       ok: {
-        description: "List of all approved photos",
-        schema: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              name: { type: "string" },
-              url: { type: "string" },
-              createdAt: { type: "string", format: "date-time" },
-              derivatives: {
-                type: "object",
-                additionalProperties: { type: "string" },
-                description:
-                  "Responsive image URLs (e.g., webp_480, webp_960, webp_1600)",
-              },
-            },
-          },
-        },
+        type: [PhotoItem],
+        description: "All approved photos",
       },
     },
   })
@@ -158,35 +136,8 @@ export class PhotoController {
     ],
     response: {
       ok: {
-        description: "Paginated photos with metadata",
-        schema: {
-          type: "object",
-          properties: {
-            photos: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  name: { type: "string" },
-                  url: { type: "string" },
-                  createdAt: { type: "string", format: "date-time" },
-                  uploadedBy: { type: "string", nullable: true },
-                  approvalStatus: { type: "string", nullable: true },
-                },
-              },
-            },
-            pagination: {
-              type: "object",
-              properties: {
-                currentPage: { type: "number" },
-                totalPages: { type: "number" },
-                totalItems: { type: "number" },
-                hasNext: { type: "boolean" },
-                hasPrevious: { type: "boolean" },
-              },
-            },
-          },
-        },
+        type: PaginatedPhotosResponse,
+        description: "A page of photos",
       },
     },
   })
@@ -229,26 +180,8 @@ export class PhotoController {
     summary: "Get all photos with approval status (admin only)",
     response: {
       ok: {
-        description: "List of all photos with approval status",
-        schema: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              name: { type: "string" },
-              url: { type: "string" },
-              createdAt: { type: "string", format: "date-time" },
-              uploadedBy: { type: "string" },
-              approvalStatus: { type: "string" },
-              derivatives: {
-                type: "object",
-                additionalProperties: { type: "string" },
-                description:
-                  "Responsive image URLs (e.g., webp_480, webp_960, webp_1600)",
-              },
-            },
-          },
-        },
+        type: [PhotoItem],
+        description: "All photos, including pending ones",
       },
     },
   })

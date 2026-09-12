@@ -37,10 +37,10 @@ import type {
   StreamableFile,
   UserCreateEntity,
   UserEntity,
-  UserExportUsersRegistrationsData200Item,
   UserGetAllParams,
   UserPatchEntity,
   UserProfileResponse,
+  UserRegistrationExportRow,
   UserUpdateEntity
 } from '../model';
 
@@ -1400,9 +1400,9 @@ export const useUserUnassignUserFromClass = <TError = BadRequestExceptionRespons
 /**
  * @summary Export Users and Registration Data
  */
-export const userExportUsersRegistrationsData = async ( options?: Parameters<typeof customFetch>[1]): Promise<UserExportUsersRegistrationsData200Item[]> => {
+export const userExportUsersRegistrationsData = async ( options?: Parameters<typeof customFetch>[1]): Promise<UserRegistrationExportRow[]> => {
 
-  return customFetch<UserExportUsersRegistrationsData200Item[]>(getUserExportUsersRegistrationsDataUrl(),
+  return customFetch<UserRegistrationExportRow[]>(getUserExportUsersRegistrationsDataUrl(),
   {
     ...options,
     method: 'GET'
