@@ -1,0 +1,52 @@
+"use client";
+
+/**
+ * @hackpsu/react-sdk
+ *
+ * Auth and app wiring shared by HackPSU frontends: the SSO session, Firebase,
+ * role-based access control, and React Query: plus a re-export of the
+ * generated API client so apps need a single dependency.
+ *
+ * @example
+ * // app/layout.tsx
+ * import { HackPSUProvider, Role } from "@hackpsu/react-sdk";
+ *
+ * export default function RootLayout({ children }) {
+ *   return (
+ *     <html lang="en">
+ *       <body>
+ *         <HackPSUProvider
+ *           config={{
+ *             firebase: {
+ *               apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
+ *               authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN!,
+ *               projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID!,
+ *               storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET!,
+ *               messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID!,
+ *               appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
+ *             },
+ *             apiBaseUrl: process.env.NEXT_PUBLIC_BASE_URL_V3!,
+ *             minimumRole: Role.TEAM,
+ *           }}
+ *         >
+ *           {children}
+ *         </HackPSUProvider>
+ *       </body>
+ *     </html>
+ *   );
+ * }
+ *
+ * @example
+ * // any client component
+ * import { useEventGetAll } from "@hackpsu/react-sdk";
+ * const { data: events } = useEventGetAll();
+ */
+
+export * from "./context";
+export { Role, DEFAULT_AUTH_SERVICE_URL, resolveConfig } from "./config";
+export type { HackPSUConfig, ResolvedHackPSUConfig } from "./config";
+export { getRole, ROLE_NAMES } from "./roles";
+export { getFirebaseAuth } from "./firebase";
+
+// The generated API client, so apps install one package rather than two.
+export * from "@hackpsu/api-client";

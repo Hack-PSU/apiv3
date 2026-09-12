@@ -35,7 +35,7 @@ export class UserMessageEntity extends MessageEntity {
 }
 
 export class BroadcastMessageEntity extends MessageEntity {
-  @ApiProperty()
+  @ApiProperty({ enum: DefaultTopic, enumName: "DefaultTopic", required: false })
   @IsOptional()
   @IsEnum(DefaultTopic)
   broadcast?: DefaultTopic;

@@ -8,28 +8,31 @@ import { Role } from "common/gcp/auth/firebase-auth.types";
 @Injectable()
 export class ApiKeyStrategy extends PassportStrategy(Strategy, "api-key") {
   constructor(private readonly apiKeyService: ApiKeyService) {
-    super(
-      async (req: Request, done: (err: Error | null, user?: any) => void) => {
-        const apiKey = req.headers["x-api-key"];
+    super();
+  }
 
-        if (!apiKey || typeof apiKey !== "string") {
-          return done(null, false);
-        }
+  /**
+   * PassportStrategy supplies the verify callback itself and invokes this
+   * method from it, so the callback must not be passed to super(). Returning
+   * false fails authentication; throwing surfaces the error to Passport.
+   */
+  async validate(req: Request) {
+    const apiKey = req.headers["x-api-key"];
 
-        try {
-          const keyEntity = await this.apiKeyService.validateKey(apiKey);
-          if (!keyEntity) {
-            return done(new UnauthorizedException(), null);
-          }
-          return done(null, {
-            ...keyEntity,
-            production: Role.TECH,
-            staging: Role.TECH,
-          });
-        } catch (err) {
-          return done(err as Error, null);
-        }
-      },
-    );
+    if (!apiKey || typeof apiKey !== "string") {
+      return false;
+    }
+
+    const keyEntity = await this.apiKeyService.validateKey(apiKey);
+
+    if (!keyEntity) {
+      throw new UnauthorizedException();
+    }
+
+    return {
+      ...keyEntity,
+      production: Role.TECH,
+      staging: Role.TECH,
+    };
   }
 }

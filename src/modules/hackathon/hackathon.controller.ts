@@ -145,7 +145,8 @@ export class HackathonController {
     query: [
       {
         name: "active",
-        type: ActiveHackathonParams,
+        type: Boolean,
+        required: false,
       },
     ],
     response: {

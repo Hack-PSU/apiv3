@@ -20,7 +20,7 @@ import {
 import { InjectRepository, Repository } from "common/objection";
 import { Project, ProjectEntity } from "entities/project.entity";
 import { Team } from "entities/team.entity";
-import { ApiTags, OmitType, PartialType } from "@nestjs/swagger";
+import { ApiProperty, ApiTags, OmitType, PartialType } from "@nestjs/swagger";
 import { Role, Roles } from "common/gcp";
 import { ApiDoc } from "common/docs";
 import { DBExceptionFilter } from "common/filters";
@@ -33,6 +33,15 @@ class ProjectCreateEntity extends OmitType(ProjectEntity, ["id"] as const) {}
 class ProjectPatchEntity extends PartialType(ProjectCreateEntity) {}
 
 @ApiTags("Judging")
+class UploadProjectsCsvBody {
+  @ApiProperty({
+    type: "string",
+    format: "binary",
+    description: "CSV with Project Title and Opt-In Prizes columns",
+  })
+  file: any;
+}
+
 @Controller("judging/projects")
 @UseFilters(DBExceptionFilter)
 export class ProjectController {
@@ -251,6 +260,17 @@ export class ProjectController {
   @Post("upload-csv")
   @Roles(Role.TECH)
   @UseInterceptors(FileInterceptor("file"))
+  @ApiDoc({
+    summary: "Create Projects From A CSV",
+    request: {
+      mimeTypes: ["multipart/form-data"],
+      body: { type: UploadProjectsCsvBody },
+    },
+    response: {
+      created: { type: [ProjectEntity] },
+    },
+    auth: Role.TECH,
+  })
   async uploadCsv(@UploadedFile() file: Express.Multer.File) {
     if (!file) {
       throw new BadRequestException("CSV file is required");

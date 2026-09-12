@@ -44,7 +44,7 @@ class UpdateStatusBulkDto {
   @ArrayMinSize(1) // Must be updating at least one user
   userIds: string[];
 
-  @ApiProperty({ enum: ApplicationStatus })
+  @ApiProperty({ enum: ApplicationStatus, enumName: "ApplicationStatus" })
   @IsEnum(ApplicationStatus)
   status: ApplicationStatus;
 }
