@@ -6,11 +6,63 @@ import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { AppModule } from "../src/app.module";
 import * as fs from "fs";
+import * as os from "os";
 import * as path from "path";
 
+/**
+ * Building the document only needs Nest to construct the module graph so the
+ * Swagger decorators can be read. Nothing connects to a database, Firebase or
+ * SendGrid. A few providers do validate their configuration in the constructor
+ * though, so supply placeholders for anything that would otherwise throw. Real
+ * values, when present in a developer's .env, are left untouched.
+ *
+ * Returns a cleanup function for any temporary files created.
+ */
+function applyPlaceholderConfig(): () => void {
+  const placeholders: Record<string, string> = {
+    // FirebaseAuthService rejects anything outside "production" | "staging".
+    AUTH_ENVIRONMENT: "production",
+    RUNTIME_INSTANCE: "local",
+  };
+
+  for (const [key, value] of Object.entries(placeholders)) {
+    if (!process.env[key]) {
+      process.env[key] = value;
+    }
+  }
+
+  // AppleWalletService reads its certificates with readFileSync in the
+  // constructor and re-throws when they are missing. The files are gitignored,
+  // so CI has none. It only stores the bytes at construction, never parses
+  // them, which makes empty stand-ins sufficient to build the document.
+  if (process.env.APPLE_SIGNER_KEY_PASSPHRASE) {
+    return () => undefined;
+  }
+
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "hackpsu-openapi-"));
+  const certs: Array<[string, string]> = [
+    ["APPLE_WWDR_CERT_PATH", "wwdr.cer"],
+    ["APPLE_SIGNER_CERT_PATH", "signerCert.pem"],
+    ["APPLE_SIGNER_KEY_PATH", "signerKey.pem"],
+  ];
+
+  for (const [envVar, filename] of certs) {
+    const file = path.join(dir, filename);
+    fs.writeFileSync(file, "");
+    process.env[envVar] = file;
+  }
+  process.env.APPLE_SIGNER_KEY_PASSPHRASE = "placeholder";
+
+  return () => fs.rmSync(dir, { recursive: true, force: true });
+}
+
 async function main() {
+  const cleanup = applyPlaceholderConfig();
+
   const app = await NestFactory.create(AppModule, {
-    logger: ["error"],
+    // Providers such as AppleWalletService log a failure when their credentials
+    // are absent. That is expected here and does not affect the document.
+    logger: false,
     abortOnError: false,
   });
 
@@ -42,6 +94,7 @@ async function main() {
   );
 
   await app.close();
+  cleanup();
   process.exit(0);
 }
 

@@ -30,13 +30,25 @@ export interface ApiClientConfig {
   onUnauthorized?: () => void;
 }
 
+/**
+ * Removes trailing slashes with a linear scan. A regex such as /\/+$/ is a
+ * polynomial ReDoS on inputs consisting of many slashes.
+ */
+export function stripTrailingSlashes(value: string): string {
+  let end = value.length;
+  while (end > 0 && value.charCodeAt(end - 1) === 47) {
+    end--;
+  }
+  return end === value.length ? value : value.slice(0, end);
+}
+
 let config: ApiClientConfig | null = null;
 
 export function configureApiClient(next: ApiClientConfig): void {
   if (!next.baseUrl) {
     throw new Error("configureApiClient: `baseUrl` is required");
   }
-  config = { ...next, baseUrl: next.baseUrl.replace(/\/+$/, "") };
+  config = { ...next, baseUrl: stripTrailingSlashes(next.baseUrl) };
 }
 
 export function getApiClientConfig(): ApiClientConfig {

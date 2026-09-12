@@ -1,4 +1,5 @@
 import type { FirebaseOptions } from "firebase/app";
+import { stripTrailingSlashes } from "@hackpsu/api-client";
 
 /**
  * Permission levels, mirroring `Role` in the API (src/common/gcp/auth/firebase-auth.types.ts).
@@ -74,9 +75,9 @@ export function resolveConfig(config: HackPSUConfig): ResolvedHackPSUConfig {
 
   return {
     ...config,
-    authServiceUrl: (
-      config.authServiceUrl ?? DEFAULT_AUTH_SERVICE_URL
-    ).replace(/\/+$/, ""),
+    authServiceUrl: stripTrailingSlashes(
+      config.authServiceUrl ?? DEFAULT_AUTH_SERVICE_URL,
+    ),
     minimumRole: config.minimumRole ?? Role.NONE,
     redirectMode: config.redirectMode ?? "immediate",
     showLoadingScreen: config.showLoadingScreen ?? true,

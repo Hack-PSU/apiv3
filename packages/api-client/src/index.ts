@@ -22,6 +22,7 @@ export {
   getApiClientConfig,
   isApiClientConfigured,
   resetApiClient,
+  stripTrailingSlashes,
   ApiError,
 } from "./runtime";
 export type { ApiClientConfig, TokenProvider } from "./runtime";
