@@ -250,7 +250,7 @@ export class RegistrationController {
           DefaultTemplate.participantAccepted,
           {
             previewText: `You've been accepted to HackPSU ${activeHackathonName.name}!`,
-            date: "March 28-29, 2026",
+            date: "October 24-25, 2026",
             address: "ECore Building, University Park PA",
             firstName: user.firstName,
             hackathon: activeHackathonName.name,
@@ -392,7 +392,7 @@ export class RegistrationController {
               DefaultTemplate.participantAccepted,
               {
                 previewText: `You've been accepted to HackPSU ${activeHackathonName.name}!`,
-                date: "March 28-29, 2026",
+                date: "October 24-25, 2026",
                 address: "ECore Building, University Park PA",
                 firstName: "",
                 hackathon: activeHackathonName.name,

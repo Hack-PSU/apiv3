@@ -620,7 +620,7 @@ export class UserController {
         DefaultTemplate.registration,
         {
           previewText: "HackPSU Spring 2026 Registration",
-          date: "March 28-29, 2026",
+          date: "October 24-25, 2026",
           address: "ECore Building, University Park PA",
           firstName: user.firstName,
         },

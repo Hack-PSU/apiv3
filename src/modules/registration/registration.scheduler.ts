@@ -187,7 +187,7 @@ export class RegistrationScheduler {
             firstName: "",
             hackathon: activeHackathon.name,
             daysLeft: type === "threeDay" ? "3 days" : "1 day",
-            date: "March 28-29, 2026",
+            date: "October 24-25, 2026",
             address: "ECore Building, University Park PA",
           },
         );
