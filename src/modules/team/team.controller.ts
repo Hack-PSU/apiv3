@@ -23,7 +23,7 @@ import { ApiProperty, ApiTags, OmitType, PartialType } from "@nestjs/swagger";
 import { Role, Roles } from "common/gcp";
 import { ApiDoc } from "common/docs";
 import { DBExceptionFilter } from "common/filters";
-import { IsEmail, IsOptional, IsString } from "class-validator";
+import { IsEmail, IsOptional, IsString, Length } from "class-validator";
 import { Transform } from "class-transformer";
 import { nanoid } from "nanoid";
 
@@ -64,6 +64,15 @@ class AddUserByEmailEntity {
   @ApiProperty()
   @IsEmail()
   email: string;
+
+  @ApiProperty({
+    description: "Last 4 characters of the user's ID",
+    minLength: 4,
+    maxLength: 4,
+  })
+  @IsString()
+  @Length(4, 4)
+  userIdSuffix: string;
 }
 
 class ActiveTeamsParams {
@@ -446,6 +455,13 @@ export class TeamController {
 
     if (!user) {
       throw new NotFoundException(`User with email ${data.email} not found`);
+    }
+    
+    // Verify last 4 characters
+    if (user.id.slice(-4) !== data.userIdSuffix.trim()) {
+      throw new BadRequestException(
+        "User ID verification code does not match",
+      );
     }
 
     // Check if user is already in this team
