@@ -7,4 +7,5 @@ export enum ConfigToken {
   APPLE = "Apple",
   BUCKET = "BUCKET",
   NAMECHEAP = "NAMECHEAP",
+  AGENT_ENGINE = "AGENT_ENGINE",
 }
