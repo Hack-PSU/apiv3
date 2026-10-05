@@ -58,3 +58,8 @@ certs/*
 # SDK Artifacts
 sdk/node_modules/
 sdk/dist/
+# Python agents
+agents/**/.venv/
+agents/**/.env
+agents/**/__pycache__/
+agents/**/.adk/
