@@ -7,7 +7,7 @@ export async function up(knex: Knex): Promise<void> {
         table.string("zip_code").nullable();
         table.integer("travel_cost").nullable();
         table.string("travel_method").nullable();
-        table.string("travel_additional").nullable();
+        table.text("travel_additional").nullable();
     });
 }
 
