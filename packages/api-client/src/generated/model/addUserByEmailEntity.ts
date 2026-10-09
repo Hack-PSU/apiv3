@@ -8,4 +8,6 @@
 
 export interface AddUserByEmailEntity {
   email: string;
+  /** Last 4 characters of the user's ID, used to confirm identity */
+  userIdSuffix: string;
 }

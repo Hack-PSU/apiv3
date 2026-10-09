@@ -23,7 +23,7 @@ import { ApiProperty, ApiTags, OmitType, PartialType } from "@nestjs/swagger";
 import { Role, Roles } from "common/gcp";
 import { ApiDoc } from "common/docs";
 import { DBExceptionFilter } from "common/filters";
-import { IsEmail, IsOptional, IsString } from "class-validator";
+import { IsEmail, IsOptional, IsString, Length } from "class-validator";
 import { Transform } from "class-transformer";
 import { nanoid } from "nanoid";
 
@@ -64,6 +64,13 @@ class AddUserByEmailEntity {
   @ApiProperty()
   @IsEmail()
   email: string;
+
+  @ApiProperty({
+    description: "Last 4 characters of the user's ID, used to confirm identity",
+  })
+  @IsString()
+  @Length(4, 4)
+  userIdSuffix: string;
 }
 
 class ActiveTeamsParams {
@@ -444,8 +451,15 @@ export class TeamController {
       .where("email", data.email)
       .first();
 
-    if (!user) {
-      throw new NotFoundException(`User with email ${data.email} not found`);
+    // Use the same error for a wrong ID suffix so the endpoint can't be used
+    // to confirm which emails belong to registered users.
+    if (
+      !user ||
+      user.id.slice(-4).toLowerCase() !== data.userIdSuffix.toLowerCase()
+    ) {
+      throw new BadRequestException(
+        "No user found with that email and user ID combination",
+      );
     }
 
     // Check if user is already in this team
