@@ -65,6 +65,9 @@ export const FirebaseProvider: FC<Props> = ({ children, config: rawConfig }) => 
       getToken: () => (auth.currentUser ? auth.currentUser.getIdToken() : null),
       onUnauthorized: () => {
         if (typeof window === "undefined" || isLoggingOut.current) return;
+        // Only a signed-in user's 401 means the session expired. A signed-out
+        // visitor on a public page should just see the request fail.
+        if (!auth.currentUser) return;
         const returnTo = encodeURIComponent(window.location.href);
         window.location.href = `${config.authServiceUrl}/login?returnTo=${returnTo}`;
       },
@@ -84,7 +87,7 @@ export const FirebaseProvider: FC<Props> = ({ children, config: rawConfig }) => 
     [config.posthog],
   );
 
-  const verifySession = useCallback(async () => {
+  const checkSession = useCallback(async (redirectOnUnauthorized: boolean) => {
     if (isLoggingOut.current) return;
 
     // On localhost and Vercel previews the auth cookie is unreadable, so the
@@ -100,7 +103,9 @@ export const FirebaseProvider: FC<Props> = ({ children, config: rawConfig }) => 
       });
 
       if (response.status === 401) {
-        if (typeof window !== "undefined") {
+        setUser(null);
+        setToken(undefined);
+        if (redirectOnUnauthorized && typeof window !== "undefined") {
           const returnTo = encodeURIComponent(window.location.href);
           window.location.href = `${config.authServiceUrl}/login?returnTo=${returnTo}`;
         }
@@ -131,6 +136,8 @@ export const FirebaseProvider: FC<Props> = ({ children, config: rawConfig }) => 
     }
   }, [auth, config.authServiceUrl, identify]);
 
+  const verifySession = useCallback(() => checkSession(true), [checkSession]);
+
   useEffect(() => {
     if (hasInitialized || isLoggingOut.current) return;
 
@@ -140,7 +147,7 @@ export const FirebaseProvider: FC<Props> = ({ children, config: rawConfig }) => 
       setIsLoading(true);
       try {
         await Promise.race([
-          verifySession(),
+          checkSession(false),
           new Promise((_, reject) =>
             setTimeout(() => reject(new Error("Session check timeout")), 5000),
           ),
@@ -159,7 +166,7 @@ export const FirebaseProvider: FC<Props> = ({ children, config: rawConfig }) => 
     return () => {
       cancelled = true;
     };
-  }, [verifySession, hasInitialized]);
+  }, [checkSession, hasInitialized]);
 
   const logout = useCallback(async () => {
     isLoggingOut.current = true;
