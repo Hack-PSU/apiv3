@@ -15,8 +15,9 @@ import { ApplicantAiScoreService } from "./applicant-ai-score.service";
 import { VertexScoringError } from "./vertex-applicant-scoring.service";
 
 const MAX_RUN_LIMIT = 50;
-// Cloud Run cuts requests off at 5 minutes by default.
-const RUN_TIME_BUDGET_MS = 3 * 60 * 1000;
+// Cloud Run cuts requests off at 5 minutes by default, and the last batch can
+// still need two 1-minute Vertex attempts after the budget runs out.
+const RUN_TIME_BUDGET_MS = 45 * 1000;
 
 @ApiExcludeController()
 @Controller("applicants/ai-scores")

@@ -12,7 +12,11 @@ import {
 
 const DEFAULT_MODEL = "gemini-3.5-flash";
 const DEFAULT_LOCATION = "global";
-const REQUEST_TIMEOUT_MS = 90 * 1000;
+const DEFAULT_THINKING_LEVEL = "MEDIUM";
+// Most requests finish in under 15 seconds, but a few stall indefinitely, so
+// a stalled request is abandoned early and sent again.
+const REQUEST_TIMEOUT_MS = 60 * 1000;
+const MAX_REQUEST_ATTEMPTS = 2;
 const MAX_ERROR_LENGTH = 500;
 
 // Statuses that mean the integration itself is misconfigured or throttled, so
@@ -49,6 +53,13 @@ export class VertexApplicantScoringService {
     return this.configService.get<string>("VERTEX_MODEL") || DEFAULT_MODEL;
   }
 
+  private get thinkingLevel(): string {
+    return (
+      this.configService.get<string>("VERTEX_THINKING_LEVEL") ||
+      DEFAULT_THINKING_LEVEL
+    );
+  }
+
   async score(
     input: ApplicantEvaluationInput,
   ): Promise<ApplicantScoringResult> {
@@ -68,6 +79,7 @@ export class VertexApplicantScoringService {
       generationConfig: {
         responseMimeType: "application/json",
         responseSchema: APPLICANT_SCORING_RESPONSE_SCHEMA,
+        thinkingConfig: { thinkingLevel: this.thinkingLevel },
       },
     });
 
@@ -84,44 +96,59 @@ export class VertexApplicantScoringService {
         ? "aiplatform.googleapis.com"
         : `${location}-aiplatform.googleapis.com`;
 
-    // Errors from the auth client and request carry the request body, which
-    // contains application answers and the resume, so only their status and
-    // the API's own message are kept.
+    let projectId: string;
     try {
-      const projectId =
+      projectId =
         this.configService.get<string>("VERTEX_PROJECT_ID") ||
         (await this.auth.getProjectId());
-      const response = await this.auth.request<GenerateContentResponse>({
-        url: `https://${host}/v1/projects/${projectId}/locations/${location}/publishers/google/models/${this.model}:generateContent`,
-        method: "POST",
-        data: body,
-        timeout: REQUEST_TIMEOUT_MS,
-        retryConfig: {
-          retry: 2,
-          retryDelay: 5000,
-          httpMethodsToRetry: ["POST"],
-          statusCodesToRetry: [[500, 599]],
-        },
-      });
-      return response.data;
+      await this.auth.getAccessToken();
     } catch (error) {
-      const status: number | undefined =
-        error?.response?.status ?? error?.status;
-      const apiMessage: string | undefined =
-        error?.response?.data?.error?.message;
-
-      if (status) {
-        throw new VertexScoringError(
-          `Vertex request failed (${status})${apiMessage ? `: ${apiMessage}` : ""}`,
-          ABORT_RUN_STATUSES.includes(status),
-        );
-      }
-      // Without a status the request never got a response: missing
-      // credentials or project ID abort the run, network errors do not.
       throw new VertexScoringError(
-        `Vertex request failed: ${error?.message ?? "unknown error"}`,
-        !error?.code,
+        `Vertex credentials unavailable: ${error?.message ?? "unknown error"}`,
+        true,
       );
+    }
+
+    const url = `https://${host}/v1/projects/${projectId}/locations/${location}/publishers/google/models/${this.model}:generateContent`;
+
+    // Request errors carry the request body, which contains application
+    // answers and the resume, so only their status and the API's own message
+    // are kept.
+    for (let attempt = 1; ; attempt++) {
+      try {
+        const response = await this.auth.request<GenerateContentResponse>({
+          url,
+          method: "POST",
+          data: body,
+          timeout: REQUEST_TIMEOUT_MS,
+          retryConfig: {
+            retry: 1,
+            retryDelay: 5000,
+            httpMethodsToRetry: ["POST"],
+            statusCodesToRetry: [[500, 599]],
+          },
+        });
+        return response.data;
+      } catch (error) {
+        const status: number | undefined =
+          error?.response?.status ?? error?.status;
+        const apiMessage: string | undefined =
+          error?.response?.data?.error?.message;
+
+        if (status) {
+          throw new VertexScoringError(
+            `Vertex request failed (${status})${apiMessage ? `: ${apiMessage}` : ""}`,
+            ABORT_RUN_STATUSES.includes(status),
+          );
+        }
+        // No status means a timeout or network error. The client does not
+        // retry those itself, and they only fail this applicant.
+        if (attempt >= MAX_REQUEST_ATTEMPTS) {
+          throw new VertexScoringError(
+            `Vertex request failed after ${attempt} attempts: ${error?.message ?? "unknown error"}`,
+          );
+        }
+      }
     }
   }
 }

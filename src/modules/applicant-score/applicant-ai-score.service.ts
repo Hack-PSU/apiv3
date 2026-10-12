@@ -70,7 +70,6 @@ export class ApplicantAiScoreService {
       model: this.vertexScoringService.model,
       promptVersion: APPLICANT_SCORING_PROMPT_VERSION,
       attempts: (existing?.attempts ?? 0) + 1,
-      updatedAt: Date.now(),
     };
 
     let row: Partial<ApplicantAiScore>;
@@ -91,6 +90,7 @@ export class ApplicantAiScoreService {
         summary: result.summary,
         error: null,
         scoredAt: Date.now(),
+        updatedAt: Date.now(),
       };
     } catch (error) {
       if (
@@ -114,12 +114,17 @@ export class ApplicantAiScoreService {
           .update({
             error: message,
             attempts: base.attempts,
-            updatedAt: base.updatedAt,
+            updatedAt: Date.now(),
           });
         return this.aiScoreRepo.findOne([hackathonId, userId]).exec();
       }
 
-      row = { ...base, status: ApplicantAiScoreStatus.FAILED, error: message };
+      row = {
+        ...base,
+        status: ApplicantAiScoreStatus.FAILED,
+        error: message,
+        updatedAt: Date.now(),
+      };
     }
 
     await ApplicantAiScore.knex()("applicant_ai_scores")
