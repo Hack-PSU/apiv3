@@ -3043,9 +3043,9 @@ aws-ssl-profiles@^1.1.2:
   integrity sha512-NZKeq9AfyQvEeNlN0zSYAaWrmBffJh3IELMZfRpJVWgrpEbtEpnjvzqBPf+mxoI287JohRDoa+/nsfqqiZmF6g==
 
 axios@^1.12.0, axios@^1.7.9:
-  version "1.19.0"
-  resolved "https://registry.yarnpkg.com/axios/-/axios-1.19.0.tgz#ddf864d4c8233c0e6873746ab59361537d05ad39"
-  integrity sha512-ht/iuYZXEjFxLH/Hkezgd7m6JKlHHXEUSneaDz8uZe1Gj5QZtCnpyDsckvAiEnT89OEbCLmnte4R4sn7P0EKFw==
+  version "1.20.0"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-1.20.0.tgz#515513445aa60e71d04b6521ca6210829ccb4786"
+  integrity sha512-r8aOh8j9cGKpgQAqpzrUHnSIc6a59Y3Xf/cv8sy1DrHCkZHzQGEuoq1tARk6qSyDdtQGSDgpb9kFlruzPvrgwg==
   dependencies:
     follow-redirects "^1.16.0"
     form-data "^4.0.6"
@@ -4622,9 +4622,9 @@ flatted@^3.2.9:
   integrity sha512-PjDse7RzhcPkIJwy5t7KPWQSZ9cAbzQXcafsetQoD7sOJRQlGikNbx7yZp2OotDnJyrDcbyRq3Ttb18iYOqkxA==
 
 follow-redirects@^1.16.0:
-  version "1.16.0"
-  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.16.0.tgz#28474a159d3b9d11ef62050a14ed60e4df6d61bc"
-  integrity sha512-y5rN/uOsadFT/JfYwhxRS5R7Qce+g3zG97+JrtFZlC9klX/W5hD7iiLzScI4nZqUS7DNUdhPgw4xI8W2LuXlUw==
+  version "1.16.1"
+  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.16.1.tgz#6e0efa40a727fb369b98dab15883ec34787d675e"
+  integrity sha512-FNvFGzoMLWmE6Yj9spb/zjd7yiNCHiAW9/Tg9CXrQ8wuu32HtlJOwWO11OJafl5FfY3DxTdQ0vj42zU1kvv5jg==
 
 fontkit@^2.0.4:
   version "2.0.4"
@@ -4951,10 +4951,10 @@ globals@^14.0.0:
   resolved "https://registry.yarnpkg.com/globals/-/globals-14.0.0.tgz#898d7413c29babcf6bafe56fcadded858ada724e"
   integrity sha512-oahGvuMGQlPw/ivIYBjVSrWAfWLBeku5tpPE2fOPLi+WHffIWbuh2tCjhyQhTBPMf5E9jDEH4FOmTYgYwbKwtQ==
 
-globals@^16.0.0:
-  version "16.5.0"
-  resolved "https://registry.yarnpkg.com/globals/-/globals-16.5.0.tgz#ccf1594a437b97653b2be13ed4d8f5c9f850cac1"
-  integrity sha512-c/c15i26VrJ4IRt5Z89DnIzCGDn9EcebibhAOjw5ibqEHsE1wLUgkPn9RDmNcUKyU87GeaL633nyJ+pplFR2ZQ==
+globals@^17.0.0:
+  version "17.12.0"
+  resolved "https://registry.yarnpkg.com/globals/-/globals-17.12.0.tgz#910a368b8f093d3feb3f77a56dcefa05647d698e"
+  integrity sha512-cezEd/DTyyht9cvSSURyygXPfy04GtWO/5e6ZPvH7fCtjKz9PYOmuawphw1Ctd1f6C+5JypXfGD7ahNMXvevBA==
 
 google-auth-library@^10.1.0, google-auth-library@^10.2.0:
   version "10.2.1"
@@ -8570,10 +8570,10 @@ utils-merge@^1.0.1:
   resolved "https://registry.npmjs.org/utils-merge/-/utils-merge-1.0.1.tgz"
   integrity sha512-pMZTvIkT1d+TFGvDOqodOclx0QWkkgi6Tdoa8gC8ffGAAqz9pzPTZWAybbsHHoED/ztMtkv/VoYTYyShUn81hA==
 
-uuid@^13.0.0:
-  version "13.0.2"
-  resolved "https://registry.yarnpkg.com/uuid/-/uuid-13.0.2.tgz#41bc9c07b12f665089c205f6507976adbdf84ff8"
-  integrity sha512-vzi9uRZ926x4XV73S/4qQaTwPXM2JBj6/6lI/byHH1jOpCzb0zDbfytgA9LcN/hzb2l7WQSQnxITOVx5un/wGw==
+uuid@^14.0.0:
+  version "14.0.2"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-14.0.2.tgz#d5ae03e4db0881c87271f8b0b9bd7312d02c799a"
+  integrity sha512-xZe/16rV4aa+HGSOCiY2YeLT1OybRLrrkL/Rqaq7p7GMVXjFh+6wN4oMYgjFmnSnhY8t6Xpdl2l9qmnHYuMHwQ==
 
 uuid@^8.0.0:
   version "8.3.2"

@@ -13315,10 +13315,15 @@
         "properties": {
           "email": {
             "type": "string"
+          },
+          "userIdSuffix": {
+            "type": "string",
+            "description": "Last 4 characters of the user's ID, used to confirm identity"
           }
         },
         "required": [
-          "email"
+          "email",
+          "userIdSuffix"
         ]
       },
       "UploadPhotoBody": {

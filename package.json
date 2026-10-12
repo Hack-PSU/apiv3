@@ -69,7 +69,7 @@
     "sanitize-html": "^2.14.0",
     "sharp": "^0.34.4",
     "url": "^0.11.4",
-    "uuid": "^13.0.0",
+    "uuid": "^14.0.0",
     "webpack": "^5.97.1"
   },
   "devDependencies": {
@@ -95,7 +95,7 @@
     "eslint": "^9.17.0",
     "eslint-config-prettier": "^10.0.0",
     "eslint-plugin-prettier": "^5.2.1",
-    "globals": "^16.0.0",
+    "globals": "^17.0.0",
     "jest": "30.4.2",
     "prettier": "^3.4.2",
     "rimraf": "^6.0.1",
