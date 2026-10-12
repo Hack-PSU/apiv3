@@ -3,7 +3,10 @@ import { InjectRepository, Repository } from "common/objection";
 import { Registration } from "entities/registration.entity";
 import { User } from "entities/user.entity";
 import { UserService } from "modules/user/user.service";
-import { ApplicantEvaluationInput } from "./applicant-evaluation-input.types";
+import {
+  ApplicantEvaluationInput,
+  ApplicantEvaluationResume,
+} from "./applicant-evaluation-input.types";
 
 @Injectable()
 export class ApplicantEvaluationInputService {
@@ -36,15 +39,6 @@ export class ApplicantEvaluationInputService {
       throw new NotFoundException(`User not found for userId: ${userId}`);
     }
 
-    const resume = user.resume
-      ? {
-          mimeType: "application/pdf" as const,
-          base64Data: (await this.userService.downloadResume(userId)).toString(
-            "base64",
-          ),
-        }
-      : null;
-
     return {
       hackathonId,
       userId,
@@ -55,7 +49,26 @@ export class ApplicantEvaluationInputService {
       academicYear: registration.academicYear,
       major: user.major,
       university: user.university,
-      resume,
+      resume: user.resume ? await this.loadResume(userId) : null,
     };
+  }
+
+  private async loadResume(
+    userId: string,
+  ): Promise<ApplicantEvaluationResume | null> {
+    try {
+      const buffer = await this.userService.downloadResume(userId);
+      return {
+        mimeType: "application/pdf",
+        base64Data: buffer.toString("base64"),
+      };
+    } catch (error) {
+      // A user record can still point at a resume that was removed from the
+      // bucket.
+      if (error?.code === 404) {
+        return null;
+      }
+      throw error;
+    }
   }
 }
