@@ -498,8 +498,10 @@ export class AnalyticsController {
     },
   })
   async getApplicationAnalytics() {
-    const PENN_STATE_UNIVERSITY =
-      "The Pennsylvania State University - Main Campus";
+    // Matches every Penn State campus, not just Main Campus
+    const PENN_STATE_PREFIX = "The Pennsylvania State University";
+    const isPennState = (university?: string | null) =>
+      university?.startsWith(PENN_STATE_PREFIX) ?? false;
 
     // Get all registrations with user information for the active hackathon
     const applications = await this.registrationRepo
@@ -508,11 +510,11 @@ export class AnalyticsController {
       .withGraphFetched("user");
 
     // Separate Penn State and Other students
-    const pennStateApps = applications.filter(
-      (app) => app.user.university === PENN_STATE_UNIVERSITY,
+    const pennStateApps = applications.filter((app) =>
+      isPennState(app.user?.university),
     );
     const otherApps = applications.filter(
-      (app) => app.user.university !== PENN_STATE_UNIVERSITY,
+      (app) => !isPennState(app.user?.university),
     );
 
     const pennStateMetrics =
