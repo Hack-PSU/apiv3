@@ -121,11 +121,15 @@ export class VertexApplicantScoringService {
           method: "POST",
           data: body,
           timeout: REQUEST_TIMEOUT_MS,
+          // Vertex's shared quota returns occasional 429s even at low volume.
           retryConfig: {
-            retry: 1,
+            retry: 2,
             retryDelay: 5000,
             httpMethodsToRetry: ["POST"],
-            statusCodesToRetry: [[500, 599]],
+            statusCodesToRetry: [
+              [429, 429],
+              [500, 599],
+            ],
           },
         });
         return response.data;
