@@ -57,7 +57,10 @@ class EventCreateEntity extends OmitType(EventEntity, ["id", "icon"] as const) {
   icon?: any;
 
   @IsOptional()
-  @Transform(({ value }) => {
+  // Reads the raw value from obj: the inherited @Type(() => Boolean) runs
+  // first and would already have turned the multipart string "false" into true.
+  @Transform(({ obj, key }) => {
+    const value = obj[key];
     if (value === undefined || value === null) return false;
     if (typeof value === "string") return value === "true";
     return value;
