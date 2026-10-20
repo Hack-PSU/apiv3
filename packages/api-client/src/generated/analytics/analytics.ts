@@ -23,6 +23,7 @@ import type {
 import type {
   AnalyticsApplicationsResponse,
   AnalyticsEventsResponse,
+  AnalyticsGetApplicationAnalyticsParams,
   AnalyticsGetCheckInsParams,
   AnalyticsScansResponse,
   AnalyticsSummaryResponse,
@@ -459,20 +460,27 @@ export function useAnalyticsGetCheckIns<TData = Awaited<ReturnType<typeof analyt
 
 
 
-export const getAnalyticsGetApplicationAnalyticsUrl = () => {
+export const getAnalyticsGetApplicationAnalyticsUrl = (params?: AnalyticsGetApplicationAnalyticsParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
 
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/analytics/applications`
+  return stringifiedParams.length > 0 ? `/analytics/applications?${stringifiedParams}` : `/analytics/applications`
 }
 
 /**
  * @summary Get application metrics for each event
  */
-export const analyticsGetApplicationAnalytics = async ( options?: Parameters<typeof customFetch>[1]): Promise<AnalyticsApplicationsResponse> => {
+export const analyticsGetApplicationAnalytics = async (params?: AnalyticsGetApplicationAnalyticsParams, options?: Parameters<typeof customFetch>[1]): Promise<AnalyticsApplicationsResponse> => {
 
-  return customFetch<AnalyticsApplicationsResponse>(getAnalyticsGetApplicationAnalyticsUrl(),
+  return customFetch<AnalyticsApplicationsResponse>(getAnalyticsGetApplicationAnalyticsUrl(params),
   {
     ...options,
     method: 'GET'
@@ -485,23 +493,23 @@ export const analyticsGetApplicationAnalytics = async ( options?: Parameters<typ
 
 
 
-export const getAnalyticsGetApplicationAnalyticsQueryKey = () => {
+export const getAnalyticsGetApplicationAnalyticsQueryKey = (params?: AnalyticsGetApplicationAnalyticsParams,) => {
     return [
-    `/analytics/applications`
+    `/analytics/applications`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getAnalyticsGetApplicationAnalyticsQueryOptions = <TData = Awaited<ReturnType<typeof analyticsGetApplicationAnalytics>>, TError = ExceptionResponse>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof analyticsGetApplicationAnalytics>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+export const getAnalyticsGetApplicationAnalyticsQueryOptions = <TData = Awaited<ReturnType<typeof analyticsGetApplicationAnalytics>>, TError = ExceptionResponse>(params?: AnalyticsGetApplicationAnalyticsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof analyticsGetApplicationAnalytics>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getAnalyticsGetApplicationAnalyticsQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getAnalyticsGetApplicationAnalyticsQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof analyticsGetApplicationAnalytics>>> = ({ signal }) => analyticsGetApplicationAnalytics({ signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof analyticsGetApplicationAnalytics>>> = ({ signal }) => analyticsGetApplicationAnalytics(params, { signal, ...requestOptions });
 
 
 
@@ -515,7 +523,7 @@ export type AnalyticsGetApplicationAnalyticsQueryError = ExceptionResponse
 
 
 export function useAnalyticsGetApplicationAnalytics<TData = Awaited<ReturnType<typeof analyticsGetApplicationAnalytics>>, TError = ExceptionResponse>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof analyticsGetApplicationAnalytics>>, TError, TData>> & Pick<
+ params: undefined |  AnalyticsGetApplicationAnalyticsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof analyticsGetApplicationAnalytics>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof analyticsGetApplicationAnalytics>>,
           TError,
@@ -525,7 +533,7 @@ export function useAnalyticsGetApplicationAnalytics<TData = Awaited<ReturnType<t
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAnalyticsGetApplicationAnalytics<TData = Awaited<ReturnType<typeof analyticsGetApplicationAnalytics>>, TError = ExceptionResponse>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof analyticsGetApplicationAnalytics>>, TError, TData>> & Pick<
+ params?: AnalyticsGetApplicationAnalyticsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof analyticsGetApplicationAnalytics>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof analyticsGetApplicationAnalytics>>,
           TError,
@@ -535,7 +543,7 @@ export function useAnalyticsGetApplicationAnalytics<TData = Awaited<ReturnType<t
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAnalyticsGetApplicationAnalytics<TData = Awaited<ReturnType<typeof analyticsGetApplicationAnalytics>>, TError = ExceptionResponse>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof analyticsGetApplicationAnalytics>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ params?: AnalyticsGetApplicationAnalyticsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof analyticsGetApplicationAnalytics>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -543,11 +551,11 @@ export function useAnalyticsGetApplicationAnalytics<TData = Awaited<ReturnType<t
  */
 
 export function useAnalyticsGetApplicationAnalytics<TData = Awaited<ReturnType<typeof analyticsGetApplicationAnalytics>>, TError = ExceptionResponse>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof analyticsGetApplicationAnalytics>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ params?: AnalyticsGetApplicationAnalyticsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof analyticsGetApplicationAnalytics>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getAnalyticsGetApplicationAnalyticsQueryOptions(options)
+  const queryOptions = getAnalyticsGetApplicationAnalyticsQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
