@@ -440,6 +440,7 @@ export class AnalyticsController {
 
   private async calculateApplicationMetrics(
     applications: any[],
+    hackathonId?: string,
   ): Promise<ApplicationMetrics> {
     const confirmedApplicants = applications.filter(
       (app) => app.applicationStatus === "confirmed",
@@ -458,7 +459,7 @@ export class AnalyticsController {
 
     const confirmedAndScannedApplicants = await this.scanRepo
       .findAll()
-      .byHackathon()
+      .byHackathon(hackathonId)
       .joinRelated("event")
       .whereIn(
         "user_id",
@@ -490,6 +491,13 @@ export class AnalyticsController {
 
   @Get("/applications")
   @Roles(Role.NONE)
+  @ApiQuery({
+    name: "hackathonId",
+    required: false,
+    type: String,
+    description:
+      "The hackathon ID to fetch application metrics for. Defaults to the active hackathon.",
+  })
   @ApiDoc({
     summary: "Get application metrics for each event",
     auth: Role.TEAM,
@@ -497,28 +505,36 @@ export class AnalyticsController {
       ok: { type: AnalyticsApplicationsResponse },
     },
   })
-  async getApplicationAnalytics() {
-    const PENN_STATE_UNIVERSITY =
-      "The Pennsylvania State University - Main Campus";
+  async getApplicationAnalytics(@Query("hackathonId") hackathonId?: string) {
+    // Matches every Penn State campus, not just Main Campus
+    const PENN_STATE_PREFIX = "The Pennsylvania State University";
+    const isPennState = (university?: string | null) =>
+      university?.startsWith(PENN_STATE_PREFIX) ?? false;
 
-    // Get all registrations with user information for the active hackathon
+    // Get all registrations with user information for the requested hackathon
+    // (falls back to the active hackathon when no ID is provided)
     const applications = await this.registrationRepo
       .findAll()
-      .byHackathon()
+      .byHackathon(hackathonId)
       .withGraphFetched("user");
 
     // Separate Penn State and Other students
-    const pennStateApps = applications.filter(
-      (app) => app.user.university === PENN_STATE_UNIVERSITY,
+    const pennStateApps = applications.filter((app) =>
+      isPennState(app.user?.university),
     );
     const otherApps = applications.filter(
-      (app) => app.user.university !== PENN_STATE_UNIVERSITY,
+      (app) => !isPennState(app.user?.university),
     );
 
-    const pennStateMetrics =
-      await this.calculateApplicationMetrics(pennStateApps);
+    const pennStateMetrics = await this.calculateApplicationMetrics(
+      pennStateApps,
+      hackathonId,
+    );
 
-    const otherMetrics = await this.calculateApplicationMetrics(otherApps);
+    const otherMetrics = await this.calculateApplicationMetrics(
+      otherApps,
+      hackathonId,
+    );
 
     return {
       pennState: pennStateMetrics,

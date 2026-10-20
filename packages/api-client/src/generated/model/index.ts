@@ -13,6 +13,7 @@ export * from './allergenCounts';
 export * from './analyticsApplicationsResponse';
 export * from './analyticsEventsResponse';
 export * from './analyticsEventsScansEntity';
+export * from './analyticsGetApplicationAnalyticsParams';
 export * from './analyticsGetCheckInsParams';
 export * from './analyticsScansResponse';
 export * from './analyticsSummaryResponse';

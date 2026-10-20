@@ -6103,7 +6103,17 @@
     "/analytics/applications": {
       "get": {
         "operationId": "analytics_getApplicationAnalytics",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "hackathonId",
+            "required": false,
+            "in": "query",
+            "description": "The hackathon ID to fetch application metrics for. Defaults to the active hackathon.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
