@@ -73,7 +73,7 @@ export class AppleWalletController {
       issuerName: "HackPSU",
       homepageUri: "https://hackpsu.org",
       logoUrl:
-        "https://storage.googleapis.com/hackpsu-408118.appspot.com/sponsor-logos/6-Test%20Sponsor-light.png",
+        "https://storage.googleapis.com/hackpsu-408118.appspot.com/assets/FA26Logo.PNG",
       ticketHolderName: `${user.firstName} ${user.lastName}`,
       ticketNumber: userId,
       startDateTime: eventStartTime.toISO(),
