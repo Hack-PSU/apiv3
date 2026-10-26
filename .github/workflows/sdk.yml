@@ -43,7 +43,7 @@ jobs:
     outputs:
       should-release: ${{ steps.release.outputs.changed }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           # Needs the previous commit to tell whether this push changed anything
           # worth releasing.
@@ -140,7 +140,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           token: ${{ secrets.SDK_RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
 
