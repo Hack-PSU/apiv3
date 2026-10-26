@@ -2,6 +2,7 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
 import { Module } from "@nestjs/common";
 
 import {
+  agentEngineConfig,
   appleConfig,
   ConfigToken,
   dbConfig,
@@ -57,6 +58,7 @@ import { DistributedLockModule } from "common/gcp/scheduler";
         appleConfig,
         bucketConfig,
         gotifyConfig,
+        agentEngineConfig,
       ],
     }),
 
