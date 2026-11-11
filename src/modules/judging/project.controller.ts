@@ -100,6 +100,18 @@ export class ProjectController {
       if (!team.isActive) {
         throw new BadRequestException("Cannot assign project to inactive team");
       }
+
+      // Ensure the team hasn't already submitted a project for this hackathon
+      const existingProject = await this.projectRepo
+        .findAll()
+        .byHackathon(data.hackathonId)
+        .where("teamId", data.teamId)
+        .first();
+      if (existingProject) {
+        throw new BadRequestException(
+          "This team has already submitted a project",
+        );
+      }
     }
 
     const result = await this.projectRepo
