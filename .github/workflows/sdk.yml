@@ -49,7 +49,7 @@ jobs:
           # worth releasing.
           fetch-depth: 2
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: "24"
           cache: yarn
@@ -144,7 +144,7 @@ jobs:
         with:
           token: ${{ secrets.SDK_RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: "24"
           cache: yarn
