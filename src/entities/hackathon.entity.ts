@@ -58,6 +58,14 @@ import { Scan } from "./scan.entity";
         to: "sponsors.hackathonId",
       },
     },
+    challenges: {
+      relation: Entity.HasManyRelation,
+      modelClass: "challenge.entity.js",
+      join: {
+        from: "hackathons.id",
+        to: "challenges.hackathonId",
+      },
+    },
     scans: {
       relation: Entity.HasManyRelation,
       modelClass: Scan,
