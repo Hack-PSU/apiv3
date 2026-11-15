@@ -29,6 +29,7 @@ import { ScanModule } from "modules/scan/scan.module";
 import { SendGridModule } from "common/sendgrid";
 import { SocketModule } from "modules/socket/socket.module";
 import { SponsorModule } from "modules/sponsor/sponsor.module";
+import { ChallengeModule } from "modules/challenge/challenge.module";
 import { UserModule } from "modules/user/user.module";
 import { FinanceModule } from "modules/finance/finance.module";
 import { WalletModule } from "modules/wallet/wallet.module";
@@ -100,6 +101,7 @@ import { DistributedLockModule } from "common/gcp/scheduler";
     OrganizerModule,
     JudgingModule,
     SponsorModule,
+    ChallengeModule,
     ScanModule,
     ExtraCreditModule,
     RegistrationModule,
