@@ -195,7 +195,7 @@ export class FinanceController {
   }
 
   @Patch(":id/status")
-  @Roles(Role.TECH) 
+  @Roles(Role.TECH) // TODO: Change to Role.FINANCE after testing
   @ApiDoc({
     summary: "Update a Reimbursement's status",
     params: [
@@ -389,7 +389,7 @@ export class FinanceController {
   }
 
   @Patch(":id")
-  @Roles(Role.FINANCE)
+  @Roles(Role.TECH) // TODO: Change to Role.FINANCE after testing
   @ApiDoc({
     summary: "Edit a reimbursement (everything but status & receipt)",
     params: [{ name: "id", description: "Valid reimbursement ID" }],

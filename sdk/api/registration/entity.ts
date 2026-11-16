@@ -17,6 +17,7 @@ export interface RegistrationEntity {
 	project: string;
 	referral: string;
 	shareEmailMlh?: boolean;
+	textOptIn?: boolean;
 	time: number;
 	veteran: string;
 	excitement: string;

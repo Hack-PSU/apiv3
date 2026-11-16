@@ -856,6 +856,7 @@ export class UserController {
               share_address_mlh: { type: "boolean" },
               share_address_sponsors: { type: "boolean" },
               share_email_mlh: { type: "boolean" },
+              text_opt_in: { type: "boolean" },
               driving: { type: "boolean" },
               travel_reimbursement: { type: "boolean" },
               first_hackathon: { type: "boolean" },
