@@ -98,6 +98,8 @@ export class SponsorController {
     query: [
       {
         name: "hackathonId",
+        type: String,
+        required: false,
         description: "The ID of a valid hackathon",
       },
     ],

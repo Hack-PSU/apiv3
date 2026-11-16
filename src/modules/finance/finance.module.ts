@@ -7,6 +7,8 @@ import { Organizer } from "entities/organizer.entity";
 import { Hackathon } from "entities/hackathon.entity";
 import { FinanceService } from "./finance.service";
 import { ConfigModule } from "@nestjs/config";
+import { SendGridService } from "common/sendgrid";
+import { FinanceScheduler } from "./finance.scheduler";
 
 @Module({
   imports: [
@@ -14,6 +16,6 @@ import { ConfigModule } from "@nestjs/config";
     ConfigModule,
   ],
   controllers: [FinanceController],
-  providers: [FinanceService],
+  providers: [FinanceService, SendGridService, FinanceScheduler],
 })
 export class FinanceModule {}

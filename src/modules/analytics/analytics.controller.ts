@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from "@nestjs/common";
+import { Controller, Get, Query, Response } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
 import { Hackathon } from "entities/hackathon.entity";
 import { User } from "entities/user.entity";
@@ -15,11 +15,104 @@ import { Role, Roles } from "common/gcp";
 import { Organizer, OrganizerEntity } from "entities/organizer.entity";
 import { Event, EventEntity } from "entities/event.entity";
 import { ApiQuery } from "@nestjs/swagger";
+import * as fs from "fs";
+import * as path from "path";
+import * as os from "os";
+import { Readable } from "stream";
+
+const PDFDocument = require("pdfkit");
+
+// Conditional import for canvas-dependent libraries
+let ChartJSNodeCanvas: any = null;
+let isCanvasAvailable = false;
+
+try {
+  const canvasModule = require("chartjs-node-canvas");
+  ChartJSNodeCanvas = canvasModule.ChartJSNodeCanvas;
+  isCanvasAvailable = true;
+} catch (e) {
+  console.warn(
+    "Canvas and chartjs-node-canvas are not available - PDF generation with charts will be disabled. This is expected if canvas is a WIP dependency.",
+  );
+  isCanvasAvailable = false;
+}
+
+const RACE_CATEGORIES: { label: string; patterns: string[] }[] = [
+  { label: "Asian", patterns: ["asian"] },
+  { label: "Caucasian", patterns: ["caucasian", "white"] },
+  { label: "Hispanic or Latinx", patterns: ["hispanic", "latinx"] },
+  {
+    label: "Black or African American",
+    patterns: ["black or african american", "african american"],
+  },
+  {
+    label: "Native American or Alaska Native",
+    patterns: ["native american", "alaska native"],
+  },
+  {
+    label: "Native Hawaiian or Other Pacific Islander",
+    patterns: ["native hawaiian", "pacific islander"],
+  },
+  { label: "Prefer not to say", patterns: ["nodisclose", "prefer not to say"] },
+  { label: "Multiracial", patterns: ["multiracial"] },
+];
+
+// Helper to save canvas to PNG file
+async function saveCanvasToPNG(canvas: any, filepath: string): Promise<void> {
+  try {
+    // Try to get buffer from canvas - different canvas implementations have different APIs
+    let buffer: Buffer;
+
+    if (typeof canvas.toBuffer === "function") {
+      buffer = canvas.toBuffer("image/png");
+    } else if (canvas && typeof canvas.toBuffer === "function") {
+      buffer = canvas.toBuffer();
+    } else if (canvas.canvas && typeof canvas.canvas.toBuffer === "function") {
+      buffer = canvas.canvas.toBuffer("image/png");
+    } else {
+      throw new Error(
+        `Canvas object has no toBuffer method. Available methods: ${Object.getOwnPropertyNames(Object.getPrototypeOf(canvas)).join(", ")}`,
+      );
+    }
+
+    fs.writeFileSync(filepath, buffer);
+  } catch (error) {
+    throw new Error(`Failed to save canvas to PNG: ${error.message}`);
+  }
+}
 
 class CountsResponse {
   @ApiProperty()
   count: number;
 }
+
+enum Allergen {
+  PEANUT = "Peanut",
+  TREE_NUT = "Tree Nut",
+  DAIRY = "Dairy",
+  SHELLFISH = "Shellfish",
+  GLUTEN = "Gluten",
+  EGG = "Egg",
+  MEAT = "Meat",
+  SOY = "Soy",
+  FISH = "Fish",
+  SESAME = "Sesame",
+  OTHER = "Other",
+}
+
+const allergenKeywords: Record<Allergen, string[]> = {
+  [Allergen.PEANUT]: ["peanut", "peanuts"],
+  [Allergen.TREE_NUT]: ["almond", "walnut", "cashew", "pecan"],
+  [Allergen.DAIRY]: ["dairy", "milk", "lactose"],
+  [Allergen.EGG]: ["egg", "eggs"],
+  [Allergen.SHELLFISH]: ["shrimp", "crab", "lobster", "shellfish"],
+  [Allergen.FISH]: ["fish"],
+  [Allergen.MEAT]: ["meat", "beef", "pork", "chicken", "turkey"],
+  [Allergen.GLUTEN]: ["gluten", "wheat"],
+  [Allergen.SOY]: ["soy"],
+  [Allergen.SESAME]: ["sesame"],
+  [Allergen.OTHER]: [],
+};
 
 class RegistrationCounts extends CountsResponse {
   @ApiProperty()
@@ -49,7 +142,12 @@ class CodingExpCounts extends CountsResponse {
   codingExperience: string;
 }
 
-class AnalyticsApplicationsResponse {
+class AllergenCounts extends CountsResponse {
+  @ApiProperty()
+  allergen: Allergen;
+}
+
+class ApplicationMetrics {
   @ApiProperty()
   attendanceRate: number;
 
@@ -64,6 +162,14 @@ class AnalyticsApplicationsResponse {
 
   @ApiProperty()
   acceptanceRate: number;
+}
+
+class AnalyticsApplicationsResponse {
+  @ApiProperty({ type: ApplicationMetrics })
+  pennState: ApplicationMetrics;
+
+  @ApiProperty({ type: ApplicationMetrics })
+  other: ApplicationMetrics;
 }
 class AnalyticsSummaryResponse {
   @ApiProperty({ type: [RegistrationCounts] })
@@ -80,6 +186,9 @@ class AnalyticsSummaryResponse {
 
   @ApiProperty({ type: [CodingExpCounts] })
   codingExp: CodingExpCounts[];
+
+  @ApiProperty({ type: [AllergenCounts] })
+  allergens: AllergenCounts[];
 }
 
 class AnalyticsScansResponse extends PickType(OrganizerEntity, [
@@ -109,6 +218,69 @@ class CheckInsResponse {
 @Controller("analytics")
 @ApiExtraModels(AnalyticsSummaryResponse, ScanEntity)
 export class AnalyticsController {
+  private async getRaceCounts(): Promise<RaceCounts[]> {
+    const results = await Promise.all(
+      RACE_CATEGORIES.map(async ({ label, patterns }) => {
+        const whereClause = patterns
+          .map(() => "LOWER(race) LIKE ?")
+          .join(" OR ");
+        const result = (await this.userRepo
+          .findAll()
+          .byHackathon()
+          .whereRaw(
+            `(${whereClause})`,
+            patterns.map((p) => `%${p}%`),
+          )
+          .count("users.id", { as: "count" })
+          .first()) as any;
+        return { race: label, count: Number(result?.count ?? 0) };
+      }),
+    );
+    return results.filter((r) => r.count > 0);
+  }
+
+  private parseAllergens(
+    allergyEntries: { allergies: string }[],
+  ): AllergenCounts[] {
+    const allergenCounts: Record<Allergen, number> = {
+      [Allergen.PEANUT]: 0,
+      [Allergen.TREE_NUT]: 0,
+      [Allergen.DAIRY]: 0,
+      [Allergen.SHELLFISH]: 0,
+      [Allergen.GLUTEN]: 0,
+      [Allergen.EGG]: 0,
+      [Allergen.MEAT]: 0,
+      [Allergen.SOY]: 0,
+      [Allergen.FISH]: 0,
+      [Allergen.SESAME]: 0,
+      [Allergen.OTHER]: 0,
+    };
+
+    for (const entry of allergyEntries) {
+      const allergyText = entry.allergies.toLowerCase();
+      let matched = false;
+
+      // Check each allergen category against the keywords
+      for (const [allergen, keywords] of Object.entries(allergenKeywords)) {
+        if (keywords.some((keyword) => allergyText.includes(keyword))) {
+          allergenCounts[allergen as Allergen]++;
+          matched = true;
+          break;
+        }
+      }
+
+      // If no keywords matched, count as OTHER
+      if (!matched) {
+        allergenCounts[Allergen.OTHER]++;
+      }
+    }
+
+    // Convert counts object to array format
+    return Object.entries(allergenCounts).map(([allergen, count]) => ({
+      allergen: allergen as Allergen,
+      count,
+    }));
+  }
   constructor(
     @InjectRepository(Hackathon)
     private readonly hackathonRepo: Repository<Hackathon>,
@@ -138,7 +310,7 @@ export class AnalyticsController {
     const registrationCountsByHackathon = await Hackathon.query()
       .joinRelated("registrations")
       .count("registrations.hackathonId", { as: "count" })
-      .groupBy("hackathons.id")
+      .groupBy("hackathons.id", "hackathons.name", "hackathons.start_time")
       .orderBy("hackathons.startTime")
       .select("hackathons.id", "hackathons.name");
 
@@ -150,13 +322,8 @@ export class AnalyticsController {
       .groupBy("gender")
       .select("gender");
 
-    // get all race counts for active hackathon
-    const activeRaceEthnicityCounts = await this.userRepo
-      .findAll()
-      .byHackathon()
-      .count("race", { as: "count" })
-      .groupBy("race")
-      .select("race");
+    // get race counts for active hackathon using per-category LIKE queries
+    const activeRaceEthnicityCounts = await this.getRaceCounts();
 
     // get all academic year counts for active hackathon
     const activeAcademicYearCounts = await this.registrationRepo
@@ -174,12 +341,21 @@ export class AnalyticsController {
       .groupBy("codingExperience")
       .select("codingExperience");
 
+    const activeAllergies = await this.userRepo
+      .findAll()
+      .byHackathon()
+      .where("allergies", "!=", "")
+      .select("allergies");
+
+    const allergenCounts = this.parseAllergens(activeAllergies);
+
     return {
       registrations: registrationCountsByHackathon,
       gender: activeGenderCounts,
       race: activeRaceEthnicityCounts,
       academicYear: activeAcademicYearCounts,
       codingExp: activeCodingExpCounts,
+      allergens: allergenCounts,
     };
   }
 
@@ -189,7 +365,7 @@ export class AnalyticsController {
     summary: "Get Check-In count for each event",
     auth: Role.TEAM,
     response: {
-      ok: { type: AnalyticsEventsResponse },
+      ok: { type: [AnalyticsEventsResponse] },
     },
   })
   async getEventsAnalytics() {
@@ -204,6 +380,14 @@ export class AnalyticsController {
   }
 
   @Get("/scans")
+  @Roles(Role.TEAM)
+  @ApiDoc({
+    summary: "Get scan count for each organizer",
+    auth: Role.TEAM,
+    response: {
+      ok: { type: [AnalyticsScansResponse] },
+    },
+  })
   async getOrganizerScans() {
     return this.organizerRepo
       .findAll()
@@ -253,9 +437,67 @@ export class AnalyticsController {
       timestamps: scans.map((scan) => scan.timestamp),
     };
   }
-  
+
+  private async calculateApplicationMetrics(
+    applications: any[],
+    hackathonId?: string,
+  ): Promise<ApplicationMetrics> {
+    const confirmedApplicants = applications.filter(
+      (app) => app.applicationStatus === "confirmed",
+    );
+    const declinedApplicants = applications.filter(
+      (app) => app.applicationStatus === "declined",
+    );
+    const acceptedApplicants = applications.filter(
+      (app) => app.applicationStatus === "accepted",
+    );
+
+    const totalAccepted =
+      confirmedApplicants.length +
+      declinedApplicants.length +
+      acceptedApplicants.length;
+
+    const confirmedAndScannedApplicants = await this.scanRepo
+      .findAll()
+      .byHackathon(hackathonId)
+      .joinRelated("event")
+      .whereIn(
+        "user_id",
+        confirmedApplicants.map((app) => app.userId),
+      )
+      .where("event.type", "checkIn")
+      .groupBy("user_id")
+      .select("user_id");
+
+    return {
+      attendanceRate:
+        confirmedApplicants.length > 0
+          ? confirmedAndScannedApplicants.length / confirmedApplicants.length
+          : 0,
+      confirmRate:
+        totalAccepted > 0 ? confirmedApplicants.length / totalAccepted : 0,
+      averageConfirmTime:
+        confirmedApplicants.length > 0
+          ? confirmedApplicants.reduce(
+              (acc, app) => acc + (app.rsvpAt - app.acceptedAt),
+              0,
+            ) / confirmedApplicants.length
+          : 0,
+      acceptanceTotal: totalAccepted,
+      acceptanceRate:
+        applications.length > 0 ? totalAccepted / applications.length : 0,
+    };
+  }
+
   @Get("/applications")
-  @Roles(Role.TEAM)
+  @Roles(Role.NONE)
+  @ApiQuery({
+    name: "hackathonId",
+    required: false,
+    type: String,
+    description:
+      "The hackathon ID to fetch application metrics for. Defaults to the active hackathon.",
+  })
   @ApiDoc({
     summary: "Get application metrics for each event",
     auth: Role.TEAM,
@@ -263,51 +505,395 @@ export class AnalyticsController {
       ok: { type: AnalyticsApplicationsResponse },
     },
   })
-  async getApplicationAnalytics() {
-    // Get the total count of applicants for the active hackathon
-    const totalApplicants = await this.registrationRepo
-      .findAll()
-      .byHackathon()
-      .count("id", { as: "count" })
-      .first();
+  async getApplicationAnalytics(@Query("hackathonId") hackathonId?: string) {
+    // Matches every Penn State campus, not just Main Campus
+    const PENN_STATE_PREFIX = "The Pennsylvania State University";
+    const isPennState = (university?: string | null) =>
+      university?.startsWith(PENN_STATE_PREFIX) ?? false;
 
-    // Get application statuses and rsvp for the current hackathon
+    // Get all registrations with user information for the requested hackathon
+    // (falls back to the active hackathon when no ID is provided)
     const applications = await this.registrationRepo
       .findAll()
-      .byHackathon()
-      .select(
-        "user_id",
-        "application_status",
-        "accepted_at",
-        "rsvp_at",
-        "rsvp_deadline"
+      .byHackathon(hackathonId)
+      .withGraphFetched("user");
+
+    // Separate Penn State and Other students
+    const pennStateApps = applications.filter((app) =>
+      isPennState(app.user?.university),
+    );
+    const otherApps = applications.filter(
+      (app) => !isPennState(app.user?.university),
+    );
+
+    const pennStateMetrics = await this.calculateApplicationMetrics(
+      pennStateApps,
+      hackathonId,
+    );
+
+    const otherMetrics = await this.calculateApplicationMetrics(
+      otherApps,
+      hackathonId,
+    );
+
+    return {
+      pennState: pennStateMetrics,
+      other: otherMetrics,
+    };
+  }
+
+  @Get("/pdf")
+  @Roles(Role.TEAM)
+  @ApiDoc({
+    summary: "Generate analytics PDF report",
+    response: {
+      custom: [
+        {
+          status: 200,
+          description: "The rendered report",
+          content: {
+            "application/pdf": { schema: { type: "string", format: "binary" } },
+          },
+        },
+        {
+          status: 503,
+          description:
+            "Chart rendering is unavailable because the canvas dependency is not present in this build",
+        },
+      ],
+    },
+    auth: Role.TEAM,
+  })
+  async getPdf(@Response() res: any) {
+    if (!isCanvasAvailable) {
+      return res.status(503).json({
+        error: "Canvas feature is currently unavailable (WIP)",
+        message:
+          "PDF generation with charts requires canvas library which is not currently available in this build",
+      });
+    }
+
+    try {
+      // Fetch analytics data using same queries as summary endpoint
+      const registrationCountsByHackathon = (await Hackathon.query()
+        .joinRelated("registrations")
+        .count("registrations.hackathonId", { as: "count" })
+        .groupBy("hackathons.id")
+        .orderBy("hackathons.startTime")
+        .select("hackathons.id", "hackathons.name")) as any;
+
+      const activeGenderCounts = await this.userRepo
+        .findAll()
+        .byHackathon()
+        .count("gender", { as: "count" })
+        .groupBy("gender")
+        .select("gender");
+
+      const activeRaceEthnicityCounts = await this.getRaceCounts();
+
+      const activeAcademicYearCounts = await this.registrationRepo
+        .findAll()
+        .byHackathon()
+        .count("academicYear", { as: "count" })
+        .groupBy("academicYear")
+        .select("academicYear");
+
+      const activeCodingExpCounts = await this.registrationRepo
+        .findAll()
+        .byHackathon()
+        .count("codingExperience", { as: "count" })
+        .groupBy("codingExperience")
+        .select("codingExperience");
+
+      // Create PDF document
+      const doc = new PDFDocument({
+        size: "A4",
+        margin: 40,
+      });
+
+      // Set response headers
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader(
+        "Content-Disposition",
+        'attachment; filename="analytics-report.pdf"',
       );
 
-    // Get all the confirmed, declined, accpted applicants
-    const confirmedApplicants = applications.filter(app => app.applicationStatus === "confirmed");
-    const declinedApplicants = applications.filter(app => app.applicationStatus === "declined");
-    const acceptedApplicants = applications.filter(app => app.applicationStatus === "accepted");
-    
-    // Total is all 3 added together
-    const totalAccepted = confirmedApplicants.length + declinedApplicants.length + acceptedApplicants.length;
+      // Pipe document to response
+      doc.pipe(res);
 
-    // Filter all users that have confirmed and scanned in with checkIn
-    const confirmedAndScannedApplicants = await this.scanRepo
-      .findAll()
-      .byHackathon()
-      .joinRelated("event")
-      .whereIn("user_id", confirmedApplicants.map(app => app.userId))
-      .where("event.type", "checkIn")
-      .groupBy("user_id")
-      .select("user_id");
+      // Add title
+      doc
+        .fontSize(24)
+        .font("Helvetica-Bold")
+        .text("Analytics Report", { align: "center" });
 
-    // Calculate metrics; (average confirm time in nanoseconds)
-    return {
-      attendanceRate: confirmedAndScannedApplicants.length / confirmedApplicants.length,
-      confirmRate: confirmedApplicants.length / totalAccepted,
-      averageConfirmTime: confirmedApplicants.reduce((acc, app) => acc + (app.rsvpAt - app.acceptedAt), 0) / confirmedApplicants.length,
-      acceptanceTotal: totalAccepted,
-      acceptanceRate: totalAccepted / totalApplicants.count,
-    };
+      doc.moveDown(0.5);
+      doc
+        .fontSize(12)
+        .font("Helvetica")
+        .text(`Generated on ${new Date().toLocaleString()}`, {
+          align: "center",
+        });
+
+      doc.moveDown(1.5);
+
+      // Add summary metrics
+      doc.fontSize(16).font("Helvetica-Bold").text("Summary Metrics");
+      doc.moveDown(0.5);
+
+      const totalRegistrations = registrationCountsByHackathon.reduce(
+        (sum, r) => sum + r.count,
+        0,
+      );
+      doc
+        .fontSize(12)
+        .font("Helvetica")
+        .text(`Total Registrations: ${totalRegistrations}`);
+
+      doc.moveDown(0.3);
+      doc.text(`Hackathons: ${registrationCountsByHackathon.length}`);
+
+      doc.moveDown(1.5);
+
+      // Create pie chart data and images
+      const chartJSNodeCanvas = new ChartJSNodeCanvas({
+        width: 400,
+        height: 300,
+      });
+
+      // Generate gender pie chart
+      if (activeGenderCounts.length > 0) {
+        doc.fontSize(14).font("Helvetica-Bold").text("Gender Distribution");
+        doc.moveDown(0.5);
+
+        const genderChartConfig = {
+          type: "pie",
+          data: {
+            labels: activeGenderCounts.map((g) => g.gender || "Not Specified"),
+            datasets: [
+              {
+                data: activeGenderCounts.map((g) => g.count),
+                backgroundColor: [
+                  "#FF6384",
+                  "#36A2EB",
+                  "#FFCE56",
+                  "#4BC0C0",
+                  "#9966FF",
+                  "#FF9F40",
+                ],
+                borderColor: [
+                  "#FF6384",
+                  "#36A2EB",
+                  "#FFCE56",
+                  "#4BC0C0",
+                  "#9966FF",
+                  "#FF9F40",
+                ],
+                borderWidth: 2,
+              },
+            ],
+          },
+          options: {
+            responsive: false,
+            plugins: {
+              legend: {
+                position: "bottom" as const,
+              },
+            },
+          },
+        };
+
+        const genderImagePath = path.join(os.tmpdir(), "gender-chart.png");
+        const genderCanvas =
+          await chartJSNodeCanvas.renderChart(genderChartConfig);
+        await saveCanvasToPNG(genderCanvas, genderImagePath);
+        doc.image(genderImagePath, { width: 350 });
+        fs.unlinkSync(genderImagePath);
+        doc.moveDown(1.5);
+      }
+
+      // Generate race pie chart
+      if (activeRaceEthnicityCounts.length > 0) {
+        doc
+          .fontSize(14)
+          .font("Helvetica-Bold")
+          .text("Race/Ethnicity Distribution");
+        doc.moveDown(0.5);
+
+        const raceChartConfig = {
+          type: "pie",
+          data: {
+            labels: activeRaceEthnicityCounts.map(
+              (r) => r.race || "Not Specified",
+            ),
+            datasets: [
+              {
+                data: activeRaceEthnicityCounts.map((r) => r.count),
+                backgroundColor: [
+                  "#FF6384",
+                  "#36A2EB",
+                  "#FFCE56",
+                  "#4BC0C0",
+                  "#9966FF",
+                  "#FF9F40",
+                  "#FF6384",
+                  "#36A2EB",
+                  "#FFCE56",
+                  "#4BC0C0",
+                ],
+                borderColor: [
+                  "#FF6384",
+                  "#36A2EB",
+                  "#FFCE56",
+                  "#4BC0C0",
+                  "#9966FF",
+                  "#FF9F40",
+                  "#FF6384",
+                  "#36A2EB",
+                  "#FFCE56",
+                  "#4BC0C0",
+                ],
+                borderWidth: 2,
+              },
+            ],
+          },
+          options: {
+            responsive: false,
+            plugins: {
+              legend: {
+                position: "bottom" as const,
+              },
+            },
+          },
+        };
+
+        const raceImagePath = path.join(os.tmpdir(), "race-chart.png");
+        const raceCanvas = await chartJSNodeCanvas.renderChart(raceChartConfig);
+        await saveCanvasToPNG(raceCanvas, raceImagePath);
+        doc.image(raceImagePath, { width: 350 });
+        fs.unlinkSync(raceImagePath);
+        doc.moveDown(1.5);
+      }
+
+      // Generate academic year pie chart
+      if (activeAcademicYearCounts.length > 0) {
+        doc
+          .fontSize(14)
+          .font("Helvetica-Bold")
+          .text("Academic Year Distribution");
+        doc.moveDown(0.5);
+
+        const academicYearChartConfig = {
+          type: "pie",
+          data: {
+            labels: activeAcademicYearCounts.map(
+              (a) => a.academicYear || "Not Specified",
+            ),
+            datasets: [
+              {
+                data: activeAcademicYearCounts.map((a) => a.count),
+                backgroundColor: [
+                  "#FF6384",
+                  "#36A2EB",
+                  "#FFCE56",
+                  "#4BC0C0",
+                  "#9966FF",
+                ],
+                borderColor: [
+                  "#FF6384",
+                  "#36A2EB",
+                  "#FFCE56",
+                  "#4BC0C0",
+                  "#9966FF",
+                ],
+                borderWidth: 2,
+              },
+            ],
+          },
+          options: {
+            responsive: false,
+            plugins: {
+              legend: {
+                position: "bottom" as const,
+              },
+            },
+          },
+        };
+
+        const academicYearImagePath = path.join(
+          os.tmpdir(),
+          "academic-year-chart.png",
+        );
+        const academicYearCanvas = await chartJSNodeCanvas.renderChart(
+          academicYearChartConfig,
+        );
+        await saveCanvasToPNG(academicYearCanvas, academicYearImagePath);
+        doc.image(academicYearImagePath, { width: 350 });
+        fs.unlinkSync(academicYearImagePath);
+        doc.moveDown(1.5);
+      }
+
+      // Generate coding experience pie chart
+      if (activeCodingExpCounts.length > 0) {
+        doc
+          .fontSize(14)
+          .font("Helvetica-Bold")
+          .text("Coding Experience Distribution");
+        doc.moveDown(0.5);
+
+        const codingExpChartConfig = {
+          type: "pie",
+          data: {
+            labels: activeCodingExpCounts.map(
+              (c) => c.codingExperience || "Not Specified",
+            ),
+            datasets: [
+              {
+                data: activeCodingExpCounts.map((c) => c.count),
+                backgroundColor: [
+                  "#FF6384",
+                  "#36A2EB",
+                  "#FFCE56",
+                  "#4BC0C0",
+                  "#9966FF",
+                ],
+                borderColor: [
+                  "#FF6384",
+                  "#36A2EB",
+                  "#FFCE56",
+                  "#4BC0C0",
+                  "#9966FF",
+                ],
+                borderWidth: 2,
+              },
+            ],
+          },
+          options: {
+            responsive: false,
+            plugins: {
+              legend: {
+                position: "bottom" as const,
+              },
+            },
+          },
+        };
+
+        const codingExpImagePath = path.join(
+          os.tmpdir(),
+          "coding-exp-chart.png",
+        );
+        const codingExpCanvas =
+          await chartJSNodeCanvas.renderChart(codingExpChartConfig);
+        await saveCanvasToPNG(codingExpCanvas, codingExpImagePath);
+        doc.image(codingExpImagePath, { width: 350 });
+        fs.unlinkSync(codingExpImagePath);
+      }
+
+      // Finalize PDF
+      doc.end();
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      res.status(500).send("Error generating PDF report");
+    }
   }
 }

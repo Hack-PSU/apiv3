@@ -32,6 +32,8 @@ import { nanoid } from "nanoid";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { UploadedIcon } from "modules/event/uploaded-icon.decorator";
 import { Express, Request } from "express";
+import { Transform } from "class-transformer";
+import { IsOptional } from "class-validator";
 import { EventService } from "modules/event/event.service";
 import { Scan, ScanEntity } from "entities/scan.entity";
 import { Role, Roles } from "common/gcp";
@@ -42,7 +44,6 @@ import { User } from "entities/user.entity";
 import { LocationEntity } from "entities/location.entity";
 import { Registration, ApplicationStatus } from "entities/registration.entity";
 import { GotifyService } from "common/gotify/gotify.service";
-
 class EventEntityResponse extends OmitType(EventEntity, ["wsUrls"] as const) {
   @ApiProperty({ type: [String] })
   wsUrls: string[];
@@ -54,6 +55,17 @@ class EventEntityResponse extends OmitType(EventEntity, ["wsUrls"] as const) {
 class EventCreateEntity extends OmitType(EventEntity, ["id", "icon"] as const) {
   @ApiProperty({ type: "string", format: "binary", required: false })
   icon?: any;
+
+  @IsOptional()
+  // Reads the raw value from obj: the inherited @Type(() => Boolean) runs
+  // first and would already have turned the multipart string "false" into true.
+  @Transform(({ obj, key }) => {
+    const value = obj[key];
+    if (value === undefined || value === null) return false;
+    if (typeof value === "string") return value === "true";
+    return value;
+  })
+  fastPass?: boolean;
 }
 
 class EventPatchEntity extends PartialType(EventCreateEntity) {}
@@ -145,11 +157,33 @@ export class EventController {
         id: eventId,
         icon: iconUrl,
         ...data,
+        fastPass: false,
       })
       .byHackathon(data.hackathonId)
       .withGraphFetched("location");
 
     this.socket.emit("create:event", event);
+
+    if (data.fastPass) {
+      const fastPassEventId = nanoid();
+      const fastPassIconUrl = icon
+        ? await this.eventService.uploadIcon(fastPassEventId, icon)
+        : iconUrl;
+      const fastPassEventName = `(Fast Pass) ${data.name}`;
+
+      const fastPassEvent = await this.eventRepo
+        .createOne({
+          id: fastPassEventId,
+          icon: fastPassIconUrl,
+          ...data,
+          fastPass: true,
+          name: fastPassEventName,
+        })
+        .byHackathon(data.hackathonId)
+        .withGraphFetched("location");
+
+      this.socket.emit("create:event", fastPassEvent);
+    }
 
     return event;
   }
@@ -420,8 +454,15 @@ export class EventController {
     )
     data: CreateScanEntity,
   ) {
-    const event = await this.eventRepo.findOne(id).exec();
-    const user = await this.userRepo.findOne(userId).exec();
+    const [event, user, userRegistration] = await Promise.all([
+      this.eventRepo.findOne(id).exec(),
+      this.userRepo.findOne(userId).exec(),
+      this.registrationRepo
+        .findAll()
+        .byHackathon(data.hackathonId)
+        .where("userId", userId)
+        .first(),
+    ]);
 
     if (!event) {
       throw new HttpException("event not found", HttpStatus.BAD_REQUEST);
@@ -430,13 +471,6 @@ export class EventController {
     if (!user) {
       throw new HttpException("user not found", HttpStatus.BAD_REQUEST);
     }
-
-    // check if user is registered for the current hackathon
-    const registration = await this.registrationRepo.findAll().exec();
-    const userRegistration = registration
-      .filter((r) => r.userId == userId)
-      .filter((r) => r.hackathonId == data.hackathonId)[0];
-    console.log("user registration", userRegistration);
 
     if (!userRegistration) {
       throw new HttpException(
@@ -453,10 +487,11 @@ export class EventController {
     }
 
     if (event.type != EventType.checkIn) {
-      // Find check-in event
-      const checkInEvent = await (await this.eventRepo.findAll().exec())
-        .filter((e) => e.type == EventType.checkIn)
-        .filter((e) => e.hackathonId == data.hackathonId)[0];
+      const checkInEvent = await this.eventRepo
+        .findAll()
+        .byHackathon(data.hackathonId)
+        .where("type", EventType.checkIn)
+        .first();
 
       if (!checkInEvent) {
         throw new HttpException(
@@ -465,17 +500,33 @@ export class EventController {
         );
       }
 
-      const events = await this.scanRepo.findAll().exec();
-      const checkInScan = events.filter(
-        (e) =>
-          e.eventId == checkInEvent.id &&
-          e.userId == userId &&
-          e.hackathonId == data.hackathonId,
-      )[0];
+      const checkInScan = await this.scanRepo
+        .findAll()
+        .byHackathon(data.hackathonId)
+        .where("eventId", checkInEvent.id)
+        .where("userId", userId)
+        .first();
 
       if (!checkInScan) {
         throw new HttpException(
           "User has not checked-in to the hackathon",
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    }
+
+    if (event.fastPass) {
+      const numEventsDone = await this.scanRepo
+        .findAll()
+        .byHackathon(data.hackathonId)
+        .joinRelated("event")
+        .where("userId", userId)
+        .whereIn("event.type", [EventType.workshop, EventType.activity])
+        .resultSize();
+
+      if (numEventsDone < 3) {
+        throw new HttpException(
+          "User has not completed at least 3 events",
           HttpStatus.BAD_REQUEST,
         );
       }
@@ -497,26 +548,6 @@ export class EventController {
       });
     } catch (e) {
       console.error(`Cannot send token message to: ${userId}`, e);
-    }
-
-    // Send Gotify notification for check-in
-    try {
-      const totalScans = await this.scanRepo
-        .findAll()
-        .byHackathon(data.hackathonId)
-        .resultSize();
-
-      const userName = `${user.firstName} ${user.lastName}`;
-
-      await this.gotifyService.sendCheckinNotification(
-        userName,
-        user.email,
-        event.name,
-        totalScans,
-      );
-    } catch (error) {
-      console.log(`Failed to send Gotify check-in notification: ${error}`);
-      // Don't fail the check-in if notification fails
     }
   }
 }

@@ -7,9 +7,22 @@ import {
   HttpStatus,
 } from "@nestjs/common";
 import { NamecheapEmailForwardingService } from "common/namecheap/namecheap.service";
-import { ApiTags } from "@nestjs/swagger";
+import { ApiProperty, ApiTags } from "@nestjs/swagger";
 import { ApiDoc, BadRequestExceptionResponse } from "common/docs";
 import { Role, Roles } from "common/gcp";
+
+class EmailForwardingEntry {
+  @ApiProperty({ description: "The hackpsu.org mailbox" })
+  mailbox: string;
+
+  @ApiProperty({ description: "The address mail is forwarded to" })
+  forwardTo: string;
+}
+
+class EmailForwardingResponse {
+  @ApiProperty({ type: [EmailForwardingEntry] })
+  ok: EmailForwardingEntry[];
+}
 
 @ApiTags("Email")
 @Controller("email")
@@ -22,6 +35,7 @@ export class EmailController {
     summary: "Get all email forwarding settings for hackpsu.org",
     auth: Role.EXEC,
     response: {
+      ok: { type: EmailForwardingResponse },
       custom: [
         { status: HttpStatus.BAD_REQUEST, type: BadRequestExceptionResponse },
       ],

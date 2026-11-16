@@ -54,7 +54,7 @@ export class ExtraCreditClass extends Entity {
   @Column({ type: "string", nullable: true, required: false })
   hackathonId: string;
 
-  @ApiProperty({ enum: Requirements, default: Requirements.CHECK_IN })
+  @ApiProperty({ enum: Requirements, enumName: "Requirements", default: Requirements.CHECK_IN })
   @IsEnum(Requirements)
   @Column({ type: "string", nullable: true, required: false })
   requirement: Requirements = Requirements.CHECK_IN;

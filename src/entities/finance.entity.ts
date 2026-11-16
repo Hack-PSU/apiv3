@@ -8,9 +8,11 @@ import {
   IsNotEmpty,
   Length,
   IsPostalCode,
+  IsBoolean,
 } from "class-validator";
 import { Entity } from "entities/base.entity";
 import { ID, Column, Table } from "common/objection";
+import { Type } from "class-transformer";
 
 export enum Status {
   PENDING = "PENDING",
@@ -28,6 +30,18 @@ export enum Status {
   REJECTED_EXPIRED_SUBMISSION = "REJECTED_EXPIRED_SUBMISSION",
   REJECTED_OTHER = "REJECTED_OTHER",
 }
+
+export const RejectionReasonMap: Partial<Record<Status, string>> = {
+  [Status.REJECTED_INVALID_RECEIPT]: "Invalid receipt",
+  [Status.REJECTED_WRONG_ADDRESS]: "Wrong address",
+  [Status.REJECTED_WRONG_DESCRIPTION]: "Wrong description",
+  [Status.REJECTED_INCORRECT_AMOUNT]: "Incorrect amount",
+  [Status.REJECTED_DUPLICATE_SUBMISSION]: "Duplicate submission",
+  [Status.REJECTED_MISSING_INFORMATION]: "Missing required information",
+  [Status.REJECTED_INELIGIBLE_EXPENSE]: "Ineligible expense",
+  [Status.REJECTED_EXPIRED_SUBMISSION]: "Expired submission deadline",
+  [Status.REJECTED_OTHER]: "Other",
+};
 
 export enum SubmitterType {
   USER = "USER",
@@ -240,12 +254,13 @@ export class Finance extends Entity {
     },
     { each: true },
   )
+  @ApiProperty()
   @Column({ type: "number" })
   amount: number;
 
   @ApiProperty({
     description: "Status of the reimbursement request",
-    enum: Status,
+    enum: Status, enumName: "Status",
     example: Status.PENDING,
   })
   @IsEnum(Status)
@@ -254,7 +269,7 @@ export class Finance extends Entity {
 
   @ApiProperty({
     description: "Type of the submitter (USER or ORGANIZER)",
-    enum: SubmitterType,
+    enum: SubmitterType, enumName: "SubmitterType",
     example: SubmitterType.USER,
   })
   @IsEnum(SubmitterType)
@@ -298,6 +313,8 @@ export class Finance extends Entity {
 
   @ApiProperty({
     description: "Category of the expense",
+    enum: Category,
+    enumName: "Category",
     example: "Travel",
   })
   @IsEnum(Category)
@@ -319,7 +336,7 @@ export class Finance extends Entity {
   })
   @IsNumber()
   @IsOptional()
-  @Column({ type: "integer" })
+  @Column({ type: "integer", required: false })
   updatedAt?: number;
 
   @ApiProperty({
@@ -360,6 +377,16 @@ export class Finance extends Entity {
   @IsPostalCode("US", { message: "Postal code must be a valid US postal code" })
   @Column({ type: "string" })
   postalCode: string;
+
+  @ApiProperty({
+    type: Boolean,
+    description: "Checks whether 4 day reminder was already sent",
+    default: false,
+  })
+  @IsBoolean()
+  @Type(() => Boolean)
+  @Column({ type: "boolean" })
+  reminderSent = false;
 }
 
 export class FinanceEntity extends PickType(Finance, [
@@ -379,4 +406,5 @@ export class FinanceEntity extends PickType(Finance, [
   "city",
   "state",
   "postalCode",
+  "reminderSent",
 ] as const) {}

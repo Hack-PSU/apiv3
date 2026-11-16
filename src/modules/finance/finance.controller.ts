@@ -13,6 +13,7 @@ import {
   Req,
 } from "@nestjs/common";
 import {
+  ApiProperty,
   ApiTags,
   IntersectionType,
   OmitType,
@@ -27,35 +28,59 @@ import {
   CategoryMap,
   Finance,
   FinanceEntity,
+  RejectionReasonMap,
   Status,
   SubmitterType,
 } from "entities/finance.entity";
 import { Hackathon } from "entities/hackathon.entity";
 import { Organizer } from "entities/organizer.entity";
 import { User } from "entities/user.entity";
+import { IsOptional, IsString } from "class-validator";
 import { nanoid } from "nanoid";
 import { FinanceService } from "./finance.service";
 import { UploadedReceipt } from "./uploaded-receipt.decorator";
 import { ReimbursementForm, ReimbursementFormName } from "./reimbursement-form";
-import { DefaultTemplate, SendGridService } from "common/sendgrid";
+import {
+  DefaultTemplate,
+  SendGridService,
+  DefaultFromEmail,
+} from "common/sendgrid";
 
 class BaseFinanceCreateEntity extends OmitType(FinanceEntity, [
   "id",
   "createdAt",
   "hackathonId",
   "updatedBy",
+  "updatedAt",
   "receiptUrl",
   "status",
 ]) {}
 
 class OptionalStatus extends PartialType(
   PickType(FinanceEntity, ["status"] as const),
-) {}
+) {
+  @ApiProperty({
+    required: false,
+    description:
+      "Optional custom message explaining the rejection in more detail",
+  })
+  @IsOptional()
+  @IsString()
+  rejectionMessage?: string;
+}
 
 export class FinanceCreateEntity extends IntersectionType(
   BaseFinanceCreateEntity,
   OptionalStatus,
-) {}
+) {
+  @ApiProperty({
+    type: "string",
+    format: "binary",
+    required: false,
+    description: "Receipt image or PDF backing the request",
+  })
+  receipt?: any;
+}
 
 export class FinancePatchEntity extends PartialType(
   OmitType(FinanceEntity, [
@@ -148,22 +173,28 @@ export class FinanceController {
     finance: FinanceCreateEntity,
     @UploadedReceipt() receipt?: Express.Multer.File,
   ): Promise<Finance> {
+    let submitterName = "";
+
     // Validate submitter
     if (finance.submitterType === SubmitterType.USER) {
       const user = await this.userRepo.findOne(finance.submitterId).exec();
       if (!user) throw new NotFoundException("User not found");
-      
+
       // Prevent users from Penn State Main Campus from submitting reimbursements
-      if (user.university === "The Pennsylvania State University - Main Campus") {
+      if (
+        user.university === "The Pennsylvania State University - Main Campus"
+      ) {
         throw new BadRequestException(
           "Users from The Pennsylvania State University - Main Campus are not eligible for reimbursement",
         );
       }
+      submitterName = `${user.firstName} ${user.lastName}`;
     } else if (finance.submitterType === SubmitterType.ORGANIZER) {
       const organizer = await this.organizerRepo
         .findOne(finance.submitterId)
         .exec();
       if (!organizer) throw new NotFoundException("Organizer not found");
+      submitterName = `${organizer.firstName} ${organizer.lastName}`;
     } else {
       throw new BadRequestException("Invalid submitter type");
     }
@@ -191,11 +222,37 @@ export class FinanceController {
       ...finance,
     };
 
-    return this.financeRepo.createOne(newFinance).exec();
+    const createdRecord = await this.financeRepo.createOne(newFinance).exec();
+
+    // send notification email to the finance team
+    try {
+      const requestMessage = await this.sendGridService.populateTemplate(
+        DefaultTemplate.reimbursementRequest,
+        {
+          name: submitterName,
+          amount: finance.amount,
+          description: finance.description,
+        },
+      );
+
+      await this.sendGridService.send({
+        from: DefaultFromEmail,
+        to: "finance@hackpsu.org",
+        subject: "New Reimbursement Request Submitted",
+        message: requestMessage,
+      });
+    } catch (err) {
+      console.error(
+        "Failed to send reimbursement request notification email",
+        err,
+      );
+    }
+
+    return createdRecord;
   }
 
   @Patch(":id/status")
-  @Roles(Role.TECH) // TODO: Change to Role.FINANCE after testing
+  @Roles(Role.TECH)
   @ApiDoc({
     summary: "Update a Reimbursement's status",
     params: [
@@ -211,7 +268,7 @@ export class FinanceController {
     response: {
       ok: { type: FinanceEntity },
     },
-    auth: Role.FINANCE,
+    auth: Role.TECH,
   })
   async updateStatus(
     @Param("id") id: string,
@@ -236,14 +293,16 @@ export class FinanceController {
     }
     if (statusData.status) {
       finance.status = statusData.status;
-      finance.updatedAt = Date.now(); 
+      finance.updatedAt = Date.now();
     }
     let updatedFinance: Finance;
     try {
-      updatedFinance = await this.financeRepo.patchOne(id, {
-      status: finance.status,
-      updatedAt: finance.updatedAt
-    }).exec();
+      updatedFinance = await this.financeRepo
+        .patchOne(id, {
+          status: finance.status,
+          updatedAt: finance.updatedAt,
+        })
+        .exec();
     } catch (err) {
       console.error("PatchOne threw an error:", err);
       throw new InternalServerErrorException("Failed to update record");
@@ -272,7 +331,7 @@ export class FinanceController {
 
     if (updatedFinance.status === Status.APPROVED) {
       let address1 = updatedFinance.street;
-      let address2 = `${updatedFinance.city}, ${updatedFinance.state} ${updatedFinance.postalCode}`
+      let address2 = `${updatedFinance.city}, ${updatedFinance.state} ${updatedFinance.postalCode}`;
       if (updatedFinance.submitterType === SubmitterType.ORGANIZER) {
         address1 = "";
         address2 = "";
@@ -369,11 +428,15 @@ export class FinanceController {
         message: reimbursementApprovedMessage,
       });
     } else if (updatedFinance.status.startsWith("REJECTED")) {
+      const reason =
+        RejectionReasonMap[updatedFinance.status as Status] ?? "Other";
       const reimbursementRejectedMessage =
         await this.sendGridService.populateTemplate(
           DefaultTemplate.reimbursementRejected,
           {
             firstName: payee,
+            reason,
+            rejectionMessage: statusData.rejectionMessage,
           },
         );
 
@@ -389,7 +452,7 @@ export class FinanceController {
   }
 
   @Patch(":id")
-  @Roles(Role.TECH) // TODO: Change to Role.FINANCE after testing
+  @Roles(Role.TECH)
   @ApiDoc({
     summary: "Edit a reimbursement (everything but status & receipt)",
     params: [{ name: "id", description: "Valid reimbursement ID" }],
@@ -420,8 +483,28 @@ export class FinanceController {
 
     Object.assign(finance, updates);
     finance.updatedBy = req.user.sub;
+    finance.updatedAt = Date.now();
+
+    // Only update allowed fields to prevent database column mismatches
+    const updateData = {
+      amount: updates.amount,
+      description: updates.description,
+      category: updates.category,
+      street: updates.street,
+      city: updates.city,
+      state: updates.state,
+      postalCode: updates.postalCode,
+      updatedBy: finance.updatedBy,
+      updatedAt: finance.updatedAt,
+    };
+
+    // Remove undefined fields
+    Object.keys(updateData).forEach(
+      (key) => updateData[key] === undefined && delete updateData[key],
+    );
+
     try {
-      return await this.financeRepo.patchOne(id, finance).exec();
+      return await this.financeRepo.patchOne(id, updateData).exec();
     } catch (err) {
       console.error("Error updating reimbursement", err);
       throw new InternalServerErrorException("Failed to update record");

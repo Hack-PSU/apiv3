@@ -36,10 +36,18 @@ class OrganizerApplicationCreateEntity extends OmitType(
     "createdAt",
     "updatedAt",
   ] as const,
-) {}
+) {
+  @ApiProperty({
+    type: "string",
+    format: "binary",
+    required: false,
+    description: "Applicant's resume",
+  })
+  resume?: any;
+}
 
 class ApplicationActionDto {
-  @ApiProperty({ enum: OrganizerTeam })
+  @ApiProperty({ enum: OrganizerTeam, enumName: "OrganizerTeam" })
   @IsEnum(OrganizerTeam)
   team: OrganizerTeam;
 }
@@ -51,7 +59,7 @@ export class OrganizerApplicationController {
     @InjectRepository(OrganizerApplication)
     private readonly applicationRepo: Repository<OrganizerApplication>,
     private readonly applicationService: OrganizerApplicationService,
-    private readonly sendGridService: SendGridService
+    private readonly sendGridService: SendGridService,
   ) {}
 
   @Post("/")
@@ -107,6 +115,13 @@ export class OrganizerApplicationController {
   @Roles(Role.TEAM)
   @ApiDoc({
     summary: "Get applications for a specific team",
+    params: [
+      {
+        name: "team",
+        type: String,
+        description: "The team to fetch applications for",
+      },
+    ],
     response: {
       ok: {
         schema: {
@@ -181,6 +196,10 @@ export class OrganizerApplicationController {
     @Param("id", ParseIntPipe) id: number,
     @Body(new ValidationPipe({ transform: true })) action: ApplicationActionDto,
   ): Promise<OrganizerApplication> {
-    return this.applicationService.rejectApplication(id, action.team, this.sendGridService);
+    return this.applicationService.rejectApplication(
+      id,
+      action.team,
+      this.sendGridService,
+    );
   }
 }

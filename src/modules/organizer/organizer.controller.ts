@@ -16,7 +16,7 @@ import {
   ValidationPipe,
 } from "@nestjs/common";
 import { InjectRepository, Repository } from "common/objection";
-import { Organizer, OrganizerEntity } from "entities/organizer.entity";
+import { Organizer, OrganizerEntity, OrganizerScansEntity } from "entities/organizer.entity";
 import { SocketGateway } from "modules/socket/socket.gateway";
 import { ApiProperty, ApiTags, OmitType, PartialType } from "@nestjs/swagger";
 import { FirebaseAuthService, RestrictedRoles, Role, Roles } from "common/gcp";
@@ -366,6 +366,17 @@ export class OrganizerController {
 
   @Get(":id/scans")
   @Roles(Role.EXEC)
+  @ApiDoc({
+    summary: "Get An Organizer With Their Scans",
+    params: [
+      { name: "id", type: String, description: "A valid organizer ID" },
+    ],
+    response: {
+      ok: { type: OrganizerScansEntity },
+    },
+    auth: Role.EXEC,
+    restricted: true,
+  })
   @RestrictedRoles({
     roles: [Role.TEAM],
     predicate: (req) => req.user && req.user.sub === req.params.id,

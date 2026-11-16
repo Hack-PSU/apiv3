@@ -28,6 +28,8 @@ import {
 
 type EndpointOptions = {
   summary: string;
+  /** Longer prose for behaviour a summary cannot carry, such as a response that varies by query. */
+  description?: string;
   params?: ApiParamOptions[];
   query?: ApiQueryOptions[];
   request?: {
@@ -134,7 +136,10 @@ export function ApiDoc(options: EndpointOptions) {
 
   return applyDecorators(
     ApiExtraModels(DBExceptionProductionResponse, DBExceptionStagingResponse),
-    ApiOperation({ summary: options.summary }),
+    ApiOperation({
+      summary: options.summary,
+      ...(options.description ? { description: options.description } : {}),
+    }),
     ...requestDecorators,
     ...responseDecorators,
     ...paramsDecorators,

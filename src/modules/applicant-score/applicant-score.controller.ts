@@ -1,9 +1,19 @@
-import { Body, Controller, Post, Patch, Param, ValidationPipe } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Post,
+  Patch,
+  Param,
+  ValidationPipe,
+} from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { ApiDoc } from "common/docs";
 import { Role } from "common/gcp";
 import { ApplicantScoreService } from "./applicant-score.service";
-import { BulkApplicantScoreDto, UpdatePrioritizedDto } from "./dto/applicant-score.dto";
+import {
+  BulkApplicantScoreDto,
+  UpdatePrioritizedDto,
+} from "./dto/applicant-score.dto";
 import { ApplicantScoreEntity } from "entities/applicant-score.entity";
 
 @ApiTags("Applicants")

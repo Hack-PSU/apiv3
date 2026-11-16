@@ -1,0 +1,6 @@
+# Generated from the API's own OpenAPI document. Never hand-edited: change the
+# NestJS controller or entity and run `yarn openapi && (cd packages && yarn generate)`.
+# CI fails if either artifact is stale. Marking them generated collapses them in
+# diffs and keeps them out of language statistics.
+openapi.json                           linguist-generated=true
+packages/api-client/src/generated/**   linguist-generated=true

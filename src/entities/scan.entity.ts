@@ -45,6 +45,7 @@ export class Scan extends Entity {
   @IsString()
   userId: string;
 
+  @ApiProperty({ description: "Organizer who recorded the scan" })
   @Column({ type: "string" })
   @IsString()
   organizerId: string;

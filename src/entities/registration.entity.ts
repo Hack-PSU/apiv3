@@ -1,13 +1,18 @@
 import { Entity } from "entities/base.entity";
 import { Column, ID, Table } from "common/objection";
 import { ApiProperty, PickType } from "@nestjs/swagger";
-import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString } from "class-validator";
+import {
+  IsBoolean,
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from "class-validator";
 import { Type } from "class-transformer";
 import Objection from "objection";
 import { Hackathon } from "entities/hackathon.entity";
 import { User } from "entities/user.entity";
 import { ApplicantScore } from "entities/applicant-score.entity";
-
 
 export enum ApplicationStatus {
   PENDING = "pending",
@@ -17,7 +22,6 @@ export enum ApplicationStatus {
   CONFIRMED = "confirmed",
   DECLINED = "declined",
 }
-
 
 @Table({
   name: "registrations",
@@ -58,21 +62,21 @@ export class Registration extends Entity {
   @Column({ type: "string" })
   userId: string;
 
-  @ApiProperty({ default: false })
+  @ApiProperty({ required: false, type: Boolean, default: false })
   @IsOptional()
   @IsBoolean()
   @Type(() => Boolean)
   @Column({ type: "boolean" })
   travelReimbursement = false;
 
-  @ApiProperty({ default: false })
+  @ApiProperty({ required: false, type: Boolean, default: false })
   @IsOptional()
   @IsBoolean()
   @Type(() => Boolean)
   @Column({ type: "boolean" })
   driving = false;
 
-  @ApiProperty({ default: false })
+  @ApiProperty({ required: false, type: Boolean, default: false })
   @IsOptional()
   @IsBoolean()
   @Type(() => Boolean)
@@ -133,6 +137,7 @@ export class Registration extends Entity {
     nullable: true,
     default: false,
   })
+  @ApiProperty()
   @IsOptional()
   @IsBoolean()
   @Type(() => Boolean)
@@ -145,6 +150,7 @@ export class Registration extends Entity {
     nullable: true,
     default: false,
   })
+  @ApiProperty()
   @IsOptional()
   @IsBoolean()
   @Type(() => Boolean)
@@ -157,6 +163,7 @@ export class Registration extends Entity {
     nullable: true,
     default: false,
   })
+  @ApiProperty()
   @IsOptional()
   @IsBoolean()
   @Type(() => Boolean)
@@ -175,7 +182,7 @@ export class Registration extends Entity {
   @Column({ type: "string" })
   veteran: string;
 
-  @ApiProperty()
+  @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
   @Column({ type: "string", required: false })
@@ -216,7 +223,12 @@ export class Registration extends Entity {
   @Column({ type: "string", required: false, nullable: true })
   travelAdditional?: string;
 
-  @ApiProperty({ enum: ApplicationStatus, default: ApplicationStatus.PENDING })
+  @ApiProperty({
+    enum: ApplicationStatus,
+    enumName: "ApplicationStatus",
+    default: ApplicationStatus.PENDING,
+    required: false,
+  })
   @IsEnum(ApplicationStatus)
   @Column({ type: "string" })
   applicationStatus: ApplicationStatus = ApplicationStatus.PENDING;
@@ -235,13 +247,25 @@ export class Registration extends Entity {
   @IsOptional()
   @Column({ type: "integer", required: false, nullable: true })
   rsvpAt?: number;
-  
+
   @ApiProperty({ type: "string", required: false, nullable: true })
   @IsOptional()
   @IsString()
   @Column({ type: "string", required: false, nullable: true })
   acceptedBy?: string;
-  
+
+  @ApiProperty({ required: false, nullable: true })
+  @IsBoolean()
+  @Type(() => Boolean)
+  @Column({ type: "boolean", required: false, nullable: true })
+  threeDayReminderSent: boolean = false;
+
+  @ApiProperty({ required: false, nullable: true })
+  @IsBoolean()
+  @Type(() => Boolean)
+  @Column({ type: "boolean", required: false, nullable: true })
+  oneDayReminderSent: boolean = false;
+
   private parseBoolean(name: string, field?: number) {
     return field !== undefined ? { [name]: field === 1 } : {};
   }
@@ -296,4 +320,6 @@ export class RegistrationEntity extends PickType(Registration, [
   "rsvpDeadline",
   "rsvpAt",
   "acceptedBy",
+  "threeDayReminderSent",
+  "oneDayReminderSent",
 ] as const) {}

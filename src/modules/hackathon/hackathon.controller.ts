@@ -142,14 +142,19 @@ export class HackathonController {
   @Roles(Role.TEAM)
   @ApiDoc({
     summary: "Get All Hackathons",
+    description:
+      "Returns every hackathon, or only the inactive ones when active=false. " +
+      "Passing active=true instead returns the single active hackathon; prefer " +
+      "GET /hackathons/active for that, which is typed as one object.",
     query: [
       {
         name: "active",
-        type: ActiveHackathonParams,
+        type: Boolean,
+        required: false,
       },
     ],
     response: {
-      ok: { type: ConditionalHackathonResponse },
+      ok: { type: [ConditionalHackathonResponse] },
     },
     auth: Role.TEAM,
   })
@@ -245,6 +250,32 @@ export class HackathonController {
       ...newHackathon,
       checkInId: newCheckInEvent.id,
     };
+  }
+
+  @Get("/active/static")
+  @ApiDoc({
+    summary: "Get Active Hackathon For Static",
+    response: {
+      ok: { type: StaticActiveHackathonEntity },
+    },
+  })
+  async getForStatic() {
+    return Hackathon.query()
+      .findOne({ active: true })
+      .withGraphFetched("[events.location, sponsors]");
+  }
+
+  @Get("/active")
+  @Roles(Role.NONE)
+  @ApiDoc({
+    summary: "Get Active Hackathon",
+    response: {
+      ok: { type: HackathonResponse },
+    },
+    auth: Role.NONE,
+  })
+  async getActive() {
+    return await Hackathon.query().findOne({ active: true });
   }
 
   @Get(":id")
@@ -388,18 +419,5 @@ export class HackathonController {
     this.socket.emit("update:hackathon", hackathon);
 
     return hackathon;
-  }
-
-  @Get("/active/static")
-  @ApiDoc({
-    summary: "Get Active Hackathon For Static",
-    response: {
-      ok: { type: StaticActiveHackathonEntity },
-    },
-  })
-  async getForStatic() {
-    return Hackathon.query()
-      .findOne({ active: true })
-      .withGraphFetched("[events.location, sponsors]");
   }
 }

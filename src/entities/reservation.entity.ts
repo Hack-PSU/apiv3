@@ -23,13 +23,13 @@ export class Reservation extends Entity {
   @Column({ type: "integer" })
   locationId: number;
 
-  @ApiProperty({ nullable: true })
+  @ApiProperty({ required: false, nullable: true })
   @IsOptional()
   @IsString()
   @Column({ type: "string", nullable: true })
   teamId: string | null;
 
-  @ApiProperty({ enum: ReservationType })
+  @ApiProperty({ enum: ReservationType, enumName: "ReservationType" })
   @IsEnum(ReservationType)
   @Column({ type: "string", required: true })
   reservationType: ReservationType = ReservationType.PARTICIPANT;

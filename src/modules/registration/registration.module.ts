@@ -8,7 +8,9 @@ import { RegistrationController } from "./registration.controller";
 import { RegistrationScheduler } from "./registration.scheduler";
 
 @Module({
-  imports: [ObjectionModule.forFeature([Registration, User, Hackathon, ApplicantScore])],
+  imports: [
+    ObjectionModule.forFeature([Registration, User, Hackathon, ApplicantScore]),
+  ],
   controllers: [RegistrationController],
   providers: [RegistrationScheduler],
 })

@@ -16,6 +16,7 @@ export const firebaseConfig = registerAs<FirebaseConfig>(
       return {
         credential: admin.credential.cert(serviceAccount),
         storageBucket: `${process.env.STORAGE_BUCKET}.appspot.com`,
+        databaseURL: process.env.FIREBASE_RTDB_URL,
       };
     } else {
       // Otherwise, use Application Default credentials. This should happen on the Cloud Run
@@ -24,6 +25,7 @@ export const firebaseConfig = registerAs<FirebaseConfig>(
         credential: admin.credential.applicationDefault(),
         projectId: process.env.GOOGLE_CLOUD_PROJECT,
         storageBucket: `${process.env.STORAGE_BUCKET}.appspot.com`,
+        databaseURL: process.env.FIREBASE_RTDB_URL,
       };
     }
   },

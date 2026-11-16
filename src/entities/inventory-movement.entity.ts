@@ -112,6 +112,7 @@ export class InventoryMovement extends Entity {
     "repair",
     "other",
   ])
+  @ApiProperty()
   @Column({ type: "string" })
   reason:
     | "checkout"
