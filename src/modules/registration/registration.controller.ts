@@ -18,7 +18,7 @@ import {
 import { RegistrationWithScoreDto } from "./dto/registration-with-score.dto";
 import { UpdateStatusDto } from "./dto/update-status.dto";
 import { ApiProperty, ApiTags } from "@nestjs/swagger";
-import { Role, Roles } from "common/gcp";
+import { RestrictedRoles, Role, Roles } from "common/gcp";
 import { ApiDoc } from "common/docs";
 import {
   ArrayMinSize,
@@ -36,6 +36,12 @@ import {
   DefaultTemplate,
   DefaultFromEmail,
 } from "common/sendgrid";
+
+class UpdateTextOptInDto {
+  @ApiProperty({ type: "boolean" })
+  @IsBoolean()
+  textOptIn: boolean;
+}
 
 class UpdateStatusBulkDto {
   @ApiProperty({ type: [String] })
@@ -189,6 +195,58 @@ export class RegistrationController {
     } else {
       return this.registrationRepo.findAll().byHackathon();
     }
+  }
+
+  @Patch("/:userId/text-opt-in")
+  @RestrictedRoles({
+    roles: [Role.NONE, Role.VOLUNTEER],
+    predicate: (req) => req.user && req.user.sub === req.params.userId,
+  })
+  @Roles(Role.TEAM)
+  @ApiDoc({
+    summary: "Update Text Opt-In",
+    params: [
+      {
+        name: "userId",
+        type: "string",
+        description: "The ID of the user to update",
+      },
+    ],
+    request: {
+      body: { type: UpdateTextOptInDto },
+      validate: true,
+    },
+    response: {
+      ok: { type: RegistrationEntity },
+      custom: [{ status: 404, description: "Registration not found" }],
+    },
+    auth: Role.NONE,
+    restricted: true,
+    dbException: true,
+  })
+  async updateTextOptIn(
+    @Param("userId") userId: string,
+    @Body(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+      }),
+    )
+    body: UpdateTextOptInDto,
+  ) {
+    const registration = await this.registrationRepo
+      .findAll()
+      .byHackathon()
+      .where("userId", userId)
+      .first();
+
+    if (!registration) {
+      throw new NotFoundException(`Registration for user ${userId} not found`);
+    }
+
+    return this.registrationRepo
+      .patchOne(registration.id, { textOptIn: body.textOptIn })
+      .exec();
   }
 
   @Patch("/:userId/application-status")
