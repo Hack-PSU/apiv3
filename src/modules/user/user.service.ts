@@ -90,6 +90,7 @@ export class UserService {
         registrations.share_address_mlh, 
         registrations.share_address_sponsors, 
         registrations.share_email_mlh, 
+        registrations.text_opt_in,
         registrations.driving, 
         registrations.travel_reimbursement, 
         registrations.first_hackathon 

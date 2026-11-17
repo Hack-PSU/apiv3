@@ -125,6 +125,9 @@ class UserRegistrationExportRow {
   share_email_mlh: boolean;
 
   @ApiProperty()
+  text_opt_in: boolean;
+
+  @ApiProperty()
   driving: boolean;
 
   @ApiProperty()

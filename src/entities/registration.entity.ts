@@ -170,6 +170,13 @@ export class Registration extends Entity {
   @Column({ type: "boolean", required: false, nullable: true })
   shareEmailMlh?: boolean = false;
 
+  @ApiProperty({ type: "boolean", required: false, default: false })
+  @IsOptional()
+  @IsBoolean()
+  @Type(() => Boolean)
+  @Column({ type: "boolean", required: false })
+  textOptIn?: boolean = false;
+
   @ApiProperty()
   @IsString()
   @Column({ type: "string" })
@@ -275,6 +282,7 @@ export class Registration extends Entity {
       ...this.parseBoolean("shareAddressMlh", json.shareAddressMlh),
       ...this.parseBoolean("shareAddressSponsors", json.shareAddressSponsors),
       ...this.parseBoolean("shareEmailMlh", json.shareEmailMlh),
+      ...this.parseBoolean("textOptIn", json.textOptIn),
       ...this.parseBoolean("firstHackathon", json.firstHackathon),
     };
   }
@@ -299,6 +307,7 @@ export class RegistrationEntity extends PickType(Registration, [
   "project",
   "referral",
   "shareEmailMlh",
+  "textOptIn",
   "time",
   "veteran",
   "excitement",
