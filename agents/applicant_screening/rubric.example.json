@@ -1,0 +1,62 @@
+{
+  "version": "example-v0",
+  "criteria": [
+    {
+      "id": "interest",
+      "name": "Interest in HackPSU",
+      "description": "PLACEHOLDER: How clearly the applicant explains why they want to attend.",
+      "levels": [
+        {
+          "score": 1,
+          "description": "PLACEHOLDER: No reason given, or the reason is unrelated to the event."
+        },
+        {
+          "score": 3,
+          "description": "PLACEHOLDER: A general reason for attending, with little that is specific to the applicant."
+        },
+        {
+          "score": 5,
+          "description": "PLACEHOLDER: A specific, personal reason for attending that connects to what the event offers."
+        }
+      ]
+    },
+    {
+      "id": "project_idea",
+      "name": "Project idea",
+      "description": "PLACEHOLDER: How well the applicant describes something they might build or explore.",
+      "levels": [
+        {
+          "score": 1,
+          "description": "PLACEHOLDER: No project idea or area of interest."
+        },
+        {
+          "score": 3,
+          "description": "PLACEHOLDER: A broad idea or area of interest without much detail."
+        },
+        {
+          "score": 5,
+          "description": "PLACEHOLDER: A concrete idea with a clear problem or goal, at any level of technical complexity."
+        }
+      ]
+    },
+    {
+      "id": "learning_goals",
+      "name": "Learning goals",
+      "description": "PLACEHOLDER: How clearly the applicant describes what they hope to learn or gain.",
+      "levels": [
+        {
+          "score": 1,
+          "description": "PLACEHOLDER: No learning goals mentioned."
+        },
+        {
+          "score": 3,
+          "description": "PLACEHOLDER: General goals such as 'learn new things' or 'meet people'."
+        },
+        {
+          "score": 5,
+          "description": "PLACEHOLDER: Specific skills, tools, or experiences the applicant wants to gain."
+        }
+      ]
+    }
+  ]
+}
