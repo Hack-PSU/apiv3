@@ -45,6 +45,7 @@ import { ApiKeyModule } from "modules/api-key/api-key.module";
 import { ApplicantScoreModule } from "modules/applicant-score/applicant-score.module";
 import { ScheduleModule } from "@nestjs/schedule";
 import { DistributedLockModule } from "common/gcp/scheduler";
+import { BugReportModule } from "modules/bug-reporting/bug-report.module"
 
 @Module({
   imports: [
@@ -117,6 +118,7 @@ import { DistributedLockModule } from "common/gcp/scheduler";
     DriveModule,
     OrganizerApplicationModule,
     ApiKeyModule,
+    BugReportModule,
 
     // WebSocket
     SocketModule,
